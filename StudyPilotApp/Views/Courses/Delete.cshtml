@@ -1,0 +1,56 @@
+@model StudyPilotApp.ViewModels.CourseDeleteViewModel
+@{
+    ViewData["Title"] = "Delete Course";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Delete Course</h1>
+        <p>Review this permanent action carefully.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-xl-7">
+        <section class="card-ui delete-confirmation">
+            <div class="card-body-ui p-lg-5">
+                @if (TempData["CourseError"] is string errorMessage)
+                {
+                    <div class="alert alert-danger rounded-4 text-start"><i class="bi bi-exclamation-triangle me-2"></i>@errorMessage</div>
+                }
+                <div class="delete-warning-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                <h2>Delete @Model.Course.CourseCode?</h2>
+                <p class="text-muted">
+                    You are about to permanently remove <strong>@Model.Course.CourseName</strong> from your StudyPilot account.
+                </p>
+
+                <div class="delete-course-summary">
+                    <div><span>Course</span><strong>@Model.Course.CourseCode · @Model.Course.CourseName</strong></div>
+                    <div><span>Academic period</span><strong>@Model.Course.AcademicTerm @Model.Course.AcademicYear</strong></div>
+                    <div><span>Progress</span><strong>@Model.Course.ProgressPercentage%</strong></div>
+                </div>
+
+                @if (Model.RelatedAssessmentCount > 0)
+                {
+                    <div class="alert alert-danger rounded-4 text-start mt-4">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        Deletion is blocked because this course has <strong>@Model.RelatedAssessmentCount assessment(s)</strong>.
+                        <a asp-controller="Assessments" asp-action="Index" asp-route-courseId="@Model.Course.Id" class="alert-link">Review them first</a>.
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning rounded-4 text-start mt-4"><i class="bi bi-info-circle me-2"></i>No assessment records depend on this course.</div>
+                }
+
+                <form asp-action="Delete" asp-route-id="@Model.Course.Id" method="post" class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+                    <a asp-action="Details" asp-route-id="@Model.Course.Id" class="btn btn-ghost">Keep Course</a>
+                    <button type="submit" class="btn btn-danger" disabled="@(Model.RelatedAssessmentCount > 0 ? "disabled" : null)">
+                        <i class="bi bi-trash3 me-2"></i>Yes, Delete Course
+                    </button>
+                </form>
+            </div>
+        </section>
+    </div>
+</div>

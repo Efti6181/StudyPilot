@@ -1,0 +1,68 @@
+@model StudyPilotApp.ViewModels.AssessmentDetailsViewModel
+@{
+    ViewData["Title"] = "Assessment Details";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+    var item = Model.Assessment;
+}
+
+<div class="page-heading">
+    <div><h1>@item.Title</h1><p>@item.CourseCode · @item.TypeLabel</p></div>
+    <div class="page-actions">
+        <a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>Back</a>
+        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary"><i class="bi bi-pencil me-2"></i>Edit</a>
+    </div>
+</div>
+
+@if (TempData["AssessmentSuccess"] is string message)
+{
+    <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@message</div>
+}
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <section class="assessment-hero @(item.IsOverdue ? "is-overdue" : null)">
+            <div>
+                <span class="assessment-status @item.StatusCss">@item.StatusLabel</span>
+                <h2>@item.Title</h2>
+                <a asp-controller="Courses" asp-action="Details" asp-route-id="@item.CourseId">@item.CourseCode — @item.CourseName</a>
+            </div>
+            <div class="assessment-deadline"><span>Due</span><strong>@item.DueDate.ToString("dd MMM")</strong><small>@item.DueDate.ToString("yyyy · h:mm tt")</small></div>
+        </section>
+
+        <section class="card-ui mt-4">
+            <div class="card-head"><div><h2>Description</h2><p>Requirements and task context</p></div></div>
+            <div class="card-body-ui"><p class="assessment-copy">@(item.Description ?? "No description was added.")</p></div>
+        </section>
+
+        <section class="card-ui mt-4">
+            <div class="card-head"><div><h2>Study notes</h2><p>Your private preparation notes</p></div></div>
+            <div class="card-body-ui"><p class="assessment-copy">@(item.Notes ?? "No notes were added.")</p></div>
+        </section>
+    </div>
+
+    <div class="col-xl-4">
+        <section class="card-ui">
+            <div class="card-head"><div><h2>Assessment information</h2><p>Schedule, marks and effort</p></div></div>
+            <div class="card-body-ui">
+                <div class="data-pair"><span>Type</span><strong>@item.TypeLabel</strong></div>
+                <div class="data-pair"><span>Difficulty</span><strong>@item.Difficulty</strong></div>
+                <div class="data-pair"><span>Assigned</span><strong>@item.AssignedDate.ToString("dd MMM yyyy")</strong></div>
+                <div class="data-pair"><span>Deadline</span><strong>@item.DueDate.ToString("dd MMM yyyy, h:mm tt")</strong></div>
+                <div class="data-pair"><span>Marks</span><strong>@item.MarksLabel</strong></div>
+                <div class="data-pair"><span>Weight</span><strong>@(item.WeightPercentage.HasValue ? $"{item.WeightPercentage:0.##}%" : "Not set")</strong></div>
+                <div class="data-pair"><span>Study time</span><strong>@(item.EstimatedStudyHours.HasValue ? $"{item.EstimatedStudyHours:0.##} hours" : "Not set")</strong></div>
+            </div>
+        </section>
+
+        @if (item.Status != StudyPilotApp.Models.AssessmentStatus.Completed)
+        {
+            <form asp-action="MarkCompleted" asp-route-id="@item.Id" method="post" class="mt-3">
+                <button type="submit" class="btn btn-success w-100"><i class="bi bi-check2-circle me-2"></i>Mark Completed</button>
+            </form>
+        }
+
+        <section class="card-ui danger-zone mt-3">
+            <div class="card-body-ui"><a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger w-100"><i class="bi bi-trash3 me-2"></i>Delete Assessment</a></div>
+        </section>
+    </div>
+</div>

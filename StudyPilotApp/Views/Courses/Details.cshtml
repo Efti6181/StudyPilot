@@ -1,0 +1,127 @@
+@model StudyPilotApp.ViewModels.CourseDetailsViewModel
+@{
+    ViewData["Title"] = Model.Course.CourseCode;
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+    var course = Model.Course;
+    var statusBadge = course.Status switch
+    {
+        CourseStatus.Active => "success",
+        CourseStatus.Completed => "primary",
+        CourseStatus.Dropped => "danger",
+        _ => "neutral"
+    };
+}
+
+<div class="page-heading">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="course-code">@course.CourseCode</span>
+            <span class="mini-badge @statusBadge">@course.Status</span>
+        </div>
+        <h1>@course.CourseName</h1>
+        <p>@course.AcademicTerm @course.AcademicYear · Semester @course.Semester · @course.CreditHours.ToString("0.#") credits</p>
+    </div>
+    <div class="page-actions">
+        <a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>All courses</a>
+        <a asp-action="Edit" asp-route-id="@course.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-2"></i>Edit course</a>
+    </div>
+</div>
+
+@if (TempData["CourseSuccess"] is string successMessage)
+{
+    <div class="alert alert-success border-0 rounded-4 shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@successMessage
+    </div>
+}
+@if (TempData["CourseError"] is string errorMessage)
+{
+    <div class="alert alert-danger border-0 rounded-4 shadow-sm" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i>@errorMessage</div>
+}
+
+<section class="course-hero card-ui mb-3">
+    <div class="course-band @course.ColorCss"></div>
+    <div class="card-body-ui">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-8">
+                <div class="course-faculty mt-0">
+                    <span class="avatar">@course.InstructorInitials</span>
+                    <div><small class="d-block text-muted">Instructor</small><strong>@course.Instructor</strong></div>
+                </div>
+                <p class="course-description mb-0">
+                    @(string.IsNullOrWhiteSpace(course.Description) ? "No course description has been added yet." : course.Description)
+                </p>
+            </div>
+            <div class="col-lg-4">
+                <div class="d-flex justify-content-between small mb-2">
+                    <span class="text-muted">Overall progress</span>
+                    <strong>@course.ProgressPercentage%</strong>
+                </div>
+                <div class="progress course-detail-progress">
+                    <div class="progress-bar @(course.ProgressPercentage < 60 ? "danger" : course.ProgressPercentage >= 75 ? "success" : "primary")"
+                         style="width:@course.ProgressPercentage%"></div>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <span class="mini-badge neutral">@course.CourseType</span>
+                    @if (!string.IsNullOrWhiteSpace(course.TargetGrade))
+                    {
+                        <span class="mini-badge primary">Target grade @course.TargetGrade</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="row g-3">
+    <div class="col-xl-8">
+        <section class="card-ui mb-3">
+            <div class="card-head">
+                <div><h2>Upcoming assessments</h2><p>Assignments, quizzes and exams connected to this course</p></div>
+                <span class="mini-badge primary">@Model.AssessmentCount total</span>
+            </div>
+            <div class="card-body-ui">
+                <div class="module-empty-inline">
+                    <i class="bi bi-clipboard2-check"></i>
+                    <div class="flex-grow-1"><strong>@(Model.AssessmentCount == 0 ? "No assessments connected yet" : $"{Model.AssessmentCount} assessment(s) connected")</strong><p>Open the assessment timeline filtered to this course.</p></div>
+                    <a asp-controller="Assessments" asp-action="Index" asp-route-courseId="@course.Id" class="btn btn-sm btn-primary">View assessments</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="card-ui">
+            <div class="card-head">
+                <div><h2>Course resources</h2><p>Notes, PDFs, videos and useful links</p></div>
+                <span class="mini-badge neutral">Future module</span>
+            </div>
+            <div class="card-body-ui">
+                <div class="module-empty-inline">
+                    <i class="bi bi-collection-play"></i>
+                    <div><strong>No resources connected yet</strong><p>Resources will appear here after that module is implemented.</p></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-4">
+        <section class="card-ui mb-3">
+            <div class="card-head"><div><h2>Course information</h2><p>Academic placement and goal</p></div></div>
+            <div class="card-body-ui">
+                <div class="data-pair"><span>Course code</span><strong>@course.CourseCode</strong></div>
+                <div class="data-pair"><span>Course type</span><strong>@course.CourseType</strong></div>
+                <div class="data-pair"><span>Credit hours</span><strong>@course.CreditHours.ToString("0.#")</strong></div>
+                <div class="data-pair"><span>Semester</span><strong>Semester @course.Semester</strong></div>
+                <div class="data-pair"><span>Academic period</span><strong>@course.AcademicTerm @course.AcademicYear</strong></div>
+                <div class="data-pair"><span>Target grade</span><strong>@(course.TargetGrade ?? "Not set")</strong></div>
+            </div>
+        </section>
+
+        <section class="card-ui danger-zone">
+            <div class="card-head"><div><h2>Course management</h2><p>Permanent course actions</p></div></div>
+            <div class="card-body-ui">
+                <a asp-action="Delete" asp-route-id="@course.Id" class="btn btn-outline-danger w-100">
+                    <i class="bi bi-trash3 me-2"></i>Delete Course
+                </a>
+            </div>
+        </section>
+    </div>
+</div>

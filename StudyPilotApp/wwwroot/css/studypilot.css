@@ -700,3 +700,91 @@ textarea.form-control { resize: vertical; }
 @media (min-width: 1200px) {
   .profile-photo-card { position: sticky; top: 92px; }
 }
+
+/* PostgreSQL-backed Courses module */
+.metric-icon-danger { color: var(--danger); background: rgba(239,68,68,.11); }
+.course-filter-form { display: grid; grid-template-columns: minmax(240px, 1.7fr) repeat(3, minmax(145px, .7fr)) auto auto; gap: 10px; align-items: center; }
+.course-search-field { position: relative; }
+.course-search-field > i { position: absolute; z-index: 1; top: 50%; left: 14px; color: var(--muted); transform: translateY(-50%); }
+.course-search-field .form-control { padding-left: 40px; }
+.course-meta-line { display: flex; justify-content: space-between; gap: 8px; margin-top: 14px; color: var(--muted); font-size: .7rem; }
+.course-meta-line i { margin-right: 5px; color: var(--primary); }
+.course-description { color: var(--muted); font-size: .82rem; line-height: 1.75; white-space: pre-line; }
+.course-detail-progress { height: 11px; }
+.input-group-text { color: var(--muted); background: var(--surface-2); border-color: var(--line); }
+.module-empty-inline { display: flex; align-items: center; gap: 14px; padding: 20px; color: var(--muted); background: var(--surface-2); border: 1px dashed var(--line); border-radius: 15px; }
+.module-empty-inline > i { color: var(--primary); font-size: 1.6rem; }
+.module-empty-inline strong { display: block; color: var(--ink); font-size: .82rem; }
+.module-empty-inline p { margin: 3px 0 0; font-size: .73rem; }
+.danger-zone { border-color: rgba(239,68,68,.25); }
+.delete-confirmation { text-align: center; }
+.delete-warning-icon { display: grid; place-items: center; width: 70px; height: 70px; margin: 0 auto 18px; color: var(--danger); background: rgba(239,68,68,.11); border-radius: 22px; font-size: 1.8rem; }
+.delete-confirmation h2 { font-weight: 850; }
+.delete-course-summary { display: grid; gap: 1px; margin-top: 24px; overflow: hidden; text-align: left; background: var(--line); border: 1px solid var(--line); border-radius: 14px; }
+.delete-course-summary > div { display: flex; justify-content: space-between; gap: 20px; padding: 13px 15px; background: var(--surface-2); }
+.delete-course-summary span { color: var(--muted); font-size: .73rem; }
+.delete-course-summary strong { text-align: right; font-size: .78rem; }
+
+@media (max-width: 1199.98px) {
+  .course-filter-form { grid-template-columns: 1fr 1fr; }
+  .course-search-field { grid-column: 1 / -1; }
+}
+
+@media (max-width: 575.98px) {
+  .course-filter-form { display: flex; flex-direction: column; align-items: stretch; }
+  .course-meta-line { flex-direction: column; }
+  .delete-course-summary > div { display: block; }
+  .delete-course-summary strong { display: block; margin-top: 4px; text-align: left; }
+}
+
+/* PostgreSQL-backed Assessments module */
+.assessment-filter-form { display: grid; grid-template-columns: minmax(220px, 1.4fr) repeat(4, minmax(135px, .75fr)) auto auto auto; gap: 10px; align-items: center; }
+.assessment-overdue-toggle { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 13px; color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); border-radius: 11px; font-size: .72rem; font-weight: 750; white-space: nowrap; cursor: pointer; }
+.assessment-overdue-toggle input { accent-color: var(--danger); }
+.assessment-table th { white-space: nowrap; }
+.assessment-table td { min-width: 125px; }
+.assessment-table td:first-child { min-width: 230px; }
+.assessment-table td small { display: block; margin-top: 4px; color: var(--muted); font-size: .67rem; }
+.assessment-title { color: var(--ink); font-size: .82rem; font-weight: 820; text-decoration: none; }
+.assessment-title:hover { color: var(--primary); }
+.assessment-subline { display: flex; gap: 6px; margin-top: 4px; color: var(--muted); font-size: .67rem; }
+.course-code-link { display: block; color: var(--primary); font-size: .76rem; font-weight: 850; text-decoration: none; }
+.assessment-status { display: inline-flex; align-items: center; padding: 5px 9px; border-radius: 999px; font-size: .64rem; font-weight: 850; }
+.assessment-status.notstarted { color: #64748b; background: rgba(100,116,139,.12); }
+.assessment-status.inprogress { color: #2563eb; background: rgba(37,99,235,.12); }
+.assessment-status.completed { color: #15803d; background: rgba(34,197,94,.13); }
+.assessment-status.overdue { color: #dc2626; background: rgba(239,68,68,.12); }
+.assessment-row-overdue { background: rgba(239,68,68,.025); }
+.assessment-row-overdue td:first-child { box-shadow: inset 3px 0 0 var(--danger); }
+.empty-module-state { padding: 65px 24px; text-align: center; }
+.empty-module-state h2 { margin: 0 0 8px; font-size: 1.25rem; font-weight: 850; }
+.empty-module-state p { margin-bottom: 20px; color: var(--muted); }
+.assessment-form-card { max-width: 1050px; margin: 0 auto; }
+.form-section-title { display: flex; align-items: center; gap: 9px; margin: 28px 0 14px; padding-top: 24px; color: var(--ink); border-top: 1px solid var(--line); font-size: .83rem; font-weight: 850; }
+.form-section-title i { color: var(--primary); }
+.assessment-hero { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 28px; color: #fff; background: linear-gradient(125deg, #1e40af, #4f46e5 55%, #0f766e); border-radius: var(--radius); box-shadow: var(--shadow-blue); }
+.assessment-hero.is-overdue { background: linear-gradient(125deg, #7f1d1d, #dc2626 55%, #ea580c); }
+.assessment-hero h2 { margin: 14px 0 5px; font-size: clamp(1.35rem, 3vw, 2rem); font-weight: 900; }
+.assessment-hero a { color: rgba(255,255,255,.78); font-size: .78rem; text-decoration: none; }
+.assessment-hero .assessment-status { color: #fff; background: rgba(255,255,255,.17); }
+.assessment-deadline { flex: 0 0 auto; min-width: 145px; padding: 18px; text-align: center; color: var(--ink); background: #fff; border-radius: 17px; box-shadow: var(--shadow); }
+.assessment-deadline span, .assessment-deadline small { display: block; color: #64748b; font-size: .65rem; }
+.assessment-deadline strong { display: block; margin: 2px 0; font-size: 1.35rem; font-weight: 900; }
+.assessment-copy { margin: 0; color: var(--muted); font-size: .82rem; line-height: 1.8; white-space: pre-line; }
+
+@media (max-width: 1399.98px) {
+  .assessment-filter-form { grid-template-columns: repeat(4, 1fr); }
+  .assessment-filter-form .course-search-field { grid-column: span 2; }
+}
+
+@media (max-width: 767.98px) {
+  .assessment-filter-form { grid-template-columns: 1fr 1fr; }
+  .assessment-filter-form .course-search-field { grid-column: 1 / -1; }
+  .assessment-hero { align-items: stretch; flex-direction: column; }
+  .assessment-deadline { width: 100%; }
+}
+
+@media (max-width: 575.98px) {
+  .assessment-filter-form { display: flex; flex-direction: column; align-items: stretch; }
+  .assessment-filter-form > * { width: 100%; }
+}

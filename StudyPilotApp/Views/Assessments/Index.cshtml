@@ -1,0 +1,102 @@
+@model StudyPilotApp.ViewModels.AssessmentListViewModel
+@{
+    ViewData["Title"] = "Assessments";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="page-heading">
+    <div><h1>Assessments</h1><p>Track every deadline, mark and study commitment in one place.</p></div>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Add Assessment</a>
+    </div>
+</div>
+
+@if (TempData["AssessmentSuccess"] is string message)
+{
+    <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@message</div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl"><div class="metric-card"><div class="metric-icon"><i class="bi bi-collection"></i></div><span>Total</span><strong>@Model.Total</strong><small>All assessments</small></div></div>
+    <div class="col-6 col-xl"><div class="metric-card"><div class="metric-icon metric-icon-teal"><i class="bi bi-check2-circle"></i></div><span>Completed</span><strong>@Model.Completed</strong><small>Finished work</small></div></div>
+    <div class="col-6 col-xl"><div class="metric-card"><div class="metric-icon metric-icon-warning"><i class="bi bi-calendar-week"></i></div><span>Due in 7 days</span><strong>@Model.DueThisWeek</strong><small>Plan these first</small></div></div>
+    <div class="col-6 col-xl"><div class="metric-card"><div class="metric-icon metric-icon-danger"><i class="bi bi-exclamation-triangle"></i></div><span>Overdue</span><strong>@Model.Overdue</strong><small>Needs attention</small></div></div>
+</div>
+
+<section class="card-ui mb-4">
+    <div class="card-body-ui">
+        <form asp-action="Index" method="get" class="assessment-filter-form">
+            <div class="course-search-field">
+                <i class="bi bi-search"></i>
+                <input name="search" value="@Model.Search" class="form-control" placeholder="Search title or course…" />
+            </div>
+            <select name="courseId" asp-items="Model.CourseOptions" class="form-select"><option value="">All courses</option></select>
+            <select asp-for="Status" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.AssessmentStatus>()" class="form-select"><option value="">All statuses</option></select>
+            <select asp-for="Type" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.AssessmentType>()" class="form-select"><option value="">All types</option></select>
+            <select name="sort" class="form-select">
+                <option value="deadline" selected="@(Model.Sort == "deadline" ? "selected" : null)">Nearest deadline</option>
+                <option value="latest" selected="@(Model.Sort == "latest" ? "selected" : null)">Latest deadline</option>
+                <option value="course" selected="@(Model.Sort == "course" ? "selected" : null)">Course</option>
+                <option value="status" selected="@(Model.Sort == "status" ? "selected" : null)">Status</option>
+                <option value="created" selected="@(Model.Sort == "created" ? "selected" : null)">Recently added</option>
+            </select>
+            <label class="assessment-overdue-toggle">
+                <input asp-for="OverdueOnly" type="checkbox" />
+                <span>Overdue only</span>
+            </label>
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a asp-action="Index" class="btn btn-ghost" title="Clear filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+        </form>
+    </div>
+</section>
+
+@if (Model.Assessments.Count == 0)
+{
+    <section class="card-ui empty-module-state">
+        <div class="empty-icon"><i class="bi bi-clipboard2-check"></i></div>
+        <h2>No assessments found</h2>
+        <p>@(Model.Total == 0 ? "Add your first assignment, quiz, exam, lab, or project." : "Try clearing or changing the current filters.")</p>
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Add Assessment</a>
+    </section>
+}
+else
+{
+    <section class="card-ui overflow-hidden">
+        <div class="card-head"><div><h2>Assessment timeline</h2><p>@Model.Assessments.Count result(s), ordered by @Model.Sort.</p></div></div>
+        <div class="table-responsive">
+            <table class="table assessment-table align-middle mb-0">
+                <thead><tr><th>Assessment</th><th>Course</th><th>Deadline</th><th>Status</th><th>Marks</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                @foreach (var item in Model.Assessments)
+                {
+                    <tr class="@(item.IsOverdue ? "assessment-row-overdue" : null)">
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="assessment-title">@item.Title</a>
+                            <div class="assessment-subline"><span>@item.TypeLabel</span><span>·</span><span>@item.Difficulty</span></div>
+                        </td>
+                        <td><a asp-controller="Courses" asp-action="Details" asp-route-id="@item.CourseId" class="course-code-link">@item.CourseCode</a><small>@item.CourseName</small></td>
+                        <td><strong>@item.DueDate.ToString("dd MMM yyyy")</strong><small>@item.DueDate.ToString("h:mm tt")</small></td>
+                        <td><span class="assessment-status @item.StatusCss">@item.StatusLabel</span></td>
+                        <td><strong>@item.MarksLabel</strong>@if (item.WeightPercentage.HasValue) { <small>@item.WeightPercentage.Value.ToString("0.##")% weight</small> }</td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-icon btn-ghost" data-bs-toggle="dropdown" type="button" aria-label="Assessment actions"><i class="bi bi-three-dots"></i></button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye me-2"></i>View</a></li>
+                                    <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                                    @if (item.Status != StudyPilotApp.Models.AssessmentStatus.Completed)
+                                    {
+                                        <li><form asp-action="MarkCompleted" asp-route-id="@item.Id" method="post"><button class="dropdown-item" type="submit"><i class="bi bi-check2-circle me-2"></i>Mark completed</button></form></li>
+                                    }
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash3 me-2"></i>Delete</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}

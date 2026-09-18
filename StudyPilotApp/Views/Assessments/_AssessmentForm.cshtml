@@ -1,0 +1,88 @@
+@model StudyPilotApp.ViewModels.AssessmentFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-4" role="alert"></div>
+
+@if (Model.CourseOptions.Count == 0)
+{
+    <div class="alert alert-warning rounded-4">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Add a course before creating an assessment.
+        <a asp-controller="Courses" asp-action="Create" class="alert-link">Add course</a>
+    </div>
+}
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" placeholder="e.g. Database normalization assignment" autofocus />
+        <span asp-validation-for="Title" class="text-danger small"></span>
+    </div>
+    <div class="col-md-5">
+        <label asp-for="CourseId" class="form-label"></label>
+        <select asp-for="CourseId" asp-items="Model.CourseOptions" class="form-select">
+            <option value="">Select a course</option>
+        </select>
+        <span asp-validation-for="CourseId" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Type" class="form-label"></label>
+        <select asp-for="Type" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.AssessmentType>()" class="form-select">
+            <option value="">Select type</option>
+        </select>
+        <span asp-validation-for="Type" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Status" class="form-label"></label>
+        <select asp-for="Status" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.AssessmentStatus>()" class="form-select"></select>
+        <span asp-validation-for="Status" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Difficulty" class="form-label"></label>
+        <select asp-for="Difficulty" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.AssessmentDifficulty>()" class="form-select"></select>
+        <span asp-validation-for="Difficulty" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="AssignedDate" class="form-label"></label>
+        <input asp-for="AssignedDate" class="form-control" type="date" />
+        <span asp-validation-for="AssignedDate" class="text-danger small"></span>
+    </div>
+    <div class="col-md-8">
+        <label asp-for="DueDate" class="form-label"></label>
+        <input asp-for="DueDate" class="form-control" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" />
+        <span asp-validation-for="DueDate" class="text-danger small"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="4" maxlength="2000" placeholder="Requirements, topics, submission details…"></textarea>
+        <span asp-validation-for="Description" class="text-danger small"></span>
+    </div>
+</div>
+
+<div class="form-section-title"><i class="bi bi-bar-chart"></i> Marks and planning</div>
+<div class="row g-3">
+    <div class="col-md-3">
+        <label asp-for="TotalMarks" class="form-label"></label>
+        <input asp-for="TotalMarks" class="form-control" min="0" step="0.01" placeholder="100" />
+        <span asp-validation-for="TotalMarks" class="text-danger small"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="ObtainedMarks" class="form-label"></label>
+        <input asp-for="ObtainedMarks" class="form-control" min="0" step="0.01" placeholder="Optional" />
+        <span asp-validation-for="ObtainedMarks" class="text-danger small"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="WeightPercentage" class="form-label"></label>
+        <div class="input-group"><input asp-for="WeightPercentage" class="form-control" min="0" max="100" step="0.01" /><span class="input-group-text">%</span></div>
+        <span asp-validation-for="WeightPercentage" class="text-danger small"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="EstimatedStudyHours" class="form-label"></label>
+        <div class="input-group"><input asp-for="EstimatedStudyHours" class="form-control" min="0" step="0.25" /><span class="input-group-text">hours</span></div>
+        <span asp-validation-for="EstimatedStudyHours" class="text-danger small"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Notes" class="form-label"></label>
+        <textarea asp-for="Notes" class="form-control" rows="3" maxlength="2000" placeholder="Private study notes, reminders, links…"></textarea>
+        <span asp-validation-for="Notes" class="text-danger small"></span>
+    </div>
+</div>

@@ -1,0 +1,28 @@
+@model StudyPilotApp.ViewModels.AssessmentDeleteViewModel
+@{
+    ViewData["Title"] = "Delete Assessment";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="page-heading"><div><h1>Delete Assessment</h1><p>Review this permanent action carefully.</p></div></div>
+
+<div class="row justify-content-center">
+    <div class="col-xl-7">
+        <section class="card-ui delete-confirmation">
+            <div class="card-body-ui p-lg-5">
+                <div class="delete-warning-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                <h2>Delete @Model.Assessment.Title?</h2>
+                <p class="text-muted">This removes the assessment and its stored marks and notes. This action cannot be undone.</p>
+                <div class="delete-course-summary">
+                    <div><span>Course</span><strong>@Model.Assessment.CourseCode · @Model.Assessment.CourseName</strong></div>
+                    <div><span>Deadline</span><strong>@Model.Assessment.DueDate.ToString("dd MMM yyyy, h:mm tt")</strong></div>
+                    <div><span>Status</span><strong>@Model.Assessment.StatusLabel</strong></div>
+                </div>
+                <form asp-action="Delete" asp-route-id="@Model.Assessment.Id" method="post" class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+                    <a asp-action="Details" asp-route-id="@Model.Assessment.Id" class="btn btn-ghost">Keep Assessment</a>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash3 me-2"></i>Yes, Delete</button>
+                </form>
+            </div>
+        </section>
+    </div>
+</div>

@@ -1,5 +1,6 @@
 @model StudyPilotApp.ViewModels.StudentShellViewModel
 @{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var profileImageUrl = Model.HasProfileImage
         ? Url.Action("ProfileImage", "Student", new { v = Model.ProfileImageVersion })
@@ -34,19 +35,19 @@
 
             <nav class="sidebar-nav" aria-label="Student navigation">
                 <div class="sidebar-label">Overview</div>
-                <a class="sidebar-link @(currentAction == "Index" ? "active" : null)" asp-controller="Student" asp-action="Index">
+                <a class="sidebar-link @(currentController == "Student" && currentAction == "Index" ? "active" : null)" asp-controller="Student" asp-action="Index">
                     <i class="bi bi-grid-1x2"></i><span>Student Dashboard</span>
                 </a>
-                <a class="sidebar-link @(currentAction == "Profile" ? "active" : null)" asp-controller="Student" asp-action="Profile">
+                <a class="sidebar-link @(currentController == "Student" && currentAction == "Profile" ? "active" : null)" asp-controller="Student" asp-action="Profile">
                     <i class="bi bi-person"></i><span>My Profile</span>
                 </a>
 
                 <div class="sidebar-label">Academics</div>
-                <a class="sidebar-link" href="#" data-coming-soon="Courses">
+                <a class="sidebar-link @(currentController == "Courses" ? "active" : null)" asp-controller="Courses" asp-action="Index">
                     <i class="bi bi-journals"></i><span>Courses</span>
                 </a>
-                <a class="sidebar-link" href="#" data-coming-soon="Assessments">
-                    <i class="bi bi-clipboard2-check"></i><span>Assessments</span><span class="nav-pill">3</span>
+                <a class="sidebar-link @(currentController == "Assessments" ? "active" : null)" asp-controller="Assessments" asp-action="Index">
+                    <i class="bi bi-clipboard2-check"></i><span>Assessments</span>
                 </a>
                 <a class="sidebar-link" href="#" data-coming-soon="GPA and Planner">
                     <i class="bi bi-calculator"></i><span>GPA &amp; Planner</span>

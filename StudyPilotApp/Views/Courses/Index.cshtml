@@ -1,0 +1,181 @@
+@model StudyPilotApp.ViewModels.CourseListViewModel
+@{
+    ViewData["Title"] = "My Courses";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="page-heading">
+    <div>
+        <h1>My Courses</h1>
+        <p>Track every course, instructor, credit and completion milestone.</p>
+    </div>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Add Course
+        </a>
+    </div>
+</div>
+
+@if (TempData["CourseSuccess"] is string successMessage)
+{
+    <div class="alert alert-success border-0 rounded-4 shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@successMessage
+    </div>
+}
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="bi bi-journals"></i></div>
+            <div class="metric-label">Active courses</div>
+            <div class="metric-value">@Model.ActiveCourses</div>
+            <div class="metric-caption">@Model.ActiveCredits.ToString("0.#") registered credits</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-teal"><i class="bi bi-check2-circle"></i></div>
+            <div class="metric-label">Average progress</div>
+            <div class="metric-value">@Model.AverageProgress.ToString("0.#")%</div>
+            <div class="metric-caption">Across active courses</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-warning"><i class="bi bi-award"></i></div>
+            <div class="metric-label">Credit load</div>
+            <div class="metric-value">@Model.ActiveCredits.ToString("0.#")</div>
+            <div class="metric-caption">Current active credits</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-danger"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="metric-label">Needs attention</div>
+            <div class="metric-value">@Model.NeedsAttention</div>
+            <div class="metric-caption">Below 60% progress</div>
+        </div>
+    </div>
+</div>
+
+<section class="card-ui mb-3">
+    <div class="card-body-ui">
+        <form asp-action="Index" method="get" class="course-filter-form">
+            <div class="course-search-field">
+                <i class="bi bi-search"></i>
+                <input asp-for="Search" class="form-control" placeholder="Search code, name or instructor" />
+            </div>
+            <select asp-for="Status" asp-items="Html.GetEnumSelectList<CourseStatus>()" class="form-select" aria-label="Filter by status">
+                <option value="">All statuses</option>
+            </select>
+            <select asp-for="Type" asp-items="Html.GetEnumSelectList<CourseType>()" class="form-select" aria-label="Filter by course type">
+                <option value="">All types</option>
+            </select>
+            <select asp-for="Sort" class="form-select" aria-label="Sort courses">
+                <option value="code">Sort: Course code</option>
+                <option value="name">Course name</option>
+                <option value="credits">Highest credits</option>
+                <option value="progress">Highest progress</option>
+                <option value="newest">Newest first</option>
+            </select>
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a asp-action="Index" class="btn btn-ghost" title="Clear filters"><i class="bi bi-x-lg"></i></a>
+        </form>
+    </div>
+</section>
+
+@if (Model.Courses.Count > 0)
+{
+    <div class="filter-pills mb-3" id="courseProgressFilters" aria-label="Filter loaded courses by progress">
+        <button class="filter-btn active" type="button" data-progress-filter="all">All loaded</button>
+        <button class="filter-btn" type="button" data-progress-filter="risk">Needs focus</button>
+        <button class="filter-btn" type="button" data-progress-filter="strong">Strong progress</button>
+    </div>
+
+    <div class="row g-3" id="courseGrid">
+        @foreach (var course in Model.Courses)
+        {
+            var statusBadge = course.Status switch
+            {
+                CourseStatus.Active => "success",
+                CourseStatus.Completed => "primary",
+                CourseStatus.Dropped => "danger",
+                _ => "neutral"
+            };
+
+            <div class="col-md-6 col-xl-4 course-item" data-progress-state="@course.ProgressState">
+                <article class="card-ui hoverable course-card">
+                    <div class="course-band @course.ColorCss"></div>
+                    <div class="course-body">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <span class="course-code">@course.CourseCode</span>
+                            <span class="mini-badge @statusBadge">@course.Status</span>
+                        </div>
+                        <h3>@course.CourseName</h3>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="mini-badge neutral">@course.CreditHours.ToString("0.#") credits</span>
+                            <span class="mini-badge neutral">@course.CourseType</span>
+                            @if (!string.IsNullOrWhiteSpace(course.TargetGrade))
+                            {
+                                <span class="mini-badge primary">Target @course.TargetGrade</span>
+                            }
+                        </div>
+                        <div class="course-faculty">
+                            <span class="avatar">@course.InstructorInitials</span>
+                            <span>@course.Instructor</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-2">
+                            <span class="text-muted">Course progress</span>
+                            <strong>@course.ProgressPercentage%</strong>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar @(course.ProgressPercentage < 60 ? "danger" : course.ProgressPercentage >= 75 ? "success" : "primary")"
+                                 style="width:@course.ProgressPercentage%"></div>
+                        </div>
+                        <div class="course-meta-line">
+                            <span><i class="bi bi-calendar3"></i>@course.AcademicTerm @course.AcademicYear</span>
+                            <span>Semester @course.Semester</span>
+                        </div>
+                        <div class="course-footer">
+                            <a asp-action="Edit" asp-route-id="@course.Id" class="btn btn-sm btn-ghost" title="Edit course">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a asp-action="Details" asp-route-id="@course.Id" class="btn btn-sm btn-soft-primary">
+                                Open course <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        }
+    </div>
+
+    <div class="empty-state" id="courseClientEmpty">
+        <div class="empty-icon"><i class="bi bi-journals"></i></div>
+        <h2 class="h5">No loaded courses match this progress filter</h2>
+        <p class="text-muted">Select another progress category.</p>
+    </div>
+}
+else
+{
+    <section class="card-ui">
+        <div class="empty-state d-block">
+            <div class="empty-icon"><i class="bi bi-journals"></i></div>
+            <h2 class="h5">No courses found</h2>
+            @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.Status.HasValue || Model.Type.HasValue)
+            {
+                <p class="text-muted">Clear the filters or try another search.</p>
+                <a asp-action="Index" class="btn btn-ghost me-2">Clear filters</a>
+            }
+            else
+            {
+                <p class="text-muted">Add your first course to start building your academic workspace.</p>
+            }
+            <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Add Course</a>
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script src="~/js/courses.js" asp-append-version="true"></script>
+}

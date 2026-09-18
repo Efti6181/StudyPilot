@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StudyPilotApp.Data;
@@ -11,9 +12,11 @@ using StudyPilotApp.Data;
 namespace StudyPilotApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260918115105_AddStudentCourses")]
+    partial class AddStudentCourses
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -224,86 +227,6 @@ namespace StudyPilotApp.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("StudyPilotApp.Models.Assessment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ApplicationUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateOnly>("AssignedDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("CourseId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<int>("Difficulty")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("DueDate")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<decimal?>("EstimatedStudyHours")
-                        .HasPrecision(7, 2)
-                        .HasColumnType("numeric(7,2)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<decimal?>("ObtainedMarks")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)");
-
-                    b.Property<decimal?>("TotalMarks")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal?>("WeightPercentage")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("numeric(5,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId", "DueDate");
-
-                    b.HasIndex("ApplicationUserId", "Status");
-
-                    b.HasIndex("CourseId", "ApplicationUserId");
-
-                    b.ToTable("Assessments");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.Course", b =>
@@ -614,18 +537,6 @@ namespace StudyPilotApp.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("StudyPilotApp.Models.Assessment", b =>
-                {
-                    b.HasOne("StudyPilotApp.Models.Course", "Course")
-                        .WithMany("Assessments")
-                        .HasForeignKey("CourseId", "ApplicationUserId")
-                        .HasPrincipalKey("Id", "ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-                });
-
             modelBuilder.Entity("StudyPilotApp.Models.Course", b =>
                 {
                     b.HasOne("StudyPilotApp.Models.ApplicationUser", "ApplicationUser")
@@ -665,11 +576,6 @@ namespace StudyPilotApp.Migrations
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Restrict);
-                });
-
-            modelBuilder.Entity("StudyPilotApp.Models.Course", b =>
-                {
-                    b.Navigation("Assessments");
                 });
 #pragma warning restore 612, 618
         }
