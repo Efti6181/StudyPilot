@@ -1,4 +1,10 @@
-@model StudyPilotApp.ViewModels.StudentDashboardViewModel
+@model StudyPilotApp.ViewModels.StudentShellViewModel
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var profileImageUrl = Model.HasProfileImage
+        ? Url.Action("ProfileImage", "Student", new { v = Model.ProfileImageVersion })
+        : null;
+}
 <!doctype html>
 <html lang="en">
 <head>
@@ -28,10 +34,10 @@
 
             <nav class="sidebar-nav" aria-label="Student navigation">
                 <div class="sidebar-label">Overview</div>
-                <a class="sidebar-link active" asp-controller="Student" asp-action="Index">
+                <a class="sidebar-link @(currentAction == "Index" ? "active" : null)" asp-controller="Student" asp-action="Index">
                     <i class="bi bi-grid-1x2"></i><span>Student Dashboard</span>
                 </a>
-                <a class="sidebar-link" href="#" data-coming-soon="Student Profile">
+                <a class="sidebar-link @(currentAction == "Profile" ? "active" : null)" asp-controller="Student" asp-action="Profile">
                     <i class="bi bi-person"></i><span>My Profile</span>
                 </a>
 
@@ -67,10 +73,19 @@
             </nav>
 
             <div class="sidebar-user">
-                <span class="avatar">@Model.Initials</span>
+                <span class="avatar">
+                    @if (Model.HasProfileImage)
+                    {
+                        <img src="@profileImageUrl" alt="@Model.FullName" />
+                    }
+                    else
+                    {
+                        @Model.Initials
+                    }
+                </span>
                 <div class="sidebar-user-copy">
                     <strong>@Model.FullName</strong>
-                    <small>@Model.Program · @Model.Semester</small>
+                    <small>@Model.DepartmentLabel · @Model.SemesterLabel</small>
                 </div>
                 <form asp-controller="Account" asp-action="Logout" method="post" class="ms-auto">
                     <button class="sidebar-logout" type="submit" title="Logout" aria-label="Logout">
@@ -100,8 +115,17 @@
                     <button class="btn btn-icon position-relative" id="notificationButton" type="button" aria-label="Notifications">
                         <i class="bi bi-bell"></i><span class="notification-dot"></span>
                     </button>
-                    <a class="topbar-profile" href="#" data-coming-soon="Student Profile">
-                        <span class="avatar">@Model.Initials</span>
+                    <a class="topbar-profile" asp-controller="Student" asp-action="Profile">
+                        <span class="avatar">
+                            @if (Model.HasProfileImage)
+                            {
+                                <img src="@profileImageUrl" alt="@Model.FullName" />
+                            }
+                            else
+                            {
+                                @Model.Initials
+                            }
+                        </span>
                         <div><strong>@Model.FullName</strong><small>Student</small></div>
                     </a>
                 </div>

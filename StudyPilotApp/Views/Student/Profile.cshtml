@@ -1,0 +1,267 @@
+@model StudyPilotApp.ViewModels.StudentProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+    var profileImageUrl = Model.HasProfileImage
+        ? Url.Action("ProfileImage", "Student", new { v = Model.ProfileImageVersion })
+        : null;
+}
+
+<div class="page-heading">
+    <div>
+        <h1>My Profile</h1>
+        <p>Keep your academic, contact and personal information up to date.</p>
+    </div>
+</div>
+
+@if (TempData["ProfileSuccess"] is string successMessage)
+{
+    <div class="alert alert-success border-0 rounded-4 shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@successMessage
+    </div>
+}
+
+<section class="card-ui mb-3 overflow-hidden">
+    <div class="profile-cover"></div>
+    <div class="profile-summary">
+        <div class="profile-avatar" id="profileAvatar">
+            @if (Model.HasProfileImage)
+            {
+                <img id="profileImagePreview"
+                     src="@profileImageUrl"
+                     alt="@Model.FullName" />
+            }
+            else
+            {
+                <span id="profileInitials">@Model.Initials</span>
+                <img id="profileImagePreview" class="d-none" alt="Profile preview" />
+            }
+        </div>
+        <div>
+            <h2>@Model.FullName</h2>
+            <p>@Model.DepartmentLabel · Student ID: @Model.StudentId</p>
+            <div class="mt-2">
+                <span class="mini-badge primary">Active student</span>
+                <span class="mini-badge neutral">@Model.SemesterLabel</span>
+            </div>
+        </div>
+        <div class="profile-complete">
+            <div class="d-flex justify-content-between small mb-2">
+                <strong>Profile completion</strong>
+                <span class="text-muted">@Model.CompletionPercentage%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar primary" style="width:@Model.CompletionPercentage%"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<form asp-controller="Student" asp-action="Profile" method="post" enctype="multipart/form-data" novalidate>
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-4" role="alert"></div>
+
+    <div class="row g-3">
+        <div class="col-xl-8">
+            <section class="card-ui mb-3">
+                <div class="card-head">
+                    <div>
+                        <h2>University identity</h2>
+                        <p>Name, email and Student ID are verified and cannot be changed here</p>
+                    </div>
+                    <span class="mini-badge success"><i class="bi bi-shield-check"></i> Verified</span>
+                </div>
+                <div class="card-body-ui">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="fixedFullName">Full Name</label>
+                            <div class="locked-field">
+                                <i class="bi bi-lock-fill"></i>
+                                <input id="fixedFullName" class="form-control" value="@Model.FullName" readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="fixedStudentId">Student ID</label>
+                            <div class="locked-field">
+                                <i class="bi bi-lock-fill"></i>
+                                <input id="fixedStudentId" class="form-control" value="@Model.StudentId" readonly />
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="fixedEmail">University Email</label>
+                            <div class="locked-field">
+                                <i class="bi bi-lock-fill"></i>
+                                <input id="fixedEmail" type="email" class="form-control" value="@Model.Email" readonly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card-ui mb-3">
+                <div class="card-head">
+                    <div>
+                        <h2>Academic information</h2>
+                        <p>Your current department, semester and batch</p>
+                    </div>
+                </div>
+                <div class="card-body-ui">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Department" class="form-label"></label>
+                            <input asp-for="Department" class="form-control" placeholder="Computer Science & Engineering" />
+                            <span asp-validation-for="Department" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Semester" class="form-label"></label>
+                            <select asp-for="Semester" class="form-select">
+                                <option value="">Select</option>
+                                @for (var semester = 1; semester <= 12; semester++)
+                                {
+                                    <option value="@semester">Semester @semester</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Semester" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Batch" class="form-label"></label>
+                            <input asp-for="Batch" class="form-control" placeholder="41st Batch" />
+                            <span asp-validation-for="Batch" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card-ui mb-3">
+                <div class="card-head">
+                    <div>
+                        <h2>Contact information</h2>
+                        <p>Details the university may use to contact you</p>
+                    </div>
+                </div>
+                <div class="card-body-ui">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="PhoneNumber" class="form-label"></label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="+880 1XXXXXXXXX" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="GuardianPhoneNumber" class="form-label"></label>
+                            <input asp-for="GuardianPhoneNumber" class="form-control" placeholder="+880 1XXXXXXXXX" />
+                            <span asp-validation-for="GuardianPhoneNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-8">
+                            <label asp-for="PresentAddress" class="form-label"></label>
+                            <input asp-for="PresentAddress" class="form-control" placeholder="House, road and area" />
+                            <span asp-validation-for="PresentAddress" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="City" class="form-label"></label>
+                            <input asp-for="City" class="form-control" placeholder="Chattogram" />
+                            <span asp-validation-for="City" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card-ui">
+                <div class="card-head">
+                    <div>
+                        <h2>Personal information</h2>
+                        <p>Optional information for your StudyPilot profile</p>
+                    </div>
+                </div>
+                <div class="card-body-ui">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="DateOfBirth" class="form-label"></label>
+                            <input asp-for="DateOfBirth" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Gender" class="form-label"></label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">Prefer not to provide</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="BloodGroup" class="form-label"></label>
+                            <select asp-for="BloodGroup" class="form-select">
+                                <option value="">Select blood group</option>
+                                @foreach (var group in new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" })
+                                {
+                                    <option value="@group">@group</option>
+                                }
+                            </select>
+                            <span asp-validation-for="BloodGroup" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Bio" class="form-label"></label>
+                            <textarea asp-for="Bio" class="form-control" rows="4" maxlength="500" placeholder="Write a short introduction about yourself..."></textarea>
+                            <div class="d-flex justify-content-between mt-1">
+                                <span asp-validation-for="Bio" class="text-danger small"></span>
+                                <small class="text-muted"><span id="bioCount">0</span>/500</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-xl-4">
+            <section class="card-ui profile-photo-card">
+                <div class="card-head">
+                    <div>
+                        <h2>Profile photo</h2>
+                        <p>Shown on your Student dashboard</p>
+                    </div>
+                </div>
+                <div class="card-body-ui">
+                    <label class="photo-dropzone" for="profileImageInput">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <strong>Choose a profile photo</strong>
+                        <span>JPG, PNG or WebP · Maximum 2 MB</span>
+                    </label>
+                    <input asp-for="ProfileImage" id="profileImageInput" class="visually-hidden" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+                    <span asp-validation-for="ProfileImage" class="text-danger small d-block mt-2"></span>
+                    <div id="selectedImageName" class="selected-file mt-2"></div>
+
+                    @if (Model.HasProfileImage)
+                    {
+                        <div class="form-check mt-3">
+                            <input asp-for="RemoveProfileImage" class="form-check-input" />
+                            <label asp-for="RemoveProfileImage" class="form-check-label"></label>
+                        </div>
+                    }
+                </div>
+            </section>
+
+            <div class="profile-save-panel mt-3">
+                <i class="bi bi-database-check"></i>
+                <div>
+                    <strong>Stored securely</strong>
+                    <p>Your profile details and photo are saved to PostgreSQL. Your password remains managed by ASP.NET Core Identity.</p>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-primary btn-lg" type="submit">
+                    <i class="bi bi-check2-circle me-2"></i>Save Profile
+                </button>
+                <a asp-controller="Student" asp-action="Index" class="btn btn-ghost">Cancel and return to dashboard</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/student-profile.js" asp-append-version="true"></script>
+}
