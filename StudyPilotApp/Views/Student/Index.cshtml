@@ -1,0 +1,170 @@
+@model StudyPilotApp.ViewModels.StudentDashboardViewModel
+@{
+    ViewData["Title"] = "Student Dashboard";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Student Dashboard</h1>
+        <p>@Model.Greeting, @Model.FullName. Here is your academic pulse for today.</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn btn-ghost" type="button" data-coming-soon="Today's Study Plan">
+            <i class="bi bi-calendar2-week me-2"></i>Today's plan
+        </button>
+        <button class="btn btn-primary" id="syncProgress" type="button">
+            <i class="bi bi-arrow-repeat me-2"></i>Sync progress
+        </button>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card primary">
+            <div class="metric-icon"><i class="bi bi-mortarboard"></i></div>
+            <div class="metric-label">Current CGPA</div>
+            <div class="metric-value">3.42 <small class="metric-suffix">/ 4.00</small></div>
+            <div class="metric-caption"><i class="bi bi-arrow-up-right"></i> +0.08 from last semester</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="bi bi-bullseye"></i></div>
+            <div class="metric-label">Target CGPA</div>
+            <div class="metric-value">3.65</div>
+            <div class="metric-caption"><span class="mini-badge primary">0.23 to go</span></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-teal"><i class="bi bi-fire"></i></div>
+            <div class="metric-label">Study streak</div>
+            <div class="metric-value">11 days</div>
+            <div class="metric-caption up"><i class="bi bi-trophy"></i> Personal best this term</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-warning"><i class="bi bi-clock-history"></i></div>
+            <div class="metric-label">Weekly study goal</div>
+            <div class="metric-value">14.5h <small class="metric-suffix">/ 18h</small></div>
+            <div class="progress mt-3"><div class="progress-bar warning" style="width:81%"></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-xl-8">
+        <section class="card-ui h-100">
+            <div class="card-head">
+                <div><h2>Academic performance</h2><p>GPA movement across six semesters</p></div>
+                <span class="mini-badge success"><i class="bi bi-graph-up"></i> Improving</span>
+            </div>
+            <div class="card-body-ui">
+                <div class="chart-wrap"><canvas id="gpaTrendChart" aria-label="GPA trend chart"></canvas></div>
+            </div>
+        </section>
+    </div>
+    <div class="col-xl-4">
+        <section class="card-ui h-100">
+            <div class="card-head">
+                <div><h2>Weekly study rhythm</h2><p>Hours completed by day</p></div>
+                <button class="btn btn-icon btn-ghost" type="button" data-coming-soon="Weekly Study Report" aria-label="Download report">
+                    <i class="bi bi-download"></i>
+                </button>
+            </div>
+            <div class="card-body-ui">
+                <div class="chart-wrap"><canvas id="studyHoursChart" aria-label="Weekly study hours chart"></canvas></div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-xl-7">
+        <section class="card-ui h-100">
+            <div class="card-head">
+                <div><h2>Upcoming assessments</h2><p>Your next academic deadlines</p></div>
+                <button class="btn btn-sm btn-ghost" type="button" data-coming-soon="Assessments">View all</button>
+            </div>
+            <div class="card-body-ui">
+                <div class="list-row">
+                    <span class="list-icon danger"><i class="bi bi-pencil-square"></i></span>
+                    <div><div class="list-title">Process Scheduling CT</div><div class="list-meta">Operating Systems · CT</div></div>
+                    <div class="list-end"><span class="mini-badge danger">Due soon</span><div class="list-meta mt-1 deadline-soon">Aug 18 · 10:30 AM</div></div>
+                </div>
+                <div class="list-row">
+                    <span class="list-icon warning"><i class="bi bi-file-earmark-text"></i></span>
+                    <div><div class="list-title">Campus Network Design</div><div class="list-meta">Computer Networks · Assignment</div></div>
+                    <div class="list-end"><span class="mini-badge warning">In progress</span><div class="list-meta mt-1">Aug 21 · 11:59 PM</div></div>
+                </div>
+                <div class="list-row">
+                    <span class="list-icon"><i class="bi bi-mortarboard"></i></span>
+                    <div><div class="list-title">Mid-Semester Examination</div><div class="list-meta">Software Engineering · Midterm</div></div>
+                    <div class="list-end"><span class="mini-badge success">Graded</span><div class="list-meta mt-1">Completed · Aug 04</div></div>
+                </div>
+                <div class="list-row">
+                    <span class="list-icon"><i class="bi bi-mortarboard"></i></span>
+                    <div><div class="list-title">Final Examination</div><div class="list-meta">Computer Cyber Security · Final</div></div>
+                    <div class="list-end"><span class="mini-badge primary">Upcoming</span><div class="list-meta mt-1">Sep 28 · 09:00 AM</div></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-5">
+        <section class="card-ui h-100">
+            <div class="card-head">
+                <div><h2>Course priorities</h2><p>Suggested focus for this week</p></div>
+                <button class="btn btn-sm btn-ghost" type="button" data-coming-soon="Priority Analysis">Full analysis</button>
+            </div>
+            <div class="card-body-ui">
+                <div class="list-row">
+                    <span class="list-icon danger"><i class="bi bi-journal-bookmark"></i></span>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between gap-2"><span class="list-title">Artificial Intelligence</span><span class="list-meta">6h 30m</span></div>
+                        <div class="progress mt-2"><div class="progress-bar danger" style="width:91%"></div></div>
+                    </div>
+                    <span class="mini-badge danger">Critical</span>
+                </div>
+                <div class="list-row">
+                    <span class="list-icon warning"><i class="bi bi-journal-bookmark"></i></span>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between gap-2"><span class="list-title">Operating Systems</span><span class="list-meta">5h 00m</span></div>
+                        <div class="progress mt-2"><div class="progress-bar warning" style="width:82%"></div></div>
+                    </div>
+                    <span class="mini-badge warning">High</span>
+                </div>
+                <div class="list-row">
+                    <span class="list-icon"><i class="bi bi-journal-bookmark"></i></span>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between gap-2"><span class="list-title">Database Systems</span><span class="list-meta">3h 30m</span></div>
+                        <div class="progress mt-2"><div class="progress-bar primary" style="width:68%"></div></div>
+                    </div>
+                    <span class="mini-badge primary">Medium</span>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<section class="card-ui">
+    <div class="card-head"><div><h2>Quick actions</h2><p>Jump back into your most useful workflows</p></div></div>
+    <div class="card-body-ui">
+        <div class="row g-3">
+            <div class="col-sm-6 col-xl-3">
+                <a class="quick-action" href="#" data-coming-soon="GPA Calculator"><i class="bi bi-calculator"></i><div><strong>Calculate GPA</strong><small>Test this semester's outcome</small></div><i class="bi bi-chevron-right ms-auto"></i></a>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <a class="quick-action" href="#" data-coming-soon="Study Planner"><i class="bi bi-calendar2-plus"></i><div><strong>Plan study time</strong><small>Build today's study blocks</small></div><i class="bi bi-chevron-right ms-auto"></i></a>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <a class="quick-action" href="#" data-coming-soon="Weak Topics"><i class="bi bi-search-heart"></i><div><strong>Review weak topics</strong><small>3 topics need attention</small></div><i class="bi bi-chevron-right ms-auto"></i></a>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <a class="quick-action" href="#" data-coming-soon="Resource Center"><i class="bi bi-collection-play"></i><div><strong>Find resources</strong><small>Browse recommended materials</small></div><i class="bi bi-chevron-right ms-auto"></i></a>
+            </div>
+        </div>
+    </div>
+</section>

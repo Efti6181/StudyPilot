@@ -1,0 +1,104 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Create Account";
+    Layout = "/Views/Shared/_AuthLayout.cshtml";
+}
+
+<main class="sp-auth-page">
+    <section class="sp-auth-shell sp-register-shell">
+        <div class="sp-auth-visual">
+            <a class="sp-brand" asp-controller="Home" asp-action="Index">
+                <span class="sp-brand-mark">SP</span>
+                <span>StudyPilot<small>Academic success</small></span>
+            </a>
+
+            <div class="sp-visual-copy">
+                <span class="sp-kicker">Verified university access</span>
+                <h1>Build your path to <em>academic success.</em></h1>
+                <p>Your email, university ID and selected role must match the university registry.</p>
+                <ul class="sp-feature-list">
+                    <li><span>✓</span> Verified Student accounts</li>
+                    <li><span>✓</span> Verified Faculty accounts</li>
+                    <li><span>✓</span> Secure password protection</li>
+                </ul>
+            </div>
+
+            <small class="sp-copyright">© 2026 StudyPilot</small>
+        </div>
+
+        <div class="sp-auth-panel">
+            <div class="sp-form-wrap sp-register-wrap">
+                <div class="sp-mobile-brand"><span class="sp-brand-mark">SP</span> StudyPilot</div>
+                <span class="sp-form-kicker">Join StudyPilot</span>
+                <h2>Create your account</h2>
+                <p class="sp-form-intro">Enter the details registered with your university.</p>
+
+                <form asp-controller="Account" asp-action="Register" method="post" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="sp-validation-summary"></div>
+
+                    <div class="sp-field">
+                        <label asp-for="FullName"></label>
+                        <input asp-for="FullName" class="form-control" placeholder="Enter your full name" autocomplete="name" />
+                        <span asp-validation-for="FullName"></span>
+                    </div>
+
+                    <div class="sp-field">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" class="form-control" placeholder="Enter your registered email" autocomplete="email" />
+                        <span asp-validation-for="Email"></span>
+                    </div>
+
+                    <div class="sp-field">
+                        <label>Account Type</label>
+                        <div class="sp-role-grid">
+                            <label class="sp-role-option">
+                                <input asp-for="AccountType" type="radio" value="Student" />
+                                <span><strong>Student</strong><small>Personal academic workspace</small></span>
+                            </label>
+                            <label class="sp-role-option">
+                                <input asp-for="AccountType" type="radio" value="Faculty" />
+                                <span><strong>Faculty</strong><small>Teaching workspace</small></span>
+                            </label>
+                        </div>
+                        <span asp-validation-for="AccountType"></span>
+                    </div>
+
+                    <div class="sp-field">
+                        <label asp-for="UniversityId" id="universityIdLabel">University ID</label>
+                        <input asp-for="UniversityId" class="form-control" placeholder="Select an account type first" autocomplete="off" />
+                        <span asp-validation-for="UniversityId"></span>
+                    </div>
+
+                    <div class="sp-two-column">
+                        <div class="sp-field">
+                            <label asp-for="Password"></label>
+                            <div class="sp-password-wrap">
+                                <input asp-for="Password" class="form-control" placeholder="Create password" autocomplete="new-password" />
+                                <button class="sp-password-toggle" type="button" data-password-toggle>Show</button>
+                            </div>
+                            <span asp-validation-for="Password"></span>
+                        </div>
+                        <div class="sp-field">
+                            <label asp-for="ConfirmPassword"></label>
+                            <div class="sp-password-wrap">
+                                <input asp-for="ConfirmPassword" class="form-control" placeholder="Repeat password" autocomplete="new-password" />
+                                <button class="sp-password-toggle" type="button" data-password-toggle>Show</button>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword"></span>
+                        </div>
+                    </div>
+
+                    <p class="sp-password-note">At least 8 characters, including uppercase, lowercase and a number.</p>
+                    <button type="submit" class="sp-primary-button">Create Account <span>→</span></button>
+                </form>
+
+                <p class="sp-switch">Already registered? <a asp-action="Login">Sign in</a></p>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

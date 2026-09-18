@@ -1,0 +1,73 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Sign In";
+    Layout = "/Views/Shared/_AuthLayout.cshtml";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<main class="sp-auth-page">
+    <section class="sp-auth-shell">
+        <div class="sp-auth-visual">
+            <a class="sp-brand" asp-controller="Home" asp-action="Index">
+                <span class="sp-brand-mark">SP</span>
+                <span>StudyPilot<small>Academic success</small></span>
+            </a>
+
+            <div class="sp-visual-copy">
+                <span class="sp-kicker">Your academic command center</span>
+                <h1>Turn academic pressure into <em>clear progress.</em></h1>
+                <p>Plan smarter, understand your performance and keep every semester moving forward.</p>
+                <ul class="sp-feature-list">
+                    <li><span>✓</span> Secure role-based access</li>
+                    <li><span>✓</span> Student and faculty workspaces</li>
+                    <li><span>✓</span> PostgreSQL-backed accounts</li>
+                </ul>
+            </div>
+
+            <small class="sp-copyright">© 2026 StudyPilot</small>
+        </div>
+
+        <div class="sp-auth-panel">
+            <div class="sp-form-wrap">
+                <div class="sp-mobile-brand"><span class="sp-brand-mark">SP</span> StudyPilot</div>
+                <span class="sp-form-kicker">Welcome back</span>
+                <h2>Sign in to StudyPilot</h2>
+                <p class="sp-form-intro">Use the email and password connected to your account.</p>
+
+                <form asp-controller="Account" asp-action="Login" method="post" novalidate>
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    <div asp-validation-summary="ModelOnly" class="sp-validation-summary"></div>
+
+                    <div class="sp-field">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" class="form-control" placeholder="name@university.edu" autocomplete="username" />
+                        <span asp-validation-for="Email"></span>
+                    </div>
+
+                    <div class="sp-field">
+                        <div class="sp-label-row"><label asp-for="Password"></label></div>
+                        <div class="sp-password-wrap">
+                            <input asp-for="Password" class="form-control" placeholder="Enter your password" autocomplete="current-password" />
+                            <button class="sp-password-toggle" type="button" data-password-toggle>Show</button>
+                        </div>
+                        <span asp-validation-for="Password"></span>
+                    </div>
+
+                    <label class="sp-check">
+                        <input asp-for="RememberMe" />
+                        <span>Remember me on this device</span>
+                    </label>
+
+                    <button type="submit" class="sp-primary-button">Sign In <span>→</span></button>
+                </form>
+
+                <p class="sp-switch">New to StudyPilot? <a asp-action="Register">Create an account</a></p>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

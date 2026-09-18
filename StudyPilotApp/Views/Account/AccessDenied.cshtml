@@ -1,0 +1,13 @@
+@{
+    ViewData["Title"] = "Access Denied";
+    Layout = "/Views/Shared/_AuthLayout.cshtml";
+}
+<main class="sp-auth-page">
+    <section class="sp-message-card">
+        <span class="sp-brand-mark">SP</span>
+        <span class="sp-form-kicker">Protected workspace</span>
+        <h1>Access denied</h1>
+        <p>Your account does not have permission to open this page.</p>
+        <a class="sp-primary-button sp-link-button" asp-controller="Home" asp-action="Index">Return home</a>
+    </section>
+</main>

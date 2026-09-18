@@ -1,0 +1,12 @@
+@{ ViewData["Title"] = "Admin Dashboard"; }
+<div class="container py-5">
+    <div class="p-5 bg-white border rounded-4 shadow-sm">
+        <span class="badge text-bg-danger mb-3">Admin</span>
+        <h1 class="display-6 fw-bold">Admin Dashboard</h1>
+        <p class="text-muted">Welcome to the protected StudyPilot administration workspace.</p>
+        <p>Signed in as <strong>@User.Identity?.Name</strong></p>
+        <form asp-controller="Account" asp-action="Logout" method="post">
+            <button type="submit" class="btn btn-outline-danger">Logout</button>
+        </form>
+    </div>
+</div>
