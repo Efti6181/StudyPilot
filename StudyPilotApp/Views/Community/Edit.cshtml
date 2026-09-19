@@ -1,0 +1,26 @@
+@model StudyPilotApp.ViewModels.CommunityPostFormViewModel
+@{
+    ViewData["Title"] = "Edit Community Post";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+@section Styles { <link rel="stylesheet" href="~/css/community.css" asp-append-version="true" /> }
+
+<div class="page-heading">
+    <div><h1>Edit your post</h1><p>Update the title, category or discussion content.</p></div>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>Back</a>
+</div>
+
+<section class="card-ui community-form-card">
+    <div class="card-body-ui">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+            <input asp-for="Id" type="hidden" />
+            <partial name="_PostForm" model="Model" />
+            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-ghost">Cancel</a>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-2"></i>Save Changes</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

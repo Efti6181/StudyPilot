@@ -296,6 +296,8 @@ img { max-width: 100%; }
 .topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .topbar-actions .btn-icon { color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); }
 .notification-dot { position: absolute; width: 8px; height: 8px; right: 8px; top: 8px; background: var(--danger); border: 2px solid var(--surface); border-radius: 50%; }
+.notification-bell { text-decoration: none; }
+.notification-count { position: absolute; top: -5px; right: -6px; display: grid; place-items: center; min-width: 19px; height: 19px; padding-inline: 4px; color: #fff; background: #ef4444; border: 2px solid var(--surface); border-radius: 999px; font-size: .58rem; font-weight: 900; line-height: 1; }
 .topbar-profile { display: flex; align-items: center; gap: 9px; padding-left: 7px; }
 .topbar-profile .avatar { width: 39px; height: 39px; border-radius: 12px; font-size: .76rem; }
 .topbar-profile strong { display: block; font-size: .8rem; }

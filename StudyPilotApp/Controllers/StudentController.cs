@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudyPilotApp.Data;
 using StudyPilotApp.Models;
+using StudyPilotApp.Services;
 using StudyPilotApp.ViewModels;
 
 namespace StudyPilotApp.Controllers;
@@ -27,13 +28,16 @@ public class StudentController : Controller
 
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IEventService _eventService;
 
     public StudentController(
         UserManager<ApplicationUser> userManager,
-        ApplicationDbContext dbContext)
+        ApplicationDbContext dbContext,
+        IEventService eventService)
     {
         _userManager = userManager;
         _dbContext = dbContext;
+        _eventService = eventService;
     }
 
     [HttpGet]
@@ -53,6 +57,7 @@ public class StudentController : Controller
 
         var shell = BuildShell(user, profile);
         var hour = DateTimeOffset.Now.Hour;
+        var upcomingEvents = await _eventService.GetUpcomingForDashboardAsync(user.Id, 3);
 
         var model = new StudentDashboardViewModel
         {
@@ -64,7 +69,22 @@ public class StudentController : Controller
             SemesterLabel = shell.SemesterLabel,
             HasProfileImage = shell.HasProfileImage,
             ProfileImageVersion = shell.ProfileImageVersion,
-            Greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
+            Greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening",
+            UpcomingEvents = upcomingEvents.Select(item => new DashboardEventViewModel
+            {
+                Id = item.Id,
+                Title = item.Title,
+                Type = item.Type.ToString(),
+                Location = item.LocationType switch
+                {
+                    EventLocationType.OnCampus => item.Venue ?? "Campus venue",
+                    EventLocationType.Online => "Online event",
+                    _ => string.IsNullOrWhiteSpace(item.Venue) ? "Hybrid event" : $"{item.Venue} + Online"
+                },
+                StartAt = item.StartAt,
+                IsRegistered = item.Registrations.Any(registration =>
+                    registration.ApplicationUserId == user.Id && registration.CancelledAt == null)
+            }).ToList()
         };
 
         return View(model);

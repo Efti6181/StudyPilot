@@ -23,6 +23,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<PriorityWeightSettings> PriorityWeightSettings => Set<PriorityWeightSettings>();
     public DbSet<AcademicProgressSnapshot> AcademicProgressSnapshots => Set<AcademicProgressSnapshot>();
     public DbSet<StudyResource> StudyResources => Set<StudyResource>();
+    public DbSet<CommunityPost> CommunityPosts => Set<CommunityPost>();
+    public DbSet<CommunityComment> CommunityComments => Set<CommunityComment>();
+    public DbSet<CommunityPostLike> CommunityPostLikes => Set<CommunityPostLike>();
+    public DbSet<CommunityCommentLike> CommunityCommentLikes => Set<CommunityCommentLike>();
+    public DbSet<CampusEvent> CampusEvents => Set<CampusEvent>();
+    public DbSet<EventRegistration> EventRegistrations => Set<EventRegistration>();
+    public DbSet<SavedEvent> SavedEvents => Set<SavedEvent>();
+    public DbSet<AppNotification> AppNotifications => Set<AppNotification>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -226,6 +234,134 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .HasForeignKey(x => new { x.CourseId, x.ApplicationUserId })
                 .HasPrincipalKey(x => new { x.Id, x.ApplicationUserId })
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<CommunityPost>(entity =>
+        {
+            entity.HasIndex(x => x.ApplicationUserId);
+            entity.HasIndex(x => new { x.Category, x.CreatedAt });
+            entity.HasIndex(x => x.CreatedAt);
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<CommunityComment>(entity =>
+        {
+            entity.HasIndex(x => x.CommunityPostId);
+            entity.HasIndex(x => x.ApplicationUserId);
+            entity.HasIndex(x => new { x.CommunityPostId, x.CreatedAt });
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.CommunityPost)
+                .WithMany(x => x.Comments)
+                .HasForeignKey(x => x.CommunityPostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<CommunityPostLike>(entity =>
+        {
+            entity.HasKey(x => new { x.CommunityPostId, x.ApplicationUserId });
+            entity.HasIndex(x => x.ApplicationUserId);
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.CommunityPost)
+                .WithMany(x => x.Likes)
+                .HasForeignKey(x => x.CommunityPostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<CommunityCommentLike>(entity =>
+        {
+            entity.HasKey(x => new { x.CommunityCommentId, x.ApplicationUserId });
+            entity.HasIndex(x => x.ApplicationUserId);
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.CommunityComment)
+                .WithMany(x => x.Likes)
+                .HasForeignKey(x => x.CommunityCommentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<CampusEvent>(entity =>
+        {
+            entity.HasIndex(x => x.CreatedByUserId);
+            entity.HasIndex(x => new { x.IsPublished, x.StartAt });
+            entity.HasIndex(x => new { x.Type, x.StartAt });
+            entity.HasIndex(x => new { x.LocationType, x.StartAt });
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<EventRegistration>(entity =>
+        {
+            entity.HasKey(x => new { x.CampusEventId, x.ApplicationUserId });
+            entity.HasIndex(x => x.ApplicationUserId);
+            entity.HasIndex(x => new { x.ApplicationUserId, x.CancelledAt, x.RegisteredAt });
+            entity.Property(x => x.RegisteredAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.CampusEvent)
+                .WithMany(x => x.Registrations)
+                .HasForeignKey(x => x.CampusEventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<SavedEvent>(entity =>
+        {
+            entity.HasKey(x => new { x.CampusEventId, x.ApplicationUserId });
+            entity.HasIndex(x => x.ApplicationUserId);
+            entity.HasIndex(x => new { x.ApplicationUserId, x.SavedAt });
+            entity.Property(x => x.SavedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.CampusEvent)
+                .WithMany(x => x.SavedByStudents)
+                .HasForeignKey(x => x.CampusEventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<AppNotification>(entity =>
+        {
+            entity.HasIndex(x => x.ApplicationUserId);
+            entity.HasIndex(x => new { x.ApplicationUserId, x.IsRead, x.CreatedAt });
+            entity.HasIndex(x => new { x.ApplicationUserId, x.Type, x.CreatedAt });
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

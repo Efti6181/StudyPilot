@@ -1,0 +1,107 @@
+@model StudyPilotApp.ViewModels.EventDetailsViewModel
+@{
+    ViewData["Title"] = Model.Event.Title;
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+    var item = Model.Event;
+    var localStart = item.StartAt.ToLocalTime();
+    var localEnd = item.EndAt.ToLocalTime();
+    var localDeadline = item.RegistrationDeadline.ToLocalTime();
+    var returnUrl = Context.Request.Path.ToString();
+}
+
+@section Styles { <link rel="stylesheet" href="~/css/events.css" asp-append-version="true" /> }
+
+<div class="page-heading">
+    <div><h1>Event Details</h1><p>Review the schedule, venue and registration information.</p></div>
+    <a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>All Events</a>
+</div>
+
+@if (TempData["EventSuccess"] is string success)
+{
+    <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@success</div>
+}
+@if (TempData["EventInfo"] is string info)
+{
+    <div class="alert alert-info rounded-4"><i class="bi bi-info-circle me-2"></i>@info</div>
+}
+@if (TempData["EventError"] is string error)
+{
+    <div class="alert alert-danger rounded-4"><i class="bi bi-exclamation-circle me-2"></i>@error</div>
+}
+
+<section class="event-detail-hero type-@item.Type.ToString().ToLowerInvariant()">
+    <div class="event-detail-copy">
+        <span class="event-type"><i class="bi @item.Icon"></i> @item.Type</span>
+        <h2>@item.Title</h2>
+        <p>@item.ShortDescription</p>
+        <div class="event-detail-meta">
+            <span><i class="bi bi-calendar3"></i> @localStart.ToString("dddd, dd MMMM yyyy")</span>
+            <span><i class="bi bi-clock"></i> @localStart.ToString("hh:mm tt") – @localEnd.ToString("hh:mm tt")</span>
+            <span><i class="bi bi-geo-alt"></i> @item.LocationLabel</span>
+        </div>
+    </div>
+    <div class="event-detail-date"><strong>@localStart.Day</strong><span>@localStart.ToString("MMM")</span><small>@localStart.Year</small></div>
+</section>
+
+<div class="row g-4 mt-1">
+    <div class="col-xl-8">
+        <section class="card-ui event-description-card">
+            <div class="card-head"><div><h2>About this event</h2><p>Hosted by @item.OrganizerName</p></div></div>
+            <div class="card-body-ui event-description">@item.Description</div>
+        </section>
+    </div>
+    <div class="col-xl-4">
+        <aside class="card-ui registration-panel">
+            <div class="card-body-ui">
+                <div class="registration-panel-head"><span>Registration</span>
+                    @if (item.IsRegistered) { <strong class="text-success"><i class="bi bi-check2-circle"></i> Confirmed</strong> }
+                    else if (item.IsFull) { <strong class="text-danger">Event full</strong> }
+                    else if (item.RegistrationClosed) { <strong class="text-danger">Closed</strong> }
+                    else { <strong class="text-success">Open</strong> }
+                </div>
+
+                <dl class="event-info-list">
+                    <div><dt><i class="bi bi-calendar-check"></i> Deadline</dt><dd>@localDeadline.ToString("dd MMM yyyy · hh:mm tt")</dd></div>
+                    <div><dt><i class="bi bi-people"></i> Capacity</dt><dd>@(item.Capacity.HasValue ? $"{item.RegistrationCount} / {item.Capacity}" : $"{item.RegistrationCount} registered")</dd></div>
+                    <div><dt><i class="bi bi-pin-map"></i> Format</dt><dd>@item.LocationTypeLabel</dd></div>
+                    <div><dt><i class="bi bi-building"></i> Organizer</dt><dd>@item.OrganizerName</dd></div>
+                </dl>
+
+                @if (item.Capacity.HasValue)
+                {
+                    <div class="event-capacity mb-3">
+                        <div><span>Seats filled</span><span>@item.SpotsLeft remaining</span></div>
+                        <div class="progress"><div class="progress-bar" style="width:@item.CapacityPercentage%"></div></div>
+                    </div>
+                }
+
+                @if (item.IsRegistered)
+                {
+                    <div class="registration-confirmation"><i class="bi bi-ticket-perforated"></i><div><strong>You are registered</strong><small>Keep this event in your StudyPilot schedule.</small></div></div>
+                    @if (item.HasOnlineLink && item.LocationType != StudyPilotApp.Models.EventLocationType.OnCampus)
+                    {
+                        <a asp-action="JoinOnline" asp-route-id="@item.Id" target="_blank" rel="noopener noreferrer" class="btn btn-primary w-100 mb-2"><i class="bi bi-camera-video me-2"></i>Open Online Event</a>
+                    }
+                    <form asp-action="CancelRegistration" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Cancel your registration for this event?');">
+                        <button type="submit" class="btn btn-outline-danger w-100">Cancel Registration</button>
+                    </form>
+                }
+                else if (!item.IsPast && !item.RegistrationClosed && !item.IsFull)
+                {
+                    <form asp-action="Register" asp-route-id="@item.Id" method="post">
+                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2-circle me-2"></i>Register Now</button>
+                    </form>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-ghost w-100" disabled>Registration unavailable</button>
+                }
+
+                <form asp-action="ToggleSaved" asp-route-id="@item.Id" method="post" class="mt-2">
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    <button type="submit" class="btn btn-ghost w-100"><i class="bi @(item.IsSaved ? "bi-bookmark-fill" : "bi-bookmark") me-2"></i>@(item.IsSaved ? "Remove from Saved" : "Save for Later")</button>
+                </form>
+            </div>
+        </aside>
+    </div>
+</div>

@@ -1,0 +1,10 @@
+@model StudyPilotApp.ViewModels.NotificationBellViewModel
+
+<a class="btn btn-icon position-relative notification-bell" asp-controller="Notifications" asp-action="Index"
+   aria-label="Notifications@(Model.UnreadCount > 0 ? $", {Model.UnreadCount} unread" : string.Empty)">
+    <i class="bi bi-bell"></i>
+    @if (Model.UnreadCount > 0)
+    {
+        <span class="notification-count">@Model.BadgeLabel</span>
+    }
+</a>

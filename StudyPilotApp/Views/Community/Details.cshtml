@@ -1,0 +1,115 @@
+@model StudyPilotApp.ViewModels.CommunityDetailsViewModel
+@{
+    ViewData["Title"] = Model.Post.Title;
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+    var currentUrl = Context.Request.Path.ToString();
+}
+
+@section Styles { <link rel="stylesheet" href="~/css/community.css" asp-append-version="true" /> }
+
+<div class="page-heading">
+    <div><h1>Community Discussion</h1><p>Read the full post and join the conversation.</p></div>
+    <a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>All Posts</a>
+</div>
+
+@if (TempData["CommunitySuccess"] is string message)
+{
+    <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@message</div>
+}
+@if (TempData["CommunityError"] is string error)
+{
+    <div class="alert alert-danger rounded-4"><i class="bi bi-exclamation-circle me-2"></i>@error</div>
+}
+
+<article class="community-post-card community-post-detail">
+    <div class="post-author-row">
+        <span class="community-avatar">@Model.Post.AuthorInitials</span>
+        <div>
+            <strong>@Model.Post.AuthorName</strong>
+            <small>@Model.Post.CreatedAt.ToString("dd MMM yyyy · hh:mm tt") @if (Model.Post.UpdatedAt.HasValue) { <span>· Edited</span> }</small>
+        </div>
+        <span class="community-category category-@Model.Post.Category.ToString().ToLowerInvariant()">@Model.Post.CategoryLabel</span>
+    </div>
+    <div class="post-copy">
+        <h2>@Model.Post.Title</h2>
+        <div class="post-full-content">@Model.Post.Content</div>
+    </div>
+    <div class="post-footer">
+        <div class="post-stats">
+            <form asp-action="TogglePostLike" asp-route-id="@Model.Post.Id" method="post">
+                <input type="hidden" name="returnUrl" value="@currentUrl" />
+                <button type="submit" class="post-action @(Model.Post.IsLikedByCurrentUser ? "active" : null)">
+                    <i class="bi @(Model.Post.IsLikedByCurrentUser ? "bi-heart-fill" : "bi-heart")"></i>
+                    @(Model.Post.IsLikedByCurrentUser ? "Liked" : "Like") · @Model.Post.LikeCount
+                </button>
+            </form>
+            <span class="post-action"><i class="bi bi-chat"></i> @Model.Post.CommentCount comments</span>
+        </div>
+        @if (Model.Post.IsOwnedByCurrentUser)
+        {
+            <div class="d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.Post.Id" class="btn btn-ghost btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+                <a asp-action="Delete" asp-route-id="@Model.Post.Id" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash3 me-1"></i>Delete</a>
+            </div>
+        }
+    </div>
+</article>
+
+<section class="community-comments mt-4">
+    <div class="comments-heading">
+        <div><span>Discussion</span><h2>@Model.Comments.Count comment@(Model.Comments.Count == 1 ? "" : "s")</h2></div>
+    </div>
+
+    <div class="card-ui comment-composer">
+        <div class="card-body-ui">
+            <form asp-action="AddComment" method="post">
+                <input type="hidden" name="postId" value="@Model.Post.Id" />
+                <label asp-for="NewComment" class="form-label">Add your comment</label>
+                <textarea asp-for="NewComment" class="form-control" rows="4" placeholder="Write a helpful reply…"></textarea>
+                <span asp-validation-for="NewComment" class="text-danger small"></span>
+                <div class="d-flex justify-content-end mt-3">
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-send me-2"></i>Post Comment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.Comments.Count == 0)
+    {
+        <div class="no-comments"><i class="bi bi-chat-square"></i><p>No comments yet. Be the first to respond.</p></div>
+    }
+    else
+    {
+        <div class="comment-list">
+            @foreach (var comment in Model.Comments)
+            {
+                <article class="comment-card">
+                    <span class="community-avatar small-avatar">@comment.AuthorInitials</span>
+                    <div class="comment-main">
+                        <div class="comment-meta">
+                            <div><strong>@comment.AuthorName</strong><small>@comment.CreatedAt.ToString("dd MMM yyyy · hh:mm tt") @if (comment.UpdatedAt.HasValue) { <span>· Edited</span> }</small></div>
+                            @if (comment.IsOwnedByCurrentUser)
+                            {
+                                <div class="comment-owner-actions">
+                                    <a asp-action="EditComment" asp-route-id="@comment.Id" title="Edit comment"><i class="bi bi-pencil"></i></a>
+                                    <form asp-action="DeleteComment" asp-route-id="@comment.Id" method="post" onsubmit="return confirm('Delete this comment?');">
+                                        <button type="submit" title="Delete comment"><i class="bi bi-trash3"></i></button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                        <div class="comment-content">@comment.Content</div>
+                        <form asp-action="ToggleCommentLike" asp-route-id="@comment.Id" method="post" class="mt-2">
+                            <input type="hidden" name="postId" value="@Model.Post.Id" />
+                            <button type="submit" class="comment-like @(comment.IsLikedByCurrentUser ? "active" : null)">
+                                <i class="bi @(comment.IsLikedByCurrentUser ? "bi-heart-fill" : "bi-heart")"></i> @comment.LikeCount
+                            </button>
+                        </form>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

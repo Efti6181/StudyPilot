@@ -1,0 +1,128 @@
+@model StudyPilotApp.ViewModels.CommunityIndexViewModel
+@{
+    ViewData["Title"] = "Community";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+@section Styles { <link rel="stylesheet" href="~/css/community.css" asp-append-version="true" /> }
+
+<div class="page-heading">
+    <div><h1>Student Community</h1><p>Learn together, ask questions and share useful academic experience.</p></div>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-pencil-square me-2"></i>Create Post</a>
+</div>
+
+@if (TempData["CommunitySuccess"] is string message)
+{
+    <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@message</div>
+}
+
+<section class="community-hero mb-4">
+    <div>
+        <span>StudyPilot Student Network</span>
+        <h2>Someone else may have the answer you need.</h2>
+        <p>Keep discussions respectful, specific and helpful to the student community.</p>
+    </div>
+    <div class="community-hero-icon"><i class="bi bi-people-fill"></i></div>
+</section>
+
+<section class="card-ui mb-4">
+    <div class="card-body-ui">
+        <form asp-action="Index" method="get" class="community-filter-form">
+            <div class="community-search">
+                <i class="bi bi-search"></i>
+                <input name="search" value="@Model.Search" class="form-control" placeholder="Search posts or authors…" />
+            </div>
+            <select asp-for="Category" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.CommunityCategory>()" class="form-select">
+                <option value="">All categories</option>
+            </select>
+            <select name="sort" class="form-select">
+                <option value="newest" selected="@(Model.Sort == "newest" ? "selected" : null)">Newest</option>
+                <option value="popular" selected="@(Model.Sort == "popular" ? "selected" : null)">Most liked</option>
+                <option value="discussed" selected="@(Model.Sort == "discussed" ? "selected" : null)">Most discussed</option>
+                <option value="oldest" selected="@(Model.Sort == "oldest" ? "selected" : null)">Oldest</option>
+            </select>
+            <label class="community-mine-toggle">
+                <input asp-for="MyPostsOnly" type="checkbox" />
+                <span><i class="bi bi-person-check"></i> My posts</span>
+            </label>
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a asp-action="Index" class="btn btn-ghost" title="Clear filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+        </form>
+    </div>
+</section>
+
+<div class="community-result-bar">
+    <span><strong>@Model.TotalPosts</strong> post@(Model.TotalPosts == 1 ? "" : "s") found</span>
+    @if (Model.Category.HasValue || !string.IsNullOrWhiteSpace(Model.Search) || Model.MyPostsOnly)
+    {
+        <span class="filtered-label"><i class="bi bi-funnel"></i> Filtered results</span>
+    }
+</div>
+
+@if (Model.Posts.Count == 0)
+{
+    <section class="card-ui empty-module-state">
+        <div class="empty-icon"><i class="bi bi-chat-square-dots"></i></div>
+        <h2>No community posts found</h2>
+        <p>@(Model.TotalPosts == 0 && string.IsNullOrWhiteSpace(Model.Search) && !Model.Category.HasValue && !Model.MyPostsOnly ? "Start the first useful discussion for your fellow students." : "Try clearing or changing the current filters.")</p>
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-pencil-square me-2"></i>Create Post</a>
+    </section>
+}
+else
+{
+    <div class="community-feed">
+        @foreach (var post in Model.Posts)
+        {
+            <article class="community-post-card">
+                <div class="post-author-row">
+                    <span class="community-avatar">@post.AuthorInitials</span>
+                    <div>
+                        <strong>@post.AuthorName</strong>
+                        <small>@post.CreatedAt.ToString("dd MMM yyyy · hh:mm tt") @if (post.UpdatedAt.HasValue) { <span>· Edited</span> }</small>
+                    </div>
+                    <span class="community-category category-@post.Category.ToString().ToLowerInvariant()">@post.CategoryLabel</span>
+                </div>
+                <div class="post-copy">
+                    <h2><a asp-action="Details" asp-route-id="@post.Id">@post.Title</a></h2>
+                    <p>@post.Preview</p>
+                </div>
+                <div class="post-footer">
+                    <div class="post-stats">
+                        <form asp-action="TogglePostLike" asp-route-id="@post.Id" method="post">
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <button type="submit" class="post-action @(post.IsLikedByCurrentUser ? "active" : null)">
+                                <i class="bi @(post.IsLikedByCurrentUser ? "bi-heart-fill" : "bi-heart")"></i> @post.LikeCount
+                            </button>
+                        </form>
+                        <a asp-action="Details" asp-route-id="@post.Id" class="post-action"><i class="bi bi-chat"></i> @post.CommentCount</a>
+                    </div>
+                    <div class="d-flex gap-1">
+                        @if (post.IsOwnedByCurrentUser)
+                        {
+                            <a asp-action="Edit" asp-route-id="@post.Id" class="btn btn-icon btn-ghost btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>
+                        }
+                        <a asp-action="Details" asp-route-id="@post.Id" class="btn btn-soft-primary btn-sm">Read discussion</a>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="community-pagination" aria-label="Community pages">
+            <a class="btn btn-ghost @(Model.Page <= 1 ? "disabled" : null)"
+               asp-action="Index" asp-route-search="@Model.Search" asp-route-category="@Model.Category"
+               asp-route-sort="@Model.Sort" asp-route-myPostsOnly="@Model.MyPostsOnly" asp-route-page="@(Model.Page - 1)">
+                <i class="bi bi-chevron-left"></i> Previous
+            </a>
+            <span>Page <strong>@Model.Page</strong> of @Model.TotalPages</span>
+            <a class="btn btn-ghost @(Model.Page >= Model.TotalPages ? "disabled" : null)"
+               asp-action="Index" asp-route-search="@Model.Search" asp-route-category="@Model.Category"
+               asp-route-sort="@Model.Sort" asp-route-myPostsOnly="@Model.MyPostsOnly" asp-route-page="@(Model.Page + 1)">
+                Next <i class="bi bi-chevron-right"></i>
+            </a>
+        </nav>
+    }
+}

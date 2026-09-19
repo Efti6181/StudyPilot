@@ -1,0 +1,23 @@
+@model StudyPilotApp.ViewModels.CommunityPostFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+<div class="mb-3">
+    <label asp-for="Title" class="form-label"></label>
+    <input asp-for="Title" class="form-control" placeholder="What would you like to discuss?" />
+    <span asp-validation-for="Title" class="text-danger small"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="Category" class="form-label"></label>
+    <select asp-for="Category" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.CommunityCategory>()" class="form-select">
+        <option value="">Select a category</option>
+    </select>
+    <span asp-validation-for="Category" class="text-danger small"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="Content" class="form-label"></label>
+    <textarea asp-for="Content" class="form-control community-editor" rows="11" placeholder="Share enough detail so other students can help…"></textarea>
+    <div class="d-flex justify-content-between mt-1">
+        <span asp-validation-for="Content" class="text-danger small"></span>
+        <small class="text-muted">Maximum 8,000 characters</small>
+    </div>
+</div>

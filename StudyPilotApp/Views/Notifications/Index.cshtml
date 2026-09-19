@@ -1,0 +1,151 @@
+@model StudyPilotApp.ViewModels.NotificationIndexViewModel
+@{
+    ViewData["Title"] = "Notifications";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+@section Styles { <link rel="stylesheet" href="~/css/notifications.css" asp-append-version="true" /> }
+
+<div class="page-heading notification-heading">
+    <div>
+        <h1>Notifications</h1>
+        <p>Keep track of activity across your StudyPilot account.</p>
+    </div>
+    <div class="notification-heading-actions">
+        <form asp-action="MarkAllRead" method="post">
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+            <button class="btn btn-soft-primary" type="submit" @(Model.UnreadCount == 0 ? "disabled" : null)>
+                <i class="bi bi-check2-all"></i> Mark all read
+            </button>
+        </form>
+        <form asp-action="ClearRead" method="post" onsubmit="return confirm('Clear all read notifications?');">
+            <button class="btn btn-ghost" type="submit"><i class="bi bi-trash3"></i> Clear read</button>
+        </form>
+    </div>
+</div>
+
+@if (TempData["NotificationSuccess"] is string success)
+{
+    <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@success</div>
+}
+
+<section class="notification-summary mb-4">
+    <div class="notification-summary-icon"><i class="bi bi-bell-fill"></i></div>
+    <div>
+        <span>Notification center</span>
+        <strong>@Model.UnreadCount unread</strong>
+        <p>Updates from events and community activity appear here.</p>
+    </div>
+</section>
+
+<nav class="notification-tabs mb-4" aria-label="Notification status">
+    <a class="@(Model.Status == "all" ? "active" : null)" asp-action="Index" asp-route-status="all">
+        <i class="bi bi-inbox"></i> All
+    </a>
+    <a class="@(Model.Status == "unread" ? "active" : null)" asp-action="Index" asp-route-status="unread">
+        <i class="bi bi-circle-fill"></i> Unread <span>@Model.UnreadCount</span>
+    </a>
+    <a class="@(Model.Status == "read" ? "active" : null)" asp-action="Index" asp-route-status="read">
+        <i class="bi bi-check2-circle"></i> Read
+    </a>
+</nav>
+
+<section class="card-ui mb-4">
+    <div class="card-body-ui">
+        <form asp-action="Index" method="get" class="notification-filter-form">
+            <input type="hidden" name="status" value="@Model.Status" />
+            <div class="notification-search">
+                <i class="bi bi-search"></i>
+                <input name="search" value="@Model.Search" class="form-control" maxlength="100"
+                       placeholder="Search notification title or message…" />
+            </div>
+            <select asp-for="Type" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.NotificationType>()" class="form-select">
+                <option value="">All types</option>
+            </select>
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a asp-action="Index" asp-route-status="@Model.Status" class="btn btn-ghost" title="Clear filters">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </a>
+        </form>
+    </div>
+</section>
+
+<div class="notification-result-bar">
+    <span><strong>@Model.TotalCount</strong> notification@(Model.TotalCount == 1 ? "" : "s") found</span>
+</div>
+
+@if (Model.Notifications.Count == 0)
+{
+    <section class="card-ui empty-module-state">
+        <div class="empty-icon"><i class="bi bi-bell-slash"></i></div>
+        <h2>No notifications found</h2>
+        <p>Your updates will appear here. Try clearing the current filters.</p>
+        <a asp-action="Index" class="btn btn-primary">View all notifications</a>
+    </section>
+}
+else
+{
+    <section class="notification-list" aria-label="Notifications">
+        @foreach (var item in Model.Notifications)
+        {
+            <article class="notification-item type-@item.Type.ToString().ToLowerInvariant() @(item.IsRead ? "is-read" : "is-unread")">
+                <div class="notification-type-icon"><i class="bi @item.Icon"></i></div>
+                <div class="notification-copy">
+                    <div class="notification-meta">
+                        <span class="notification-type-label">@item.Type</span>
+                        <time datetime="@item.CreatedAt.ToString("O")">@item.CreatedAt.ToLocalTime().ToString("dd MMM yyyy · hh:mm tt")</time>
+                        @if (!item.IsRead) { <span class="unread-label">New</span> }
+                    </div>
+                    <h2>@item.Title</h2>
+                    <p>@item.Message</p>
+                </div>
+                <div class="notification-actions">
+                    @if (!string.IsNullOrWhiteSpace(item.RelatedUrl))
+                    {
+                        <form asp-action="Open" asp-route-id="@item.Id" method="post">
+                            <button class="btn btn-soft-primary btn-sm" type="submit"><i class="bi bi-arrow-up-right"></i> Open</button>
+                        </form>
+                    }
+                    @if (item.IsRead)
+                    {
+                        <form asp-action="MarkUnread" asp-route-id="@item.Id" method="post">
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <button class="notification-action-button" type="submit" title="Mark unread" aria-label="Mark unread">
+                                <i class="bi bi-envelope"></i>
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="MarkRead" asp-route-id="@item.Id" method="post">
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <button class="notification-action-button" type="submit" title="Mark read" aria-label="Mark read">
+                                <i class="bi bi-envelope-open"></i>
+                            </button>
+                        </form>
+                    }
+                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Delete this notification?');">
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                        <button class="notification-action-button danger" type="submit" title="Delete" aria-label="Delete notification">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </form>
+                </div>
+            </article>
+        }
+    </section>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="notification-pagination" aria-label="Notification pages">
+            <a class="btn btn-ghost @(Model.Page <= 1 ? "disabled" : null)" asp-action="Index"
+               asp-route-search="@Model.Search" asp-route-type="@Model.Type" asp-route-status="@Model.Status"
+               asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i> Previous</a>
+            <span>Page <strong>@Model.Page</strong> of @Model.TotalPages</span>
+            <a class="btn btn-ghost @(Model.Page >= Model.TotalPages ? "disabled" : null)" asp-action="Index"
+               asp-route-search="@Model.Search" asp-route-type="@Model.Type" asp-route-status="@Model.Status"
+               asp-route-page="@(Model.Page + 1)">Next <i class="bi bi-chevron-right"></i></a>
+        </nav>
+    }
+}

@@ -64,13 +64,16 @@
                 <a class="sidebar-link @(currentController == "Resources" ? "active" : null)" asp-controller="Resources" asp-action="Index">
                     <i class="bi bi-collection-play"></i><span>Resources</span>
                 </a>
-                <a class="sidebar-link" href="#" data-coming-soon="Community">
+                <a class="sidebar-link @(currentController == "Community" ? "active" : null)" asp-controller="Community" asp-action="Index">
                     <i class="bi bi-people"></i><span>Community</span>
                 </a>
 
                 <div class="sidebar-label">Campus</div>
-                <a class="sidebar-link" href="#" data-coming-soon="University Events">
-                    <i class="bi bi-calendar-event"></i><span>Events</span><span class="nav-pill">New</span>
+                <a class="sidebar-link @(currentController == "Events" ? "active" : null)" asp-controller="Events" asp-action="Index">
+                    <i class="bi bi-calendar-event"></i><span>Events</span>
+                </a>
+                <a class="sidebar-link @(currentController == "Notifications" ? "active" : null)" asp-controller="Notifications" asp-action="Index">
+                    <i class="bi bi-bell"></i><span>Notifications</span><span class="nav-pill">New</span>
                 </a>
             </nav>
 
@@ -114,9 +117,7 @@
                     <button class="btn btn-icon theme-toggle" type="button" aria-label="Switch color theme">
                         <i class="bi bi-moon-stars"></i>
                     </button>
-                    <button class="btn btn-icon position-relative" id="notificationButton" type="button" aria-label="Notifications">
-                        <i class="bi bi-bell"></i><span class="notification-dot"></span>
-                    </button>
+                    @await Component.InvokeAsync("NotificationBell")
                     <a class="topbar-profile" asp-controller="Student" asp-action="Profile">
                         <span class="avatar">
                             @if (Model.HasProfileImage)

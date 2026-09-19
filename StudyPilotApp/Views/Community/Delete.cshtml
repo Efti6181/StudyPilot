@@ -1,0 +1,22 @@
+@model StudyPilotApp.ViewModels.CommunityDeleteViewModel
+@{
+    ViewData["Title"] = "Delete Community Post";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+@section Styles { <link rel="stylesheet" href="~/css/community.css" asp-append-version="true" /> }
+
+<div class="page-heading">
+    <div><h1>Delete post</h1><p>This will also remove every comment and like on the post.</p></div>
+</div>
+
+<section class="card-ui community-form-card delete-panel">
+    <div class="card-body-ui text-center">
+        <span class="delete-icon"><i class="bi bi-trash3"></i></span>
+        <h2>Delete “@Model.Post.Title”?</h2>
+        <p class="text-muted">This action cannot be undone.</p>
+        <form asp-action="Delete" asp-route-id="@Model.Post.Id" method="post" class="d-flex gap-2 justify-content-center flex-wrap">
+            <a asp-action="Details" asp-route-id="@Model.Post.Id" class="btn btn-ghost">Keep Post</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash3 me-2"></i>Delete Permanently</button>
+        </form>
+    </div>
+</section>

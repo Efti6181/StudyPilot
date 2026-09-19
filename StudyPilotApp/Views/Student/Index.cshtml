@@ -149,6 +149,44 @@
     </div>
 </div>
 
+<section class="card-ui mb-3">
+    <div class="card-head">
+        <div><h2>Upcoming university events</h2><p>Opportunities waiting on your campus calendar</p></div>
+        <a asp-controller="Events" asp-action="Index" class="btn btn-sm btn-ghost">View all</a>
+    </div>
+    <div class="card-body-ui">
+        @if (Model.UpcomingEvents.Count == 0)
+        {
+            <div class="text-muted py-3 text-center">No upcoming events are currently published.</div>
+        }
+        else
+        {
+            @foreach (var item in Model.UpcomingEvents)
+            {
+                var localStart = item.StartAt.ToLocalTime();
+                <a asp-controller="Events" asp-action="Details" asp-route-id="@item.Id" class="list-row">
+                    <span class="list-icon"><i class="bi bi-calendar-event"></i></span>
+                    <div>
+                        <div class="list-title">@item.Title</div>
+                        <div class="list-meta">@item.Type · @item.Location</div>
+                    </div>
+                    <div class="list-end">
+                        @if (item.IsRegistered)
+                        {
+                            <span class="mini-badge success">Registered</span>
+                        }
+                        else
+                        {
+                            <span class="mini-badge primary">Upcoming</span>
+                        }
+                        <div class="list-meta mt-1">@localStart.ToString("dd MMM · hh:mm tt")</div>
+                    </div>
+                </a>
+            }
+        }
+    </div>
+</section>
+
 <section class="card-ui">
     <div class="card-head"><div><h2>Quick actions</h2><p>Jump back into your most useful workflows</p></div></div>
     <div class="card-body-ui">

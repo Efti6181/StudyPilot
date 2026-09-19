@@ -1,0 +1,30 @@
+@model StudyPilotApp.ViewModels.CommunityCommentEditViewModel
+@{
+    ViewData["Title"] = "Edit Comment";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+@section Styles { <link rel="stylesheet" href="~/css/community.css" asp-append-version="true" /> }
+
+<div class="page-heading">
+    <div><h1>Edit comment</h1><p>Correct or improve your reply.</p></div>
+    <a asp-action="Details" asp-route-id="@Model.PostId" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>Back to post</a>
+</div>
+
+<section class="card-ui community-form-card">
+    <div class="card-body-ui">
+        <form asp-action="EditComment" asp-route-id="@Model.Id" method="post">
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="PostId" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <label asp-for="Content" class="form-label"></label>
+            <textarea asp-for="Content" class="form-control community-editor" rows="7"></textarea>
+            <span asp-validation-for="Content" class="text-danger small"></span>
+            <div class="d-flex gap-2 justify-content-end mt-3">
+                <a asp-action="Details" asp-route-id="@Model.PostId" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Comment</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

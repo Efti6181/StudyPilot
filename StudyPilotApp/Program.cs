@@ -63,6 +63,9 @@ builder.Services.AddScoped<IGpaService, GpaService>();
 builder.Services.AddScoped<IPriorityService, PriorityService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IResourceService, ResourceService>();
+builder.Services.AddScoped<ICommunityService, CommunityService>();
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // MVC
 builder.Services.AddControllersWithViews();
@@ -95,5 +98,6 @@ app.MapControllerRoute(
 
 // Seed Student, Faculty, Admin roles and initial Admin account
 await IdentitySeeder.SeedAsync(app.Services, app.Configuration);
+await EventSeeder.SeedAsync(app.Services);
 
 app.Run();

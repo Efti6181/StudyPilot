@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StudyPilotApp.Data;
@@ -11,9 +12,11 @@ using StudyPilotApp.Data;
 namespace StudyPilotApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260919134020_AddStudentCommunity")]
+    partial class AddStudentCommunity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -222,57 +225,6 @@ namespace StudyPilotApp.Migrations
                     b.ToTable("AcademicProgressSnapshots");
                 });
 
-            modelBuilder.Entity("StudyPilotApp.Models.AppNotification", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("ApplicationUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateTimeOffset?>("ReadAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RelatedUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId", "IsRead", "CreatedAt");
-
-                    b.HasIndex("ApplicationUserId", "Type", "CreatedAt");
-
-                    b.ToTable("AppNotifications");
-                });
-
             modelBuilder.Entity("StudyPilotApp.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -423,88 +375,6 @@ namespace StudyPilotApp.Migrations
                     b.HasIndex("CourseId", "ApplicationUserId");
 
                     b.ToTable("Assessments");
-                });
-
-            modelBuilder.Entity("StudyPilotApp.Models.CampusEvent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("Capacity")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("CreatedByUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(5000)
-                        .HasColumnType("character varying(5000)");
-
-                    b.Property<DateTimeOffset>("EndAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("LocationType")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("OnlineUrl")
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)");
-
-                    b.Property<string>("OrganizerName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<DateTimeOffset>("RegistrationDeadline")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ShortDescription")
-                        .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("character varying(320)");
-
-                    b.Property<DateTimeOffset>("StartAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(180)
-                        .HasColumnType("character varying(180)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Venue")
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("IsPublished", "StartAt");
-
-                    b.HasIndex("LocationType", "StartAt");
-
-                    b.HasIndex("Type", "StartAt");
-
-                    b.ToTable("CampusEvents");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.CommunityComment", b =>
@@ -821,31 +691,6 @@ namespace StudyPilotApp.Migrations
                     b.ToTable("CoursePriorityPreferences");
                 });
 
-            modelBuilder.Entity("StudyPilotApp.Models.EventRegistration", b =>
-                {
-                    b.Property<int>("CampusEventId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("CancelledAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("RegisteredAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.HasKey("CampusEventId", "ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId", "CancelledAt", "RegisteredAt");
-
-                    b.ToTable("EventRegistrations");
-                });
-
             modelBuilder.Entity("StudyPilotApp.Models.FacultyProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -967,28 +812,6 @@ namespace StudyPilotApp.Migrations
                         .IsUnique();
 
                     b.ToTable("PriorityWeightSettings");
-                });
-
-            modelBuilder.Entity("StudyPilotApp.Models.SavedEvent", b =>
-                {
-                    b.Property<int>("CampusEventId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("SavedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.HasKey("CampusEventId", "ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId", "SavedAt");
-
-                    b.ToTable("SavedEvents");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.SemesterResult", b =>
@@ -1320,17 +1143,6 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
-            modelBuilder.Entity("StudyPilotApp.Models.AppNotification", b =>
-                {
-                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApplicationUser");
-                });
-
             modelBuilder.Entity("StudyPilotApp.Models.Assessment", b =>
                 {
                     b.HasOne("StudyPilotApp.Models.Course", "Course")
@@ -1341,17 +1153,6 @@ namespace StudyPilotApp.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
-                });
-
-            modelBuilder.Entity("StudyPilotApp.Models.CampusEvent", b =>
-                {
-                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("CreatedByUser");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.CommunityComment", b =>
@@ -1466,25 +1267,6 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("Course");
                 });
 
-            modelBuilder.Entity("StudyPilotApp.Models.EventRegistration", b =>
-                {
-                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StudyPilotApp.Models.CampusEvent", "CampusEvent")
-                        .WithMany("Registrations")
-                        .HasForeignKey("CampusEventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApplicationUser");
-
-                    b.Navigation("CampusEvent");
-                });
-
             modelBuilder.Entity("StudyPilotApp.Models.FacultyProfile", b =>
                 {
                     b.HasOne("StudyPilotApp.Models.ApplicationUser", "ApplicationUser")
@@ -1516,25 +1298,6 @@ namespace StudyPilotApp.Migrations
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");
-                });
-
-            modelBuilder.Entity("StudyPilotApp.Models.SavedEvent", b =>
-                {
-                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StudyPilotApp.Models.CampusEvent", "CampusEvent")
-                        .WithMany("SavedByStudents")
-                        .HasForeignKey("CampusEventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApplicationUser");
-
-                    b.Navigation("CampusEvent");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.SemesterResult", b =>
@@ -1584,13 +1347,6 @@ namespace StudyPilotApp.Migrations
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Restrict);
-                });
-
-            modelBuilder.Entity("StudyPilotApp.Models.CampusEvent", b =>
-                {
-                    b.Navigation("Registrations");
-
-                    b.Navigation("SavedByStudents");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.CommunityComment", b =>
