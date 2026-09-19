@@ -29,15 +29,18 @@ public class StudentController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _dbContext;
     private readonly IEventService _eventService;
+    private readonly IStudentDashboardService _dashboardService;
 
     public StudentController(
         UserManager<ApplicationUser> userManager,
         ApplicationDbContext dbContext,
-        IEventService eventService)
+        IEventService eventService,
+        IStudentDashboardService dashboardService)
     {
         _userManager = userManager;
         _dbContext = dbContext;
         _eventService = eventService;
+        _dashboardService = dashboardService;
     }
 
     [HttpGet]
@@ -57,6 +60,7 @@ public class StudentController : Controller
 
         var shell = BuildShell(user, profile);
         var hour = DateTimeOffset.Now.Hour;
+        var dashboard = await _dashboardService.GetAsync(user.Id);
         var upcomingEvents = await _eventService.GetUpcomingForDashboardAsync(user.Id, 3);
 
         var model = new StudentDashboardViewModel
@@ -70,6 +74,34 @@ public class StudentController : Controller
             HasProfileImage = shell.HasProfileImage,
             ProfileImageVersion = shell.ProfileImageVersion,
             Greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening",
+            Overview = dashboard.Overview,
+            GpaTrend = dashboard.GpaTrend,
+            FocusCourses = dashboard.Courses
+                .OrderByDescending(item => item.NeedsAttention)
+                .ThenByDescending(item => item.OverdueAssessments)
+                .ThenBy(item => item.ProgressPercentage)
+                .Take(3)
+                .ToList(),
+            UpcomingAssessments = dashboard.UpcomingAssessments.Select(item => new DashboardAssessmentViewModel
+            {
+                Id = item.Id,
+                Title = item.Title,
+                CourseCode = item.Course.CourseCode,
+                Type = item.Type switch
+                {
+                    AssessmentType.FinalExam => "Final Exam",
+                    AssessmentType.ClassTest => "Class Test",
+                    _ => item.Type.ToString()
+                },
+                Status = item.Status switch
+                {
+                    AssessmentStatus.NotStarted => "Not started",
+                    AssessmentStatus.InProgress => "In progress",
+                    _ => item.Status.ToString()
+                },
+                DueDate = item.DueDate,
+                IsOverdue = item.IsOverdue
+            }).ToList(),
             UpcomingEvents = upcomingEvents.Select(item => new DashboardEventViewModel
             {
                 Id = item.Id,
@@ -88,6 +120,21 @@ public class StudentController : Controller
         };
 
         return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SyncProgress()
+    {
+        var userId = _userManager.GetUserId(User);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Challenge();
+        }
+
+        await _dashboardService.CaptureTodayAsync(userId);
+        TempData["DashboardSuccess"] = "Your academic progress snapshot is up to date.";
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpGet]

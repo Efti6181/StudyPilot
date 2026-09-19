@@ -5,6 +5,7 @@
     var profileImageUrl = Model.HasProfileImage
         ? Url.Action("ProfileImage", "Student", new { v = Model.ProfileImageVersion })
         : null;
+    var searchQuery = Context.Request.Query["q"].ToString();
 }
 <!doctype html>
 <html lang="en">
@@ -55,6 +56,9 @@
                 </a>
                 <a class="sidebar-link @(currentController == "Priorities" ? "active" : null)" asp-controller="Priorities" asp-action="Index">
                     <i class="bi bi-lightning-charge"></i><span>Priorities</span>
+                </a>
+                <a class="sidebar-link @(currentController == "StudyPlan" ? "active" : null)" asp-controller="StudyPlan" asp-action="Index">
+                    <i class="bi bi-calendar2-week"></i><span>Smart Study Plan</span><span class="nav-pill">AI</span>
                 </a>
 
                 <div class="sidebar-label">Growth</div>
@@ -111,12 +115,18 @@
                     <i class="bi bi-list"></i>
                 </button>
 
-                <div class="topbar-search">
+                <form class="topbar-search" method="get" asp-controller="Search" asp-action="Index" role="search">
                     <i class="bi bi-search"></i>
-                    <input class="form-control" id="globalSearch" type="search" placeholder="Search courses, resources, events…" aria-label="Search" />
-                </div>
+                    <input class="form-control" id="globalSearch" name="q" value="@searchQuery"
+                           type="search" maxlength="100" autocomplete="off"
+                           placeholder="Search courses, assessments, resources…" aria-label="Search StudyPilot" />
+                    <button class="visually-hidden" type="submit">Search</button>
+                </form>
 
                 <div class="topbar-actions">
+                    <a class="btn btn-icon btn-ghost mobile-search-link" asp-controller="Search" asp-action="Index" aria-label="Search StudyPilot">
+                        <i class="bi bi-search"></i>
+                    </a>
                     <button class="btn btn-icon theme-toggle" type="button" aria-label="Switch color theme">
                         <i class="bi bi-moon-stars"></i>
                     </button>

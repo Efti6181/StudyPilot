@@ -69,6 +69,8 @@ builder.Services.AddScoped<IResourceService, ResourceService>();
 builder.Services.AddScoped<ICommunityService, CommunityService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
+builder.Services.AddScoped<ISmartStudyPlanService, SmartStudyPlanService>();
 builder.Services.AddScoped<IAcademicContextService, AcademicContextService>();
 builder.Services.AddScoped<IAcademicAIConversationService, AcademicAIConversationService>();
 builder.Services.AddScoped<IAcademicAIService, AcademicAIService>();

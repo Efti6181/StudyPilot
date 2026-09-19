@@ -1,0 +1,86 @@
+@model StudyPilotApp.ViewModels.SmartStudyPlanDetailsViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "_StudentLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/smart-study-plan.css" asp-append-version="true" />
+}
+
+<section class="plan-details-head">
+    <div>
+        <a class="back-link" asp-action="Index"><i class="bi bi-arrow-left"></i> All plans</a>
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            @if (Model.IsActive) { <span class="status-chip active">Active plan</span> }
+            <span class="status-chip @(Model.UsedAiAnalysis ? "ai" : "fallback")">
+                @(Model.UsedAiAnalysis ? "AI analyzed" : "Safe estimate")
+            </span>
+        </div>
+        <h1>@Model.Title</h1>
+        <p>@Model.PeriodLabel · Career goal: @Model.CareerGoal</p>
+    </div>
+    <div class="plan-head-actions">
+        <a class="btn btn-primary" asp-action="Create"><i class="bi bi-arrow-repeat me-2"></i>Generate new</a>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
+              onsubmit="return confirm('Delete this study plan?');">
+            <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash"></i><span class="visually-hidden">Delete</span></button>
+        </form>
+    </div>
+</section>
+
+@if (TempData["StudyPlanSuccess"] is string success)
+{
+    <div class="alert alert-success" role="status"><i class="bi bi-check-circle me-2"></i>@success</div>
+}
+
+<div class="plan-summary-strip">
+    <div><i class="bi bi-clock"></i><span><small>Weekly study</small><strong>@Model.WeeklyStudyHours.ToString("0.#") hours</strong></span></div>
+    <div><i class="bi bi-calendar3"></i><span><small>Study days</small><strong>@Model.StudyDays</strong></span></div>
+    <div><i class="bi bi-stopwatch"></i><span><small>Focus pattern</small><strong>@Model.SessionMinutes min + @Model.BreakMinutes min break</strong></span></div>
+    <div><i class="bi bi-moon-stars"></i><span><small>Study window</small><strong>@Model.PreferredWindow</strong></span></div>
+</div>
+
+<section class="plan-section-card">
+    <div class="plan-section-head">
+        <div><span class="eyebrow">Weekly timetable</span><h2>Your focus blocks</h2></div>
+        <span class="provider-label"><i class="bi bi-stars"></i>@Model.AnalysisProvider</span>
+    </div>
+    <div class="timetable-grid">
+        @foreach (var day in Model.Schedule)
+        {
+            <article class="day-column">
+                <header><strong>@day.Day</strong><span>@day.Sessions.Count session@(day.Sessions.Count == 1 ? "" : "s")</span></header>
+                @foreach (var session in day.Sessions)
+                {
+                    <div class="session-block">
+                        <time>@session.StartTime.ToString("h:mm tt") – @session.EndTime.ToString("h:mm tt")</time>
+                        <strong>@session.CourseCode</strong>
+                        <span>@session.CourseName</span>
+                    </div>
+                }
+            </article>
+        }
+    </div>
+</section>
+
+<section class="plan-section-card">
+    <div class="plan-section-head">
+        <div><span class="eyebrow">Course analysis</span><h2>Why time was allocated</h2></div>
+    </div>
+    <div class="course-analysis-grid">
+        @foreach (var course in Model.Courses)
+        {
+            <article class="course-analysis-card">
+                <div class="course-analysis-title"><span>@course.CourseCode</span><h3>@course.CourseName</h3></div>
+                <div class="analysis-badges">
+                    <span class="difficulty @course.Difficulty.ToString().ToLowerInvariant()">@course.Difficulty difficulty</span>
+                    <span class="relevance @course.CareerRelevance.ToString().ToLowerInvariant()">@course.CareerRelevance career value</span>
+                </div>
+                <p>@course.AnalysisReason</p>
+                <footer><strong>@course.SessionCount session@(course.SessionCount == 1 ? "" : "s")</strong><span>@(course.WeeklyMinutes / 60)h @(course.WeeklyMinutes % 60)m each week</span></footer>
+            </article>
+        }
+    </div>
+    <p class="plan-review-note"><i class="bi bi-info-circle"></i> This is a planning recommendation. Regenerate it whenever your courses, deadlines, progress, availability or career goal changes.</p>
+</section>

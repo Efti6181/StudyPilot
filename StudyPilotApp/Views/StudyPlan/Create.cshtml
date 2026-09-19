@@ -1,0 +1,151 @@
+@model StudyPilotApp.ViewModels.SmartStudyPlanCreateViewModel
+@{
+    ViewData["Title"] = "Generate Smart Study Plan";
+    Layout = "_StudentLayout";
+    var days = Enum.GetValues<DayOfWeek>();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/smart-study-plan.css" asp-append-version="true" />
+}
+
+<section class="plan-page-head">
+    <div>
+        <a class="back-link" asp-action="Index"><i class="bi bi-arrow-left"></i> Smart Study Plan</a>
+        <h1>Build your weekly routine</h1>
+        <p>StudyPilot will estimate course difficulty and career value, then safely allocate your available time.</p>
+    </div>
+</section>
+
+<div class="plan-form-layout">
+    <form asp-action="Create" method="post" class="plan-form-card">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        @if (Model.Periods.Count == 0)
+        {
+            <div class="alert alert-warning">
+                Add at least one active course before generating a plan.
+                <a asp-controller="Courses" asp-action="Create" class="alert-link">Add course</a>
+            </div>
+        }
+
+        <fieldset disabled="@(Model.Periods.Count == 0)">
+            <div class="form-section">
+                <span class="section-number">1</span>
+                <div class="section-copy">
+                    <h2>Semester and direction</h2>
+                    <p>Select the semester containing the full course list and tell the AI where you want your studies to lead.</p>
+                </div>
+                <div class="form-grid full">
+                    <div>
+                        <label asp-for="PeriodKey" class="form-label"></label>
+                        <select asp-for="PeriodKey" class="form-select">
+                            <option value="">Choose a semester</option>
+                            @foreach (var period in Model.Periods)
+                            {
+                                <option value="@period.Key">@period.Label</option>
+                            }
+                        </select>
+                        <span asp-validation-for="PeriodKey" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="CareerGoal" class="form-label"></label>
+                        <input asp-for="CareerGoal" class="form-control" placeholder="e.g. Backend software engineer, data scientist" />
+                        <span asp-validation-for="CareerGoal" class="text-danger"></span>
+                        <div class="form-text">This helps rank career relevance; it does not change your official course information.</div>
+                    </div>
+                    <div class="course-confirm">
+                        <input asp-for="ConfirmCoursesComplete" class="form-check-input" />
+                        <label asp-for="ConfirmCoursesComplete" class="form-check-label"></label>
+                        <span asp-validation-for="ConfirmCoursesComplete" class="text-danger d-block"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <span class="section-number">2</span>
+                <div class="section-copy">
+                    <h2>Weekly availability</h2>
+                    <p>Choose when you can study. Sessions are distributed across these days without overlap.</p>
+                </div>
+                <div class="day-picker" role="group" aria-label="Study days">
+                    @foreach (var day in days)
+                    {
+                        var id = $"day-{day}";
+                        <input class="btn-check" type="checkbox" name="StudyDays" value="@day" id="@id"
+                               checked="@(Model.StudyDays.Contains(day))" />
+                        <label class="day-option" for="@id"><span>@(day.ToString()[..3])</span><small>@day</small></label>
+                    }
+                </div>
+                <span asp-validation-for="StudyDays" class="text-danger"></span>
+
+                <div class="form-grid three mt-4">
+                    <div>
+                        <label asp-for="PreferredStartTime" class="form-label"></label>
+                        <input asp-for="PreferredStartTime" type="time" class="form-control" />
+                        <span asp-validation-for="PreferredStartTime" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="PreferredEndTime" class="form-label"></label>
+                        <input asp-for="PreferredEndTime" type="time" class="form-control" />
+                        <span asp-validation-for="PreferredEndTime" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="WeeklyStudyHours" class="form-label"></label>
+                        <input asp-for="WeeklyStudyHours" type="number" min="1" max="60" step="0.5" class="form-control" />
+                        <span asp-validation-for="WeeklyStudyHours" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <span class="section-number">3</span>
+                <div class="section-copy">
+                    <h2>Session style</h2>
+                    <p>Choose a focus-block length and recovery break that suit you.</p>
+                </div>
+                <div class="form-grid two">
+                    <div>
+                        <label asp-for="SessionMinutes" class="form-label"></label>
+                        <select asp-for="SessionMinutes" class="form-select">
+                            <option value="30">30 minutes</option>
+                            <option value="45">45 minutes</option>
+                            <option value="60">60 minutes</option>
+                            <option value="90">90 minutes</option>
+                        </select>
+                        <span asp-validation-for="SessionMinutes" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="BreakMinutes" class="form-label"></label>
+                        <input asp-for="BreakMinutes" type="number" min="0" max="30" class="form-control" />
+                        <span asp-validation-for="BreakMinutes" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="plan-form-actions">
+                <a class="btn btn-light" asp-action="Index">Cancel</a>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-stars me-2"></i>Generate smart plan</button>
+            </div>
+        </fieldset>
+    </form>
+
+    <aside class="plan-explainer">
+        <div class="explainer-icon"><i class="bi bi-cpu"></i></div>
+        <h2>How the plan is made</h2>
+        <ol>
+            <li><strong>AI estimates</strong><span>Comparative difficulty and career relevance from your course details, department and career goal.</span></li>
+            <li><strong>StudyPilot prioritizes</strong><span>Credits, progress, pending work and overdue assessments affect time allocation.</span></li>
+            <li><strong>A safe scheduler builds</strong><span>Every course receives time and no generated sessions overlap.</span></li>
+        </ol>
+        <div class="provider-note @(Model.IsAiConfigured ? "ready" : "fallback")">
+            <i class="bi @(Model.IsAiConfigured ? "bi-check-circle" : "bi-info-circle")"></i>
+            <span>@(Model.IsAiConfigured ? "Gemini is configured for course analysis." : "Gemini is not configured; deterministic estimates will be used.")</span>
+        </div>
+        <p class="disclaimer">Difficulty and career relevance are planning estimates—not official academic or career advice. Review the routine and adjust your real commitments.</p>
+    </aside>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

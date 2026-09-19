@@ -1,0 +1,97 @@
+@model StudyPilotApp.ViewModels.CgpaCalculatorViewModel
+@{
+    ViewData["Title"] = "CGPA Calculator";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="page-heading">
+    <div>
+        <h1>CGPA Calculator</h1>
+        <p>Combine semester GPAs using their actual credit weight and preview your cumulative result.</p>
+    </div>
+    <div class="page-actions">
+        <a asp-action="Calculator" class="btn btn-ghost"><i class="bi bi-calculator me-2"></i>Course GPA</a>
+        <a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>GPA Planner</a>
+    </div>
+</div>
+
+@if (Model.LoadedSavedSemesters > 0)
+{
+    <div class="alert alert-info rounded-4">
+        <i class="bi bi-database-check me-2"></i>
+        Loaded @Model.LoadedSavedSemesters semester@(Model.LoadedSavedSemesters == 1 ? "" : "s") from your saved actual grades. You can edit them for this simulation.
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <section class="card-ui">
+            <div class="card-head">
+                <div><h2>Semester results</h2><p>Enter each semester GPA and the credits completed in that semester. Empty rows are ignored.</p></div>
+            </div>
+            <div class="card-body-ui">
+                <form asp-action="CgpaCalculator" method="post" id="cgpaCalculatorForm">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-4"></div>
+                    <div class="cgpa-calculator-head"><span>Semester</span><span>Credits</span><span>Semester GPA</span></div>
+                    <div id="cgpaCalculatorRows">
+                        @for (var i = 0; i < Model.Rows.Count; i++)
+                        {
+                            <div class="cgpa-calculator-row">
+                                <div>
+                                    <input asp-for="Rows[i].SemesterName" class="form-control" placeholder="e.g. Semester 1" />
+                                    <span asp-validation-for="Rows[i].SemesterName" class="text-danger small"></span>
+                                </div>
+                                <div>
+                                    <input asp-for="Rows[i].Credits" class="form-control" type="number" min="0.5" max="100" step="0.5" placeholder="18" />
+                                    <span asp-validation-for="Rows[i].Credits" class="text-danger small"></span>
+                                </div>
+                                <div>
+                                    <input asp-for="Rows[i].Gpa" class="form-control" type="number" min="0" max="@Model.MaximumGradePoint" step="0.01" placeholder="3.50" />
+                                    <span asp-validation-for="Rows[i].Gpa" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="d-flex flex-wrap justify-content-between gap-2 mt-4">
+                        <button type="button" class="btn btn-ghost" id="addCgpaRow"><i class="bi bi-plus-lg me-2"></i>Add Semester</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-calculator me-2"></i>Calculate CGPA</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-4">
+        <section class="calculator-result-card @(Model.HasResult ? "has-result" : null)">
+            <div class="calculator-result-icon"><i class="bi bi-mortarboard"></i></div>
+            <span>Cumulative GPA</span>
+            <strong>@(Model.HasResult ? Model.CalculatedCgpa.ToString("0.00") : "—")</strong>
+            @if (Model.HasResult)
+            {
+                <div class="cgpa-result-breakdown">
+                    <div><small>Total credits</small><b>@Model.TotalCredits.ToString("0.#")</b></div>
+                    <div><small>Quality points</small><b>@Model.TotalQualityPoints.ToString("0.##")</b></div>
+                </div>
+            }
+            else
+            {
+                <p>Complete at least one semester row to calculate your credit-weighted CGPA.</p>
+            }
+        </section>
+
+        <div class="gpa-note mt-3">
+            <i class="bi bi-braces"></i>
+            <div><strong>Calculation formula</strong><p>CGPA = Σ (semester GPA × semester credits) ÷ Σ semester credits. A simple average can be incorrect when semesters have different credit totals.</p></div>
+        </div>
+        <div class="gpa-note mt-3">
+            <i class="bi bi-shield-check"></i>
+            <div><strong>Safe simulation</strong><p>This calculator does not modify saved grades or semester records.</p></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>window.studyPilotMaximumGradePoint = @(Model.MaximumGradePoint.ToString(System.Globalization.CultureInfo.InvariantCulture));</script>
+    <script src="~/js/gpa-planner.js" asp-append-version="true"></script>
+}

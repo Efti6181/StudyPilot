@@ -293,6 +293,7 @@ img { max-width: 100%; }
 .topbar-search { position: relative; width: min(380px, 40vw); }
 .topbar-search i { position: absolute; left: 14px; top: 50%; color: var(--muted); transform: translateY(-50%); }
 .topbar-search .form-control { height: 43px; padding-left: 41px; background: var(--surface-2); border-color: transparent; }
+.mobile-search-link { display: none; }
 .topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .topbar-actions .btn-icon { color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); }
 .notification-dot { position: absolute; width: 8px; height: 8px; right: 8px; top: 8px; background: var(--danger); border: 2px solid var(--surface); border-radius: 50%; }
@@ -594,6 +595,7 @@ img { max-width: 100%; }
   .landing-section { padding: 64px 0; }
   .app-topbar { min-height: 68px; padding: 0 15px; }
   .topbar-search { display: none; }
+  .mobile-search-link { display: inline-grid; }
   .topbar-profile > div:not(.avatar) { display: none; }
   .page-content { padding: 18px 15px 30px; }
   .page-heading { align-items: stretch; flex-direction: column; margin-bottom: 20px; }
@@ -830,12 +832,20 @@ textarea.form-control { resize: vertical; }
 .calculator-head, .calculator-row { display: grid; grid-template-columns: minmax(180px, 1.5fr) minmax(110px, .5fr) minmax(145px, .7fr); gap: 10px; align-items: start; }
 .calculator-head { padding: 0 4px 8px; color: var(--muted); font-size: .67rem; font-weight: 800; text-transform: uppercase; }
 .calculator-row { margin-bottom: 10px; }
+.cgpa-calculator-head, .cgpa-calculator-row { display: grid; grid-template-columns: minmax(190px, 1.5fr) minmax(110px, .55fr) minmax(135px, .65fr); gap: 10px; align-items: start; }
+.cgpa-calculator-head { padding: 0 4px 8px; color: var(--muted); font-size: .67rem; font-weight: 800; text-transform: uppercase; }
+.cgpa-calculator-row { margin-bottom: 10px; }
 .calculator-result-card { padding: 30px 22px; text-align: center; color: #fff; background: linear-gradient(145deg, #334155, #0f172a); border-radius: var(--radius); box-shadow: var(--shadow); }
 .calculator-result-card.has-result { background: linear-gradient(145deg, #1d4ed8, #4338ca 55%, #0f766e); }
 .calculator-result-icon { display: grid; place-items: center; width: 54px; height: 54px; margin: 0 auto 16px; background: rgba(255,255,255,.14); border-radius: 16px; font-size: 1.3rem; }
 .calculator-result-card > span { display: block; color: rgba(255,255,255,.68); font-size: .7rem; text-transform: uppercase; }
 .calculator-result-card > strong { display: block; margin: 4px 0; font-size: 3rem; line-height: 1; font-weight: 900; }
 .calculator-result-card > p { margin: 12px 0 0; color: rgba(255,255,255,.68); font-size: .72rem; }
+.cgpa-result-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 20px; }
+.cgpa-result-breakdown > div { padding: 12px 8px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; }
+.cgpa-result-breakdown small, .cgpa-result-breakdown b { display: block; }
+.cgpa-result-breakdown small { color: rgba(255,255,255,.68); font-size: .62rem; }
+.cgpa-result-breakdown b { margin-top: 3px; font-size: .9rem; }
 .scale-grid { display: grid; grid-template-columns: minmax(100px, .5fr) 1fr 1fr; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .scale-grid:last-of-type { border-bottom: 0; }
 .scale-head { padding-top: 0; color: var(--muted); font-size: .67rem; font-weight: 850; text-transform: uppercase; }
@@ -849,11 +859,14 @@ textarea.form-control { resize: vertical; }
   .semester-grid { grid-template-columns: 1fr; }
   .calculator-head { display: none; }
   .calculator-row { grid-template-columns: 1fr 100px 125px; }
+  .cgpa-calculator-head { display: none; }
+  .cgpa-calculator-row { grid-template-columns: 1fr 100px 125px; }
 }
 
 @media (max-width: 575.98px) {
   .semester-hero-metrics { flex-direction: column; }
   .calculator-row { grid-template-columns: 1fr; padding: 13px; background: var(--surface-2); border-radius: 13px; }
+  .cgpa-calculator-row { grid-template-columns: 1fr; padding: 13px; background: var(--surface-2); border-radius: 13px; }
   .scale-grid { grid-template-columns: 70px 1fr 1fr; gap: 8px; }
 }
 
@@ -994,4 +1007,37 @@ textarea.form-control { resize: vertical; }
   .insights-strip { padding: 18px; }
   .chart-panel, .chart-panel-small { min-height: 260px; }
   .chart-panel canvas { height: 235px !important; }
+}
+
+/* Final student integration */
+.metric-link { display: block; color: inherit; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.metric-link:hover { color: inherit; transform: translateY(-3px); border-color: rgba(37,99,235,.24); box-shadow: var(--shadow); }
+.metric-link.primary:hover { color: #fff; }
+.dashboard-alert { display: flex; align-items: center; gap: 10px; color: #166534; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.22); border-radius: 14px; }
+[data-theme="dark"] .dashboard-alert { color: #86efac; }
+.dashboard-empty { display: grid; place-items: center; gap: 9px; min-height: 115px; color: var(--muted); text-align: center; }
+.dashboard-empty i { color: var(--primary); font-size: 1.55rem; }
+.search-page-form { display: flex; gap: 10px; }
+.search-page-form .form-control { min-height: 50px; padding-left: 43px; }
+.search-page-icon { position: absolute; z-index: 1; top: 50%; left: 15px; color: var(--muted); transform: translateY(-50%); }
+.search-results { display: grid; gap: 14px; }
+.search-result-row { display: flex; align-items: center; gap: 13px; padding: 13px 0; border-bottom: 1px solid var(--line); transition: color .2s ease; }
+.search-result-row:first-child { padding-top: 0; }
+.search-result-row:last-child { padding-bottom: 0; border-bottom: 0; }
+.search-result-row:hover { color: var(--primary); }
+.search-result-copy { min-width: 0; flex: 1; }
+.search-result-copy strong, .search-result-copy small { display: block; }
+.search-result-copy strong { overflow: hidden; color: var(--ink); font-size: .84rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.search-result-copy small { margin-top: 3px; color: var(--muted); font-size: .7rem; }
+.search-result-row > .bi-chevron-right { color: var(--muted-2); }
+.search-empty .card-body-ui { display: grid; place-items: center; align-content: center; min-height: 270px; text-align: center; }
+.search-empty i { margin-bottom: 12px; color: var(--primary); font-size: 2rem; }
+.search-empty h2 { margin: 0; font-size: 1.05rem; font-weight: 850; }
+.search-empty p { max-width: 480px; margin: 6px 0 0; color: var(--muted); font-size: .76rem; }
+
+@media (max-width: 575.98px) {
+  .search-page-form { flex-direction: column; }
+  .search-page-form .btn { width: 100%; }
+  .list-row { align-items: flex-start; }
+  .list-end { min-width: 92px; }
 }

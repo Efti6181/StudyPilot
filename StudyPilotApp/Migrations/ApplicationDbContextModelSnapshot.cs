@@ -1199,6 +1199,167 @@ namespace StudyPilotApp.Migrations
                     b.ToTable("StudentProfiles");
                 });
 
+            modelBuilder.Entity("StudyPilotApp.Models.SmartStudyPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicTerm")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("AcademicYear")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AnalysisProvider")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("BreakMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CareerGoal")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<TimeOnly>("PreferredEndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<TimeOnly>("PreferredStartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<int>("Semester")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SessionMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StudyDays")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<bool>("UsedAiAnalysis")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("WeeklyStudyHours")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("ApplicationUserId", "IsActive", "CreatedAt");
+
+                    b.ToTable("SmartStudyPlans");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.SmartStudyPlanCourse", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AllocationScore")
+                        .HasPrecision(8, 3)
+                        .HasColumnType("numeric(8,3)");
+
+                    b.Property<string>("AnalysisReason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("CareerRelevance")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CourseCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CourseName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<int>("Difficulty")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SmartStudyPlanId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("WeeklyMinutes")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SmartStudyPlanId");
+
+                    b.HasIndex("SmartStudyPlanId", "CourseId")
+                        .IsUnique();
+
+                    b.ToTable("SmartStudyPlanCourses");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.SmartStudySession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Day")
+                        .HasColumnType("integer");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SmartStudyPlanCourseId")
+                        .HasColumnType("integer");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Day", "StartTime");
+
+                    b.HasIndex("SmartStudyPlanCourseId");
+
+                    b.ToTable("SmartStudySessions");
+                });
+
             modelBuilder.Entity("StudyPilotApp.Models.StudyResource", b =>
                 {
                     b.Property<int>("Id")
@@ -1660,6 +1821,39 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
+            modelBuilder.Entity("StudyPilotApp.Models.SmartStudyPlan", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.SmartStudyPlanCourse", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.SmartStudyPlan", "SmartStudyPlan")
+                        .WithMany("Courses")
+                        .HasForeignKey("SmartStudyPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SmartStudyPlan");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.SmartStudySession", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.SmartStudyPlanCourse", "SmartStudyPlanCourse")
+                        .WithMany("Sessions")
+                        .HasForeignKey("SmartStudyPlanCourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SmartStudyPlanCourse");
+                });
+
             modelBuilder.Entity("StudyPilotApp.Models.StudyResource", b =>
                 {
                     b.HasOne("StudyPilotApp.Models.ApplicationUser", "ApplicationUser")
@@ -1725,6 +1919,16 @@ namespace StudyPilotApp.Migrations
             modelBuilder.Entity("StudyPilotApp.Models.SemesterResult", b =>
                 {
                     b.Navigation("CourseGrades");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.SmartStudyPlan", b =>
+                {
+                    b.Navigation("Courses");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.SmartStudyPlanCourse", b =>
+                {
+                    b.Navigation("Sessions");
                 });
 #pragma warning restore 612, 618
         }

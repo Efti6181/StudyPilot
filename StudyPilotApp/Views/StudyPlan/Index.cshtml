@@ -1,0 +1,78 @@
+@model StudyPilotApp.ViewModels.SmartStudyPlanIndexViewModel
+@{
+    ViewData["Title"] = "Smart Study Plan";
+    Layout = "_StudentLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/smart-study-plan.css" asp-append-version="true" />
+}
+
+<section class="plan-hero">
+    <div>
+        <span class="eyebrow"><i class="bi bi-stars"></i> AI-assisted routine</span>
+        <h1>Smart Study Plan</h1>
+        <p>Turn your semester courses, available time and career direction into a balanced weekly routine.</p>
+    </div>
+    @if (Model.AvailablePeriodCount > 0)
+    {
+        <a class="btn btn-primary" asp-action="Create"><i class="bi bi-magic me-2"></i>Generate plan</a>
+    }
+</section>
+
+@if (TempData["StudyPlanSuccess"] is string success)
+{
+    <div class="alert alert-success" role="status"><i class="bi bi-check-circle me-2"></i>@success</div>
+}
+
+@if (Model.AvailablePeriodCount == 0)
+{
+    <section class="plan-empty">
+        <span class="plan-empty-icon"><i class="bi bi-journal-plus"></i></span>
+        <h2>Add your courses first</h2>
+        <p>StudyPilot needs the complete course list for a semester before it can distribute your weekly study time.</p>
+        <a class="btn btn-primary" asp-controller="Courses" asp-action="Create">Add a course</a>
+    </section>
+}
+else if (Model.Plans.Count == 0)
+{
+    <section class="plan-empty">
+        <span class="plan-empty-icon"><i class="bi bi-calendar2-week"></i></span>
+        <h2>No study plan yet</h2>
+        <p>Confirm your semester courses, set your study window, and generate your first routine.</p>
+        <a class="btn btn-primary" asp-action="Create">Build my plan</a>
+    </section>
+}
+else
+{
+    <div class="plan-list">
+        @foreach (var plan in Model.Plans)
+        {
+            <article class="plan-card @(plan.IsActive ? "is-active" : null)">
+                <div class="plan-card-head">
+                    <div>
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            @if (plan.IsActive)
+                            {
+                                <span class="status-chip active">Active</span>
+                            }
+                            <span class="status-chip @(plan.UsedAiAnalysis ? "ai" : "fallback")">
+                                @(plan.UsedAiAnalysis ? "AI analyzed" : "Safe estimate")
+                            </span>
+                        </div>
+                        <h2>@plan.Title</h2>
+                        <p>@plan.PeriodLabel</p>
+                    </div>
+                    <a class="btn btn-outline-primary" asp-action="Details" asp-route-id="@plan.Id">View timetable</a>
+                </div>
+                <div class="plan-metrics">
+                    <span><strong>@plan.CourseCount</strong> courses</span>
+                    <span><strong>@plan.SessionCount</strong> sessions</span>
+                    <span><strong>@plan.WeeklyStudyHours.ToString("0.#")</strong> hrs/week</span>
+                </div>
+                <div class="plan-goal"><i class="bi bi-bullseye"></i><span><small>Career goal</small>@plan.CareerGoal</span></div>
+                <footer>Generated @plan.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt") · @plan.AnalysisProvider</footer>
+            </article>
+        }
+    </div>
+}

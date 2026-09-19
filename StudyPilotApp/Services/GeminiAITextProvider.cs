@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Net;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
@@ -8,6 +9,7 @@ namespace StudyPilotApp.Services;
 
 public sealed partial class GeminiAITextProvider : IAITextProvider
 {
+    private const int MaximumAttempts = 3;
     private readonly HttpClient _httpClient;
     private readonly AcademicAIOptions _options;
     private readonly ILogger<GeminiAITextProvider> _logger;
@@ -59,53 +61,108 @@ public sealed partial class GeminiAITextProvider : IAITextProvider
             Store = false
         };
 
-        try
+        for (var attempt = 1; attempt <= MaximumAttempts; attempt++)
         {
-            using var request = new HttpRequestMessage(
-                HttpMethod.Post,
-                $"/v1beta/models/{Uri.EscapeDataString(model)}:generateContent")
+            try
             {
-                Content = JsonContent.Create(payload)
-            };
-            request.Headers.Add("x-goog-api-key", _options.ApiKey.Trim());
+                using var request = CreateRequest(model, payload);
+                using var response = await _httpClient.SendAsync(request, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var statusCode = (int)response.StatusCode;
+                    if (IsTransient(response.StatusCode) && attempt < MaximumAttempts)
+                    {
+                        _logger.LogWarning(
+                            "Gemini request returned {StatusCode}; retrying ({Attempt}/{MaximumAttempts}).",
+                            statusCode,
+                            attempt,
+                            MaximumAttempts);
+                        await DelayBeforeRetryAsync(attempt, cancellationToken);
+                        continue;
+                    }
 
-            using var response = await _httpClient.SendAsync(request, cancellationToken);
-            if (!response.IsSuccessStatusCode)
+                    _logger.LogWarning(
+                        "Gemini request failed with status {StatusCode} after {Attempt} attempt(s).",
+                        statusCode,
+                        attempt);
+                    return new AIProviderResult(false, null, "Gemini", $"http_{statusCode}");
+                }
+
+                var result = await response.Content.ReadFromJsonAsync<GeminiGenerateResponse>(
+                    cancellationToken: cancellationToken);
+                var textParts = result?.Candidates?
+                    .SelectMany(candidate => candidate.Content?.Parts ?? [])
+                    .Select(part => part.Text)
+                    .Where(value => !string.IsNullOrWhiteSpace(value))
+                    .ToList() ?? [];
+                var text = string.Join(Environment.NewLine, textParts).Trim();
+
+                return string.IsNullOrWhiteSpace(text)
+                    ? new AIProviderResult(false, null, "Gemini", "empty_response")
+                    : new AIProviderResult(true, text, $"Gemini · {model}");
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (OperationCanceledException) when (attempt < MaximumAttempts)
             {
                 _logger.LogWarning(
-                    "Gemini request failed with status {StatusCode}.",
-                    (int)response.StatusCode);
-                return new AIProviderResult(false, null, "Gemini", $"http_{(int)response.StatusCode}");
+                    "Gemini request timed out; retrying ({Attempt}/{MaximumAttempts}).",
+                    attempt,
+                    MaximumAttempts);
+                await DelayBeforeRetryAsync(attempt, cancellationToken);
             }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Gemini request timed out after {Attempts} attempts.", MaximumAttempts);
+                return new AIProviderResult(false, null, "Gemini", "timeout");
+            }
+            catch (HttpRequestException exception) when (attempt < MaximumAttempts)
+            {
+                _logger.LogWarning(
+                    exception,
+                    "Gemini network request failed; retrying ({Attempt}/{MaximumAttempts}).",
+                    attempt,
+                    MaximumAttempts);
+                await DelayBeforeRetryAsync(attempt, cancellationToken);
+            }
+            catch (HttpRequestException exception)
+            {
+                _logger.LogWarning(exception, "Gemini request could not be completed after retries.");
+                return new AIProviderResult(false, null, "Gemini", "network_error");
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Unexpected Gemini provider failure.");
+                return new AIProviderResult(false, null, "Gemini", "provider_error");
+            }
+        }
 
-            var result = await response.Content.ReadFromJsonAsync<GeminiGenerateResponse>(
-                cancellationToken: cancellationToken);
-            var textParts = result?.Candidates?
-                .SelectMany(candidate => candidate.Content?.Parts ?? [])
-                .Select(part => part.Text)
-                .Where(value => !string.IsNullOrWhiteSpace(value))
-                .ToList() ?? [];
-            var text = string.Join(Environment.NewLine, textParts).Trim();
+        return new AIProviderResult(false, null, "Gemini", "provider_error");
+    }
 
-            return string.IsNullOrWhiteSpace(text)
-                ? new AIProviderResult(false, null, "Gemini", "empty_response")
-                : new AIProviderResult(true, text, $"Gemini · {model}");
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+    private HttpRequestMessage CreateRequest(string model, GeminiGenerateRequest payload)
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/v1beta/models/{Uri.EscapeDataString(model)}:generateContent")
         {
-            _logger.LogWarning("Gemini request timed out.");
-            return new AIProviderResult(false, null, "Gemini", "timeout");
-        }
-        catch (HttpRequestException exception)
-        {
-            _logger.LogWarning(exception, "Gemini request could not be completed.");
-            return new AIProviderResult(false, null, "Gemini", "network_error");
-        }
-        catch (Exception exception)
-        {
-            _logger.LogError(exception, "Unexpected Gemini provider failure.");
-            return new AIProviderResult(false, null, "Gemini", "provider_error");
-        }
+            Content = JsonContent.Create(payload)
+        };
+        request.Headers.Add("x-goog-api-key", _options.ApiKey.Trim());
+        return request;
+    }
+
+    private static bool IsTransient(HttpStatusCode statusCode) =>
+        statusCode is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests ||
+        (int)statusCode >= 500;
+
+    private static Task DelayBeforeRetryAsync(int attempt, CancellationToken cancellationToken)
+    {
+        var exponentialDelay = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
+        var jitter = TimeSpan.FromMilliseconds(Random.Shared.Next(100, 450));
+        return Task.Delay(exponentialDelay + jitter, cancellationToken);
     }
 
     [GeneratedRegex("^[A-Za-z0-9._-]{1,100}$", RegexOptions.CultureInvariant)]

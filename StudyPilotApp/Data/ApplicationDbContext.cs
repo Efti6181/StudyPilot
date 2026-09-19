@@ -33,6 +33,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AppNotification> AppNotifications => Set<AppNotification>();
     public DbSet<AcademicAIConversation> AcademicAIConversations => Set<AcademicAIConversation>();
     public DbSet<AcademicAIMessage> AcademicAIMessages => Set<AcademicAIMessage>();
+    public DbSet<SmartStudyPlan> SmartStudyPlans => Set<SmartStudyPlan>();
+    public DbSet<SmartStudyPlanCourse> SmartStudyPlanCourses => Set<SmartStudyPlanCourse>();
+    public DbSet<SmartStudySession> SmartStudySessions => Set<SmartStudySession>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -388,6 +391,46 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(x => x.Conversation)
                 .WithMany(x => x.Messages)
                 .HasForeignKey(x => x.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<SmartStudyPlan>(entity =>
+        {
+            entity.HasIndex(x => x.ApplicationUserId);
+            entity.HasIndex(x => new { x.ApplicationUserId, x.IsActive, x.CreatedAt });
+            entity.Property(x => x.WeeklyStudyHours).HasPrecision(5, 2);
+            entity.Property(x => x.PreferredStartTime).HasColumnType("time without time zone");
+            entity.Property(x => x.PreferredEndTime).HasColumnType("time without time zone");
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<SmartStudyPlanCourse>(entity =>
+        {
+            entity.HasIndex(x => x.SmartStudyPlanId);
+            entity.HasIndex(x => new { x.SmartStudyPlanId, x.CourseId }).IsUnique();
+            entity.Property(x => x.AllocationScore).HasPrecision(8, 3);
+
+            entity.HasOne(x => x.SmartStudyPlan)
+                .WithMany(x => x.Courses)
+                .HasForeignKey(x => x.SmartStudyPlanId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<SmartStudySession>(entity =>
+        {
+            entity.HasIndex(x => x.SmartStudyPlanCourseId);
+            entity.HasIndex(x => new { x.Day, x.StartTime });
+            entity.Property(x => x.StartTime).HasColumnType("time without time zone");
+            entity.Property(x => x.EndTime).HasColumnType("time without time zone");
+
+            entity.HasOne(x => x.SmartStudyPlanCourse)
+                .WithMany(x => x.Sessions)
+                .HasForeignKey(x => x.SmartStudyPlanCourseId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

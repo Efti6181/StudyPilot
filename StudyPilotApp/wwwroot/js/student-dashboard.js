@@ -1,12 +1,12 @@
 (() => {
     "use strict";
 
-    const charts = [];
+    const dashboardCharts = [];
 
     function getThemeColors() {
         const styles = getComputedStyle(document.documentElement);
         return {
-            primary: styles.getPropertyValue("--primary").trim() || "#4f46e5",
+            primary: styles.getPropertyValue("--primary").trim() || "#2563eb",
             secondary: styles.getPropertyValue("--secondary").trim() || "#14b8a6",
             text: styles.getPropertyValue("--muted").trim() || "#64748b",
             grid: document.documentElement.dataset.theme === "dark"
@@ -33,8 +33,8 @@
         toast.className = "app-toast";
 
         const icon = document.createElement("span");
-        icon.className = "toast-icon";
-        icon.innerHTML = '<i class="bi bi-check2"></i>';
+        icon.className = "toast-symbol";
+        icon.innerHTML = '<i class="bi bi-info-lg"></i>';
 
         const copy = document.createElement("div");
         const heading = document.createElement("strong");
@@ -51,85 +51,48 @@
         }, 3200);
     }
 
-    function openModal(title, content) {
-        const modalElement = document.getElementById("appModal");
-        const titleElement = document.getElementById("appModalTitle");
-        const bodyElement = document.getElementById("appModalBody");
+    function readDashboardData() {
+        const element = document.getElementById("dashboardChartData");
+        if (!element) return null;
 
-        if (!modalElement || !titleElement || !bodyElement || !window.bootstrap) return;
-
-        titleElement.textContent = title;
-        bodyElement.replaceChildren(content);
-        window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+        try {
+            return JSON.parse(element.textContent);
+        } catch {
+            return null;
+        }
     }
 
-    function notificationsContent() {
-        const wrapper = document.createElement("div");
-        wrapper.className = "d-grid gap-2";
-
-        [
-            ["bi-alarm", "Assessment reminder", "Process Scheduling CT is due soon."],
-            ["bi-graph-up-arrow", "Progress update", "Your semester GPA trend is improving."],
-            ["bi-calendar-event", "Campus event", "The CSE project showcase has been added."]
-        ].forEach(([iconName, title, message]) => {
-            const row = document.createElement("div");
-            row.className = "list-row rounded-3 border";
-            row.innerHTML = `<span class="list-icon"><i class="bi ${iconName}"></i></span><div><div class="list-title"></div><div class="list-meta"></div></div>`;
-            row.querySelector(".list-title").textContent = title;
-            row.querySelector(".list-meta").textContent = message;
-            wrapper.appendChild(row);
-        });
-
-        return wrapper;
-    }
-
-    function messageContent(message) {
-        const paragraph = document.createElement("p");
-        paragraph.className = "mb-0 text-secondary";
-        paragraph.textContent = message;
-        return paragraph;
-    }
-
-    function initializeCharts() {
+    function initializeDashboardCharts() {
+        const data = readDashboardData();
+        if (!data) return;
         if (!window.Chart) {
-            showToast("Dashboard loaded", "Charts require an internet connection the first time.");
+            showToast("Charts unavailable", "The dashboard data is available, but the chart library could not be loaded.");
             return;
         }
 
-        charts.splice(0).forEach(chart => chart.destroy());
+        dashboardCharts.splice(0).forEach(chart => chart.destroy());
         const colors = getThemeColors();
-        const commonScales = {
-            x: {
-                grid: { display: false },
-                border: { display: false },
-                ticks: { color: colors.text, font: { family: "Inter", size: 11 } }
-            },
-            y: {
-                grid: { color: colors.grid },
-                border: { display: false },
-                ticks: { color: colors.text, font: { family: "Inter", size: 11 } }
-            }
-        };
+        const commonTicks = { color: colors.text, font: { family: "Inter", size: 11 } };
 
         const gpaCanvas = document.getElementById("gpaTrendChart");
-        if (gpaCanvas) {
+        if (gpaCanvas && data.gpaLabels?.length) {
             const context = gpaCanvas.getContext("2d");
             const gradient = context.createLinearGradient(0, 0, 0, 260);
             gradient.addColorStop(0, `${colors.primary}45`);
             gradient.addColorStop(1, `${colors.primary}00`);
 
-            charts.push(new Chart(context, {
+            dashboardCharts.push(new Chart(context, {
                 type: "line",
                 data: {
-                    labels: ["Sem 1", "Sem 2", "Sem 3", "Sem 4", "Sem 5", "Sem 6"],
+                    labels: data.gpaLabels,
                     datasets: [{
                         label: "GPA",
-                        data: [3.08, 3.18, 3.24, 3.31, 3.34, 3.42],
+                        data: data.gpaValues,
                         borderColor: colors.primary,
                         backgroundColor: gradient,
                         fill: true,
                         borderWidth: 3,
-                        tension: .38,
+                        tension: .35,
                         pointRadius: 4,
                         pointHoverRadius: 6,
                         pointBackgroundColor: colors.primary,
@@ -143,34 +106,48 @@
                     interaction: { intersect: false, mode: "index" },
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: commonScales.x,
-                        y: { ...commonScales.y, min: 2.8, max: 4, ticks: { ...commonScales.y.ticks, stepSize: .2 } }
+                        x: { grid: { display: false }, border: { display: false }, ticks: commonTicks },
+                        y: {
+                            min: 0,
+                            max: 4,
+                            grid: { color: colors.grid },
+                            border: { display: false },
+                            ticks: { ...commonTicks, stepSize: .5 }
+                        }
                     }
                 }
             }));
         }
 
-        const hoursCanvas = document.getElementById("studyHoursChart");
-        if (hoursCanvas) {
-            charts.push(new Chart(hoursCanvas, {
+        const courseCanvas = document.getElementById("courseProgressChart");
+        if (courseCanvas && data.courseLabels?.length) {
+            dashboardCharts.push(new Chart(courseCanvas, {
                 type: "bar",
                 data: {
-                    labels: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                    labels: data.courseLabels,
                     datasets: [{
-                        label: "Hours",
-                        data: [3.2, 2.1, 2.8, 1.5, 2.4, 1.2, 1.3],
-                        backgroundColor: [colors.primary, colors.secondary, colors.primary, colors.secondary, colors.primary, colors.secondary, colors.primary],
+                        label: "Progress",
+                        data: data.courseValues,
+                        backgroundColor: data.courseValues.map((value, index) =>
+                            value < 50 ? "#ef4444" : index % 2 === 0 ? colors.primary : colors.secondary),
                         borderRadius: 7,
                         borderSkipped: false
                     }]
                 },
                 options: {
+                    indexAxis: "y",
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: commonScales.x,
-                        y: { ...commonScales.y, beginAtZero: true, suggestedMax: 4 }
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: colors.grid },
+                            border: { display: false },
+                            ticks: { ...commonTicks, callback: value => `${value}%` }
+                        },
+                        y: { grid: { display: false }, border: { display: false }, ticks: commonTicks }
                     }
                 }
             }));
@@ -184,12 +161,12 @@
         if (!sidebar || !menuButton || !backdrop) return;
 
         const closeSidebar = () => {
-            sidebar.classList.remove("show");
+            sidebar.classList.remove("open");
             backdrop.classList.remove("show");
         };
 
         menuButton.addEventListener("click", () => {
-            sidebar.classList.toggle("show");
+            sidebar.classList.toggle("open");
             backdrop.classList.toggle("show");
         });
         backdrop.addEventListener("click", closeSidebar);
@@ -199,40 +176,24 @@
     }
 
     function initializeActions() {
-        document.querySelectorAll("[data-coming-soon]").forEach(element => {
-            element.addEventListener("click", event => {
-                event.preventDefault();
-                const feature = element.dataset.comingSoon || "This feature";
-                showToast(feature, "This module will be connected in the next StudyPilot phase.");
-            });
-        });
-
         document.querySelector(".theme-toggle")?.addEventListener("click", () => {
             const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
             applyTheme(nextTheme);
-            initializeCharts();
+            initializeDashboardCharts();
         });
 
-        document.getElementById("notificationButton")?.addEventListener("click", () => {
-            openModal("Notifications", notificationsContent());
-        });
-
-        document.getElementById("syncProgress")?.addEventListener("click", event => {
-            const icon = event.currentTarget.querySelector("i");
+        document.getElementById("syncProgress")?.closest("form")?.addEventListener("submit", event => {
+            const button = event.currentTarget.querySelector("button");
+            const icon = button?.querySelector("i");
             icon?.classList.add("spin-once");
-            window.setTimeout(() => icon?.classList.remove("spin-once"), 700);
-            showToast("Progress synchronized", "Your dashboard is already up to date.");
+            if (button) button.disabled = true;
         });
 
-        document.getElementById("globalSearch")?.addEventListener("keydown", event => {
-            if (event.key !== "Enter") return;
+        document.querySelector(".topbar-search")?.addEventListener("submit", event => {
+            const input = event.currentTarget.querySelector('input[name="q"]');
+            if (input?.value.trim()) return;
             event.preventDefault();
-            const query = event.currentTarget.value.trim();
-            if (!query) {
-                showToast("Search StudyPilot", "Enter a course, resource or event name.");
-                return;
-            }
-            openModal("Search", messageContent(`Search for “${query}” will be connected when the academic modules are implemented.`));
+            input?.focus();
         });
     }
 
@@ -243,7 +204,7 @@
 
         initializeSidebar();
         initializeActions();
-        initializeCharts();
+        initializeDashboardCharts();
 
         window.setTimeout(() => document.getElementById("pageLoader")?.classList.add("is-hidden"), 350);
     });

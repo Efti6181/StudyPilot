@@ -1,7 +1,7 @@
 @model StudyPilotApp.ViewModels.GpaCalculatorViewModel
-@{ ViewData["Title"] = "What-if GPA Calculator"; Layout = "/Views/Shared/_StudentLayout.cshtml"; }
+@{ ViewData["Title"] = "GPA Calculator"; Layout = "/Views/Shared/_StudentLayout.cshtml"; }
 
-<div class="page-heading"><div><h1>What-if GPA Calculator</h1><p>Try grade combinations without changing your saved academic records.</p></div><a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>GPA Planner</a></div>
+<div class="page-heading"><div><h1>Course GPA Calculator</h1><p>Try course-grade combinations without changing your saved academic records.</p></div><div class="page-actions"><a asp-action="CgpaCalculator" class="btn btn-ghost"><i class="bi bi-layers me-2"></i>CGPA Calculator</a><a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>GPA Planner</a></div></div>
 
 <div class="row g-4">
     <div class="col-xl-8">

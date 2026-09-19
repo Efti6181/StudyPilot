@@ -438,6 +438,95 @@ public sealed class GpaController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> CgpaCalculator()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null) return Challenge();
+        await _gpaService.EnsureDefaultScaleAsync(user.Id);
+
+        var scale = await _gpaService.GetScaleAsync(user.Id);
+        var maximum = scale.Count == 0 ? 4m : scale.Max(item => item.GradePoint);
+        var lookup = BuildScaleLookup(scale);
+        var semesters = await _gpaService.GetSemestersAsync(user.Id);
+        var savedRows = semesters
+            .OrderBy(item => item.AcademicYear)
+            .ThenBy(item => item.AcademicTerm)
+            .ThenBy(item => item.SemesterNumber)
+            .Select(item => new
+            {
+                Semester = item,
+                Result = CalculateSemester(item, lookup, useExpectedFallback: false)
+            })
+            .Where(item => item.Result.Credits > 0)
+            .Select(item => new CgpaSemesterRowViewModel
+            {
+                SemesterName = SemesterLabel(item.Semester),
+                Credits = item.Result.Credits,
+                Gpa = item.Result.Gpa
+            })
+            .Take(16)
+            .ToList();
+
+        var model = new CgpaCalculatorViewModel
+        {
+            Rows = savedRows,
+            LoadedSavedSemesters = savedRows.Count,
+            MaximumGradePoint = maximum
+        };
+        var desiredRows = Math.Min(16, Math.Max(6, savedRows.Count + 2));
+        while (model.Rows.Count < desiredRows) model.Rows.Add(new CgpaSemesterRowViewModel());
+
+        if (!await PopulateShellAsync(model, user)) return MissingStudentProfile();
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CgpaCalculator(CgpaCalculatorViewModel model)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null) return Challenge();
+        await _gpaService.EnsureDefaultScaleAsync(user.Id);
+
+        var scale = await _gpaService.GetScaleAsync(user.Id);
+        model.MaximumGradePoint = scale.Count == 0 ? 4m : scale.Max(item => item.GradePoint);
+        model.Rows = (model.Rows ?? []).Take(16).ToList();
+        var inputs = new List<(decimal Credits, decimal GradePoint)>();
+
+        for (var index = 0; index < model.Rows.Count; index++)
+        {
+            var row = model.Rows[index];
+            var hasAny = !string.IsNullOrWhiteSpace(row.SemesterName) || row.Credits.HasValue || row.Gpa.HasValue;
+            if (!hasAny) continue;
+
+            if (!row.Credits.HasValue || row.Credits.Value is < 0.5m or > 100m)
+                ModelState.AddModelError($"Rows[{index}].Credits", "Enter credits between 0.5 and 100.");
+            if (!row.Gpa.HasValue || row.Gpa.Value < 0 || row.Gpa.Value > model.MaximumGradePoint)
+                ModelState.AddModelError($"Rows[{index}].Gpa", $"Enter a GPA between 0 and {model.MaximumGradePoint:0.00}.");
+
+            if (row.Credits.HasValue && row.Credits.Value is >= 0.5m and <= 100m &&
+                row.Gpa.HasValue && row.Gpa.Value >= 0m && row.Gpa.Value <= model.MaximumGradePoint)
+                inputs.Add((row.Credits.Value, row.Gpa.Value));
+        }
+
+        if (inputs.Count == 0)
+            ModelState.AddModelError(string.Empty, "Enter at least one complete semester row.");
+
+        if (ModelState.IsValid)
+        {
+            var result = GpaCalculator.Calculate(inputs);
+            model.HasResult = true;
+            model.CalculatedCgpa = result.Gpa;
+            model.TotalCredits = result.Credits;
+            model.TotalQualityPoints = result.QualityPoints;
+        }
+
+        while (model.Rows.Count < 6) model.Rows.Add(new CgpaSemesterRowViewModel());
+        if (!await PopulateShellAsync(model, user)) return MissingStudentProfile();
+        return View(model);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> GradingScale()
     {
         var user = await _userManager.GetUserAsync(User);

@@ -138,6 +138,31 @@ public sealed class GpaCalculatorRowViewModel
     public string? LetterGrade { get; set; }
 }
 
+public sealed class CgpaCalculatorViewModel : StudentShellViewModel
+{
+    public List<CgpaSemesterRowViewModel> Rows { get; set; } = [];
+    public bool HasResult { get; set; }
+    public decimal CalculatedCgpa { get; set; }
+    public decimal TotalCredits { get; set; }
+    public decimal TotalQualityPoints { get; set; }
+    public decimal MaximumGradePoint { get; set; } = 4m;
+    public int LoadedSavedSemesters { get; set; }
+}
+
+public sealed class CgpaSemesterRowViewModel
+{
+    [StringLength(100)]
+    [Display(Name = "Semester")]
+    public string? SemesterName { get; set; }
+
+    [Range(typeof(decimal), "0.5", "100")]
+    public decimal? Credits { get; set; }
+
+    [Range(typeof(decimal), "0", "10")]
+    [Display(Name = "Semester GPA")]
+    public decimal? Gpa { get; set; }
+}
+
 public sealed class GradingScaleViewModel : StudentShellViewModel
 {
     public List<GradingScaleRowViewModel> Entries { get; set; } = [];

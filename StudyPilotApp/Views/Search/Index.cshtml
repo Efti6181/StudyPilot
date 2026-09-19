@@ -1,0 +1,82 @@
+@model StudentSearchViewModel
+@{
+    ViewData["Title"] = "Search";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Search StudyPilot</h1>
+        <p>Find your courses, assessments, resources, events and community discussions.</p>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Model.Query))
+    {
+        <span class="mini-badge primary">@Model.Results.Count result(s)</span>
+    }
+</div>
+
+<section class="card-ui search-page-card">
+    <div class="card-body-ui">
+        <form method="get" asp-controller="Search" asp-action="Index" class="search-page-form">
+            <div class="position-relative flex-grow-1">
+                <i class="bi bi-search search-page-icon"></i>
+                <input class="form-control" type="search" name="q" value="@Model.Query"
+                       maxlength="100" autofocus placeholder="Enter a title, course code, topic or organizer…" />
+            </div>
+            <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+    </div>
+</section>
+
+@if (string.IsNullOrWhiteSpace(Model.Query))
+{
+    <section class="search-empty card-ui mt-3">
+        <div class="card-body-ui">
+            <i class="bi bi-compass"></i>
+            <h2>Everything is one search away</h2>
+            <p>Use a course code, assessment title, resource tag, event organizer or community topic.</p>
+        </div>
+    </section>
+}
+else if (Model.Results.Count == 0)
+{
+    <section class="search-empty card-ui mt-3">
+        <div class="card-body-ui">
+            <i class="bi bi-search-heart"></i>
+            <h2>No results for “@Model.Query”</h2>
+            <p>Check the spelling or try a shorter search phrase.</p>
+        </div>
+    </section>
+}
+else
+{
+    <div class="search-results mt-3">
+        @foreach (var group in Model.Results.GroupBy(item => item.Type))
+        {
+            <section class="card-ui">
+                <div class="card-head">
+                    <div>
+                        <h2>@group.Key</h2>
+                        <p>@group.Count() matching item(s)</p>
+                    </div>
+                </div>
+                <div class="card-body-ui">
+                    @foreach (var item in group)
+                    {
+                        var resultUrl = item.RouteId.HasValue
+                            ? Url.Action(item.Action, item.Controller, new { id = item.RouteId.Value })
+                            : Url.Action(item.Action, item.Controller);
+                        <a class="search-result-row" href="@resultUrl">
+                            <span class="list-icon"><i class="bi @item.Icon"></i></span>
+                            <span class="search-result-copy">
+                                <strong>@item.Title</strong>
+                                <small>@item.Subtitle</small>
+                            </span>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+}
