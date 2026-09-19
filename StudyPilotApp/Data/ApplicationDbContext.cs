@@ -31,6 +31,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<EventRegistration> EventRegistrations => Set<EventRegistration>();
     public DbSet<SavedEvent> SavedEvents => Set<SavedEvent>();
     public DbSet<AppNotification> AppNotifications => Set<AppNotification>();
+    public DbSet<AcademicAIConversation> AcademicAIConversations => Set<AcademicAIConversation>();
+    public DbSet<AcademicAIMessage> AcademicAIMessages => Set<AcademicAIMessage>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -361,6 +363,31 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(x => x.ApplicationUser)
                 .WithMany()
                 .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<AcademicAIConversation>(entity =>
+        {
+            entity.HasIndex(x => x.ApplicationUserId);
+            entity.HasIndex(x => new { x.ApplicationUserId, x.UpdatedAt });
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(x => x.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<AcademicAIMessage>(entity =>
+        {
+            entity.HasIndex(x => x.ConversationId);
+            entity.HasIndex(x => new { x.ConversationId, x.CreatedAt });
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.Conversation)
+                .WithMany(x => x.Messages)
+                .HasForeignKey(x => x.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

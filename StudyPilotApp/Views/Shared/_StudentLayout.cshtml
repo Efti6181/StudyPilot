@@ -61,6 +61,9 @@
                 <a class="sidebar-link @(currentController == "Progress" ? "active" : null)" asp-controller="Progress" asp-action="Index">
                     <i class="bi bi-graph-up-arrow"></i><span>Progress &amp; Insights</span>
                 </a>
+                <a class="sidebar-link @(currentController == "AcademicAI" ? "active" : null)" asp-controller="AcademicAI" asp-action="Index">
+                    <i class="bi bi-stars"></i><span>AI Academic Assistant</span><span class="nav-pill">AI</span>
+                </a>
                 <a class="sidebar-link @(currentController == "Resources" ? "active" : null)" asp-controller="Resources" asp-action="Index">
                     <i class="bi bi-collection-play"></i><span>Resources</span>
                 </a>

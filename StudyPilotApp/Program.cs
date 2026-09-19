@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.RateLimiting;
 using StudyPilotApp.Data;
 using StudyPilotApp.Models;
+using StudyPilotApp.Options;
 using StudyPilotApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,6 +69,35 @@ builder.Services.AddScoped<IResourceService, ResourceService>();
 builder.Services.AddScoped<ICommunityService, CommunityService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IAcademicContextService, AcademicContextService>();
+builder.Services.AddScoped<IAcademicAIConversationService, AcademicAIConversationService>();
+builder.Services.AddScoped<IAcademicAIService, AcademicAIService>();
+
+builder.Services.Configure<AcademicAIOptions>(
+    builder.Configuration.GetSection(AcademicAIOptions.SectionName));
+builder.Services.AddHttpClient<IAITextProvider, GeminiAITextProvider>((services, client) =>
+{
+    var configuration = services.GetRequiredService<Microsoft.Extensions.Options.IOptions<AcademicAIOptions>>().Value;
+    client.BaseAddress = new Uri("https://generativelanguage.googleapis.com");
+    client.Timeout = TimeSpan.FromSeconds(Math.Clamp(configuration.TimeoutSeconds, 5, 60));
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("academic-ai", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                          ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                          ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 12,
+                Window = TimeSpan.FromMinutes(5),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+});
 
 // MVC
 builder.Services.AddControllersWithViews();
@@ -85,6 +117,7 @@ app.UseRouting();
 
 // Authentication must come before authorization
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 // Serve CSS, JavaScript and image files

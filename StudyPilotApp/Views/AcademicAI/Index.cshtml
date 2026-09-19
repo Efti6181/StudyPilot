@@ -1,0 +1,148 @@
+@model StudyPilotApp.ViewModels.AcademicAIIndexViewModel
+@using StudyPilotApp.Models
+@{
+    ViewData["Title"] = "AI Academic Assistant";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+    var submitted = ViewData["AskInput"] as StudyPilotApp.ViewModels.AcademicAIAskViewModel;
+    var selectedMode = submitted?.Mode ?? Model.ActiveMode;
+}
+
+@section Styles { <link rel="stylesheet" href="~/css/academic-ai.css" asp-append-version="true" /> }
+
+<div class="page-heading ai-page-heading">
+    <div>
+        <h1>AI Academic Assistant</h1>
+        <p>Ask questions and turn your verified StudyPilot data into practical academic guidance.</p>
+    </div>
+    <span class="ai-provider-status @(Model.IsProviderConfigured ? "online" : "fallback")">
+        <i class="bi @(Model.IsProviderConfigured ? "bi-stars" : "bi-shield-check")"></i>
+        @(Model.IsProviderConfigured ? "Gemini configured" : "Safe fallback active")
+    </span>
+</div>
+
+@if (TempData["AIInfo"] is string info)
+{
+    <div class="alert alert-info rounded-4"><i class="bi bi-info-circle me-2"></i>@info</div>
+}
+@if (TempData["AISuccess"] is string success)
+{
+    <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@success</div>
+}
+
+<section class="ai-safety-banner mb-4">
+    <i class="bi bi-shield-lock"></i>
+    <div>
+        <strong>AI assists; your verified records remain authoritative.</strong>
+        <span>StudyPilot sends only your minimum authorized academic context. AI cannot change grades, deadlines, priorities, permissions, or database records.</span>
+    </div>
+</section>
+
+<div class="ai-workspace">
+    <aside class="ai-history-panel">
+        <a asp-action="Index" class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i> New conversation</a>
+        <div class="ai-history-label">Recent conversations</div>
+        <div class="ai-history-list">
+            @if (Model.Conversations.Count == 0)
+            {
+                <div class="ai-history-empty"><i class="bi bi-chat-square-text"></i><span>Your AI conversations will appear here.</span></div>
+            }
+            else
+            {
+                @foreach (var conversation in Model.Conversations)
+                {
+                    <div class="ai-history-item @(conversation.IsActive ? "active" : null)">
+                        <a asp-action="Index" asp-route-conversationId="@conversation.Id">
+                            <i class="bi bi-chat-left-text"></i>
+                            <span><strong>@conversation.Title</strong><small>@conversation.Mode · @conversation.UpdatedAt.ToLocalTime().ToString("dd MMM")</small></span>
+                        </a>
+                        <form asp-action="DeleteConversation" asp-route-id="@conversation.Id" method="post"
+                              onsubmit="return confirm('Delete this AI conversation?');">
+                            <button type="submit" aria-label="Delete conversation" title="Delete"><i class="bi bi-trash3"></i></button>
+                        </form>
+                    </div>
+                }
+            }
+        </div>
+    </aside>
+
+    <section class="ai-chat-panel">
+        <header class="ai-chat-header">
+            <div class="ai-orb"><i class="bi bi-stars"></i></div>
+            <div><h2>@Model.ActiveConversationTitle</h2><p>Grounded in your StudyPilot academic records</p></div>
+        </header>
+
+        <div class="ai-quick-actions" aria-label="AI quick actions">
+            <button type="button" data-ai-mode="1" data-ai-prompt="Review my current academic week. Show urgent work, risks, wins, and the three best next actions."><i class="bi bi-calendar-week"></i><span>Weekly review</span></button>
+            <button type="button" data-ai-mode="3" data-ai-prompt="Recommend a realistic study plan using my recorded deadlines, progress, workload, and available study hours."><i class="bi bi-list-check"></i><span>Study plan</span></button>
+            <button type="button" data-ai-mode="2" data-ai-prompt="Break this assessment into clear preparation steps and a practical completion checklist."><i class="bi bi-diagram-3"></i><span>Break down task</span></button>
+            <button type="button" data-ai-mode="4" data-ai-prompt="Paste your study notes here, then ask for a summary, quiz questions, viva questions, or flashcards."><i class="bi bi-card-text"></i><span>Study material</span></button>
+        </div>
+
+        <div class="ai-messages" id="aiMessages" aria-live="polite">
+            @if (Model.Messages.Count == 0)
+            {
+                <div class="ai-welcome">
+                    <div class="ai-welcome-icon"><i class="bi bi-mortarboard"></i></div>
+                    <h2>How can I help you study today?</h2>
+                    <p>Ask about your courses, upcoming assessments, progress, priorities, or paste notes to create revision material.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var message in Model.Messages)
+                {
+                    <article class="ai-message @(message.Role == AcademicAIMessageRole.User ? "user" : "assistant")">
+                        <div class="ai-message-avatar"><i class="bi @(message.Role == AcademicAIMessageRole.User ? "bi-person" : "bi-stars")"></i></div>
+                        <div class="ai-message-bubble">
+                            <div class="ai-message-meta">
+                                <strong>@(message.Role == AcademicAIMessageRole.User ? "You" : "StudyPilot AI")</strong>
+                                <time>@message.CreatedAt.ToLocalTime().ToString("hh:mm tt")</time>
+                                @if (message.IsFallback) { <span>Fallback</span> }
+                            </div>
+                            <div class="ai-message-text">@message.Content</div>
+                            @if (message.Role == AcademicAIMessageRole.Assistant && !string.IsNullOrWhiteSpace(message.Provider))
+                            {
+                                <small class="ai-provider-label">@message.Provider</small>
+                            }
+                        </div>
+                    </article>
+                }
+            }
+        </div>
+
+        <form asp-action="Ask" method="post" class="ai-composer" id="aiComposer">
+            <input type="hidden" name="ConversationId" value="@Model.ConversationId" />
+            <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+            <div class="ai-context-controls">
+                <select name="Mode" id="aiMode" class="form-select" aria-label="Assistant mode">
+                    @foreach (var modeItem in Html.GetEnumSelectList<AcademicAIMode>())
+                    {
+                        <option value="@modeItem.Value" selected="@(((int)selectedMode).ToString() == modeItem.Value ? "selected" : null)">@modeItem.Text</option>
+                    }
+                </select>
+                <select name="CourseId" class="form-select" aria-label="Optional course context">
+                    <option value="">All active courses</option>
+                    @foreach (var course in Model.Courses)
+                    {
+                        <option value="@course.Id" selected="@(submitted?.CourseId == course.Id ? "selected" : null)">@course.Label</option>
+                    }
+                </select>
+                <select name="AssessmentId" id="aiAssessment" class="form-select" aria-label="Optional assessment context">
+                    <option value="">Choose assessment</option>
+                    @foreach (var assessment in Model.Assessments)
+                    {
+                        <option value="@assessment.Id" selected="@(submitted?.AssessmentId == assessment.Id ? "selected" : null)">@assessment.Label</option>
+                    }
+                </select>
+            </div>
+            <div class="ai-prompt-row">
+                <textarea name="Prompt" id="aiPrompt" class="form-control" rows="3" maxlength="6000" required
+                          placeholder="Ask StudyPilot about your academic work…">@submitted?.Prompt</textarea>
+                <button class="ai-send-button" type="submit" aria-label="Send request"><i class="bi bi-arrow-up"></i></button>
+            </div>
+            <div class="ai-composer-note"><i class="bi bi-info-circle"></i> AI responses can be incorrect. Verify important academic decisions with official course information.</div>
+        </form>
+    </section>
+</div>
+
+@section Scripts { <script src="~/js/academic-ai.js" asp-append-version="true"></script> }
