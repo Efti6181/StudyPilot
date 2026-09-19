@@ -14,6 +14,7 @@ public interface ICourseService
     Task<CourseSummary> GetSummaryAsync(string userId);
     Task<Course?> GetOwnedCourseAsync(string userId, int courseId, bool trackChanges = false);
     Task<int> GetAssessmentCountAsync(string userId, int courseId);
+    Task<int> GetCourseGradeCountAsync(string userId, int courseId);
 
     Task<bool> DuplicateExistsAsync(
         string userId,

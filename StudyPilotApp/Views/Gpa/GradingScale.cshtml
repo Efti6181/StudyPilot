@@ -1,0 +1,29 @@
+@model StudyPilotApp.ViewModels.GradingScaleViewModel
+@{ ViewData["Title"] = "Grading Scale"; Layout = "/Views/Shared/_StudentLayout.cshtml"; }
+
+<div class="page-heading"><div><h1>Grading Scale</h1><p>Configure the grade points used by every GPA calculation.</p></div><a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>GPA Planner</a></div>
+@if (TempData["GpaSuccess"] is string message) { <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@message</div> }
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <section class="card-ui"><div class="card-head"><div><h2>Your university scale</h2><p>Grade labels stay fixed; thresholds and grade points are editable.</p></div></div><div class="card-body-ui">
+            <form asp-action="GradingScale" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-4"></div>
+                <div class="scale-grid scale-head"><span>Letter Grade</span><span>Minimum Percentage</span><span>Grade Point</span></div>
+                @for (var i = 0; i < Model.Entries.Count; i++)
+                {
+                    <div class="scale-grid">
+                        <input asp-for="Entries[i].Id" type="hidden" />
+                        <input asp-for="Entries[i].LetterGrade" type="hidden" />
+                        <strong class="grade-chip actual">@Model.Entries[i].LetterGrade</strong>
+                        <div><div class="input-group"><input asp-for="Entries[i].MinimumPercentage" class="form-control" min="0" max="100" step="0.01" /><span class="input-group-text">%</span></div><span asp-validation-for="Entries[i].MinimumPercentage" class="text-danger small"></span></div>
+                        <div><input asp-for="Entries[i].GradePoint" class="form-control" min="0" max="10" step="0.01" /><span asp-validation-for="Entries[i].GradePoint" class="text-danger small"></span></div>
+                    </div>
+                }
+                <div class="text-end mt-4"><button class="btn btn-primary" type="submit"><i class="bi bi-check2-circle me-2"></i>Save Grading Scale</button></div>
+            </form>
+        </div></section>
+    </div>
+    <div class="col-xl-4"><div class="gpa-note"><i class="bi bi-exclamation-circle"></i><div><strong>Important</strong><p>Changing grade points immediately recalculates all displayed semester GPA and CGPA values. Saved letter grades are not changed.</p></div></div></div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

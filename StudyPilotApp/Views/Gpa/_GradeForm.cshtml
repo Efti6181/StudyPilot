@@ -1,0 +1,13 @@
+@model StudyPilotApp.ViewModels.CourseGradeFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-4"></div>
+@if (Model.CourseOptions.Count == 0)
+{
+    <div class="alert alert-warning rounded-4"><i class="bi bi-exclamation-triangle me-2"></i>No unused courses are available. <a asp-controller="Courses" asp-action="Create" class="alert-link">Add another course</a>.</div>
+}
+<div class="row g-3">
+    <div class="col-12"><label asp-for="CourseId" class="form-label"></label><select asp-for="CourseId" asp-items="Model.CourseOptions" class="form-select"><option value="">Select one of your courses</option></select><span asp-validation-for="CourseId" class="text-danger small"></span></div>
+    <div class="col-md-6"><label asp-for="ExpectedLetterGrade" class="form-label"></label><select asp-for="ExpectedLetterGrade" asp-items="Model.GradeOptions" class="form-select"><option value="">Select expected grade</option></select><span asp-validation-for="ExpectedLetterGrade" class="text-danger small"></span><div class="form-text">Used for projection until an actual grade is entered.</div></div>
+    <div class="col-md-6"><label asp-for="ActualLetterGrade" class="form-label"></label><select asp-for="ActualLetterGrade" asp-items="Model.GradeOptions" class="form-select"><option value="">Result not published yet</option></select><span asp-validation-for="ActualLetterGrade" class="text-danger small"></span><div class="form-text">Used in official GPA and CGPA calculations.</div></div>
+    <div class="col-12"><label asp-for="Notes" class="form-label"></label><textarea asp-for="Notes" class="form-control" rows="4" maxlength="500" placeholder="Optional result or planning notes…"></textarea><span asp-validation-for="Notes" class="text-danger small"></span></div>
+</div>

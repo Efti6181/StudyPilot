@@ -103,7 +103,8 @@ public sealed class CoursesController : Controller
         var model = new CourseDetailsViewModel
         {
             Course = ToCard(course),
-            AssessmentCount = await _courseService.GetAssessmentCountAsync(user.Id, id)
+            AssessmentCount = await _courseService.GetAssessmentCountAsync(user.Id, id),
+            CourseGradeCount = await _courseService.GetCourseGradeCountAsync(user.Id, id)
         };
         if (!await PopulateShellAsync(model, user))
         {
@@ -288,7 +289,8 @@ public sealed class CoursesController : Controller
         var model = new CourseDeleteViewModel
         {
             Course = ToCard(course),
-            RelatedAssessmentCount = await _courseService.GetAssessmentCountAsync(user.Id, id)
+            RelatedAssessmentCount = await _courseService.GetAssessmentCountAsync(user.Id, id),
+            RelatedCourseGradeCount = await _courseService.GetCourseGradeCountAsync(user.Id, id)
         };
         if (!await PopulateShellAsync(model, user))
         {
@@ -315,10 +317,11 @@ public sealed class CoursesController : Controller
         }
 
         var relatedAssessmentCount = await _courseService.GetAssessmentCountAsync(user.Id, id);
-        if (relatedAssessmentCount > 0)
+        var relatedCourseGradeCount = await _courseService.GetCourseGradeCountAsync(user.Id, id);
+        if (relatedAssessmentCount > 0 || relatedCourseGradeCount > 0)
         {
             TempData["CourseError"] =
-                $"This course has {relatedAssessmentCount} assessment(s). Delete or move them before deleting the course.";
+                $"This course has {relatedAssessmentCount} assessment(s) and {relatedCourseGradeCount} saved grade record(s). Remove those academic records before deleting the course.";
             return RedirectToAction(nameof(Delete), new { id });
         }
 

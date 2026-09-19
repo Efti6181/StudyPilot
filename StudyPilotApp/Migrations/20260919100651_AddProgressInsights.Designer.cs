@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StudyPilotApp.Data;
@@ -11,9 +12,11 @@ using StudyPilotApp.Data;
 namespace StudyPilotApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260919100651_AddProgressInsights")]
+    partial class AddProgressInsights
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -817,85 +820,6 @@ namespace StudyPilotApp.Migrations
                     b.ToTable("StudentProfiles");
                 });
 
-            modelBuilder.Entity("StudyPilotApp.Models.StudyResource", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ApplicationUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Category")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ContentType")
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<int?>("CourseId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<string>("ExternalUrl")
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)");
-
-                    b.Property<long?>("FileSizeBytes")
-                        .HasColumnType("bigint");
-
-                    b.Property<bool>("IsFavorite")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("Kind")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("OriginalFileName")
-                        .HasMaxLength(260)
-                        .HasColumnType("character varying(260)");
-
-                    b.Property<string>("StoredFileName")
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
-
-                    b.Property<string>("Tags")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(180)
-                        .HasColumnType("character varying(180)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId", "Category");
-
-                    b.HasIndex("ApplicationUserId", "CreatedAt");
-
-                    b.HasIndex("ApplicationUserId", "IsFavorite");
-
-                    b.HasIndex("CourseId", "ApplicationUserId");
-
-                    b.ToTable("StudyResources");
-                });
-
             modelBuilder.Entity("StudyPilotApp.Models.UniversityMember", b =>
                 {
                     b.Property<int>("Id")
@@ -1128,25 +1052,6 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
-            modelBuilder.Entity("StudyPilotApp.Models.StudyResource", b =>
-                {
-                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StudyPilotApp.Models.Course", "Course")
-                        .WithMany("Resources")
-                        .HasForeignKey("CourseId", "ApplicationUserId")
-                        .HasPrincipalKey("Id", "ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ApplicationUser");
-
-                    b.Navigation("Course");
-                });
-
             modelBuilder.Entity("StudyPilotApp.Models.UniversityMember", b =>
                 {
                     b.HasOne("StudyPilotApp.Models.ApplicationUser", null)
@@ -1162,8 +1067,6 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("CourseGrades");
 
                     b.Navigation("PriorityPreference");
-
-                    b.Navigation("Resources");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.SemesterResult", b =>

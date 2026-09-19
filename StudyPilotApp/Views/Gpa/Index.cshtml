@@ -1,0 +1,87 @@
+@model StudyPilotApp.ViewModels.GpaDashboardViewModel
+@{
+    ViewData["Title"] = "GPA & CGPA Planner";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="page-heading">
+    <div><h1>GPA &amp; CGPA Planner</h1><p>Track results, simulate grades and build a realistic target path.</p></div>
+    <div class="page-actions">
+        <a asp-action="Calculator" class="btn btn-ghost"><i class="bi bi-calculator me-2"></i>What-if Calculator</a>
+        <a asp-action="CreateSemester" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Add Semester</a>
+    </div>
+</div>
+
+@if (TempData["GpaSuccess"] is string message)
+{
+    <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@message</div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon"><i class="bi bi-mortarboard"></i></div><span>Current CGPA</span><strong>@Model.CurrentCgpa.ToString("0.00")</strong><small>Actual saved grades</small></div></div>
+    <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon metric-icon-teal"><i class="bi bi-stars"></i></div><span>Projected CGPA</span><strong>@Model.ProjectedCgpa.ToString("0.00")</strong><small>Expected + actual</small></div></div>
+    <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon metric-icon-warning"><i class="bi bi-journal-check"></i></div><span>Completed Credits</span><strong>@Model.CompletedCredits.ToString("0.#")</strong><small>@Model.CompletedCourses graded courses</small></div></div>
+    <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon metric-icon-danger"><i class="bi bi-layers"></i></div><span>Semesters</span><strong>@Model.Semesters.Count</strong><small>Saved academic records</small></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <section class="card-ui">
+            <div class="card-head">
+                <div><h2>Semester history</h2><p>Actual GPA is based only on published grades.</p></div>
+                <a asp-action="GradingScale" class="btn btn-sm btn-ghost"><i class="bi bi-sliders me-2"></i>Grading Scale</a>
+            </div>
+            @if (Model.Semesters.Count == 0)
+            {
+                <div class="empty-module-state">
+                    <div class="empty-icon"><i class="bi bi-bar-chart-line"></i></div>
+                    <h2>No semester results yet</h2>
+                    <p>Create a semester, attach your existing courses and enter expected or actual grades.</p>
+                    <a asp-action="CreateSemester" class="btn btn-primary">Create First Semester</a>
+                </div>
+            }
+            else
+            {
+                <div class="semester-grid">
+                @foreach (var semester in Model.Semesters)
+                {
+                    <a asp-action="Semester" asp-route-id="@semester.Id" class="semester-card">
+                        <div class="semester-card-top"><span>Semester @semester.SemesterNumber</span><i class="bi bi-arrow-up-right"></i></div>
+                        <h3>@semester.AcademicTerm @semester.AcademicYear</h3>
+                        <div class="semester-gpa"><strong>@(semester.HasActualResults ? semester.SemesterGpa.ToString("0.00") : "—")</strong><span>Actual GPA</span></div>
+                        <div class="semester-meta"><span><i class="bi bi-journals"></i>@semester.CourseCount courses</span><span><i class="bi bi-lightning"></i>@semester.ProjectedGpa.ToString("0.00") projected</span></div>
+                    </a>
+                }
+                </div>
+            }
+        </section>
+    </div>
+
+    <div class="col-xl-4">
+        <section class="card-ui goal-planner-card">
+            <div class="card-head"><div><h2>CGPA Goal Planner</h2><p>Find the GPA required in future credits.</p></div></div>
+            <div class="card-body-ui">
+                <form asp-action="Index" method="get" class="row g-3">
+                    <div class="col-6"><label asp-for="GoalCurrentCgpa" class="form-label">Current CGPA</label><input asp-for="GoalCurrentCgpa" class="form-control" step="0.01" min="0" max="@Model.MaximumGradePoint" /></div>
+                    <div class="col-6"><label asp-for="GoalCompletedCredits" class="form-label">Completed Credits</label><input asp-for="GoalCompletedCredits" class="form-control" step="0.5" min="0" /></div>
+                    <div class="col-6"><label asp-for="TargetCgpa" class="form-label">Target CGPA</label><input asp-for="TargetCgpa" class="form-control" step="0.01" min="0" max="@Model.MaximumGradePoint" placeholder="3.75" /></div>
+                    <div class="col-6"><label asp-for="FutureCredits" class="form-label">Future Credits</label><input asp-for="FutureCredits" class="form-control" step="0.5" min="0.5" placeholder="18" /></div>
+                    <div class="col-12"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-bullseye me-2"></i>Calculate Target</button></div>
+                </form>
+
+                @if (Model.GoalCalculated)
+                {
+                    <div class="goal-result @(Model.GoalIsPossible ? "possible" : "impossible")">
+                        <i class="bi @(Model.GoalIsPossible ? "bi-check2-circle" : "bi-exclamation-triangle")"></i>
+                        <div>
+                            @if (Model.RequiredGpa.HasValue) { <strong>Required GPA: @Model.RequiredGpa.Value.ToString("0.00")</strong> }
+                            <p>@Model.GoalMessage</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <div class="gpa-note mt-3"><i class="bi bi-shield-check"></i><div><strong>Deterministic calculation</strong><p>StudyPilot uses credit-weighted C# arithmetic—not AI—to calculate every GPA result.</p></div></div>
+    </div>
+</div>

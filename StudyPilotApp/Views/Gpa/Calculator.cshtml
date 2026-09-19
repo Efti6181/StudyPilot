@@ -1,0 +1,41 @@
+@model StudyPilotApp.ViewModels.GpaCalculatorViewModel
+@{ ViewData["Title"] = "What-if GPA Calculator"; Layout = "/Views/Shared/_StudentLayout.cshtml"; }
+
+<div class="page-heading"><div><h1>What-if GPA Calculator</h1><p>Try grade combinations without changing your saved academic records.</p></div><a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>GPA Planner</a></div>
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <section class="card-ui">
+            <div class="card-head"><div><h2>Scenario courses</h2><p>Enter at least one complete row. Empty rows are ignored.</p></div></div>
+            <div class="card-body-ui">
+                <form asp-action="Calculator" method="post" id="gpaCalculatorForm">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-4"></div>
+                    <div class="calculator-head"><span>Course</span><span>Credits</span><span>Grade</span></div>
+                    <div id="calculatorRows">
+                    @for (var i = 0; i < Model.Rows.Count; i++)
+                    {
+                        <div class="calculator-row">
+                            <div><input asp-for="Rows[i].CourseName" class="form-control" placeholder="Course name (optional)" /></div>
+                            <div><input asp-for="Rows[i].Credits" class="form-control" type="number" min="0.5" max="20" step="0.5" placeholder="3" /><span asp-validation-for="Rows[i].Credits" class="text-danger small"></span></div>
+                            <div><select asp-for="Rows[i].LetterGrade" asp-items="Model.GradeOptions" class="form-select"><option value="">Grade</option></select><span asp-validation-for="Rows[i].LetterGrade" class="text-danger small"></span></div>
+                        </div>
+                    }
+                    </div>
+                    <div class="d-flex justify-content-between gap-2 mt-4"><button type="button" class="btn btn-ghost" id="addCalculatorRow"><i class="bi bi-plus-lg me-2"></i>Add Row</button><button type="submit" class="btn btn-primary"><i class="bi bi-calculator me-2"></i>Calculate GPA</button></div>
+                </form>
+            </div>
+        </section>
+    </div>
+    <div class="col-xl-4">
+        <section class="calculator-result-card @(Model.HasResult ? "has-result" : null)">
+            <div class="calculator-result-icon"><i class="bi bi-graph-up-arrow"></i></div><span>Scenario GPA</span><strong>@(Model.HasResult ? Model.CalculatedGpa.ToString("0.00") : "—")</strong><p>@(Model.HasResult ? $"Calculated across {Model.TotalCredits:0.#} credits." : "Complete the course rows and calculate your scenario.")</p>
+        </section>
+        <div class="gpa-note mt-3"><i class="bi bi-info-circle"></i><div><strong>Safe simulation</strong><p>This calculator never writes to the database. Save real results from a semester page.</p></div></div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>window.studyPilotGradeOptions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GradeOptions.Select(x => new { value = x.Value, text = x.Text })));</script>
+    <script src="~/js/gpa-planner.js" asp-append-version="true"></script>
+}

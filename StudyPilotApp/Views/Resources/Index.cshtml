@@ -1,0 +1,124 @@
+@model StudyPilotApp.ViewModels.ResourceListViewModel
+@{
+    ViewData["Title"] = "Resources";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/resources.css" asp-append-version="true" />
+}
+
+<div class="page-heading">
+    <div><h1>Resource Center</h1><p>Keep your notes, documents, useful links and course materials organized.</p></div>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Add Resource</a>
+    </div>
+</div>
+
+@if (TempData["ResourceSuccess"] is string message)
+{
+    <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@message</div>
+}
+
+<div class="resource-hero mb-4">
+    <div>
+        <span class="resource-eyebrow">Your private academic library</span>
+        <h2>Everything you need to study, one search away.</h2>
+        <p>Upload learning materials or save trusted links and connect them to your courses.</p>
+    </div>
+    <i class="bi bi-collection-play"></i>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl"><div class="metric-card"><div class="metric-icon"><i class="bi bi-collection"></i></div><span>Total</span><strong>@Model.Total</strong><small>Saved resources</small></div></div>
+    <div class="col-6 col-xl"><div class="metric-card"><div class="metric-icon metric-icon-teal"><i class="bi bi-file-earmark-arrow-up"></i></div><span>Files</span><strong>@Model.Files</strong><small>@StudyPilotApp.ViewModels.ResourceCardViewModel.FormatBytes(Model.TotalFileBytes) stored</small></div></div>
+    <div class="col-6 col-xl"><div class="metric-card"><div class="metric-icon metric-icon-warning"><i class="bi bi-link-45deg"></i></div><span>Links</span><strong>@Model.Links</strong><small>External sources</small></div></div>
+    <div class="col-6 col-xl"><div class="metric-card"><div class="metric-icon metric-icon-danger"><i class="bi bi-star-fill"></i></div><span>Favorites</span><strong>@Model.Favorites</strong><small>Quick access</small></div></div>
+</div>
+
+<section class="card-ui mb-4">
+    <div class="card-body-ui">
+        <form asp-action="Index" method="get" class="resource-filter-form">
+            <div class="course-search-field">
+                <i class="bi bi-search"></i>
+                <input name="search" value="@Model.Search" class="form-control" placeholder="Search title, tags or course…" />
+            </div>
+            <select name="courseId" asp-items="Model.CourseOptions" class="form-select"><option value="">All courses</option></select>
+            <select asp-for="Category" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.ResourceCategory>()" class="form-select"><option value="">All categories</option></select>
+            <select asp-for="Kind" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.ResourceKind>()" class="form-select"><option value="">Files and links</option></select>
+            <select name="sort" class="form-select">
+                <option value="newest" selected="@(Model.Sort == "newest" ? "selected" : null)">Newest first</option>
+                <option value="oldest" selected="@(Model.Sort == "oldest" ? "selected" : null)">Oldest first</option>
+                <option value="title" selected="@(Model.Sort == "title" ? "selected" : null)">Title A–Z</option>
+                <option value="course" selected="@(Model.Sort == "course" ? "selected" : null)">Course</option>
+                <option value="category" selected="@(Model.Sort == "category" ? "selected" : null)">Category</option>
+            </select>
+            <label class="resource-favorite-toggle">
+                <input asp-for="FavoritesOnly" type="checkbox" />
+                <span><i class="bi bi-star"></i> Favorites</span>
+            </label>
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a asp-action="Index" class="btn btn-ghost" title="Clear filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+        </form>
+    </div>
+</section>
+
+@if (Model.Resources.Count == 0)
+{
+    <section class="card-ui empty-module-state">
+        <div class="empty-icon"><i class="bi bi-folder2-open"></i></div>
+        <h2>No resources found</h2>
+        <p>@(Model.Total == 0 ? "Upload your first study file or save a useful academic link." : "Try clearing or changing the current filters.")</p>
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Add Resource</a>
+    </section>
+}
+else
+{
+    <div class="resource-grid">
+        @foreach (var item in Model.Resources)
+        {
+            <article class="resource-card">
+                <div class="resource-card-top">
+                    <div class="resource-icon category-@item.Category.ToString().ToLowerInvariant()"><i class="bi @item.Icon"></i></div>
+                    <form asp-action="ToggleFavorite" asp-route-id="@item.Id" method="post">
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                        <button type="submit" class="favorite-button @(item.IsFavorite ? "active" : null)" aria-label="Toggle favorite">
+                            <i class="bi @(item.IsFavorite ? "bi-star-fill" : "bi-star")"></i>
+                        </button>
+                    </form>
+                </div>
+                <div class="resource-card-body">
+                    <div class="resource-badges">
+                        <span>@item.CategoryLabel</span>
+                        <span class="kind">@item.Kind</span>
+                    </div>
+                    <h2><a asp-action="Details" asp-route-id="@item.Id">@item.Title</a></h2>
+                    <p>@(string.IsNullOrWhiteSpace(item.Description) ? "No description added." : item.Description)</p>
+                    @if (!string.IsNullOrWhiteSpace(item.Tags))
+                    {
+                        <div class="resource-tags"><i class="bi bi-tags"></i> @item.Tags</div>
+                    }
+                </div>
+                <div class="resource-card-meta">
+                    <span><i class="bi bi-journal-bookmark"></i> @(item.CourseCode ?? "General")</span>
+                    <span><i class="bi bi-hdd"></i> @item.FileSizeLabel</span>
+                </div>
+                <div class="resource-card-footer">
+                    @if (item.Kind == StudyPilotApp.Models.ResourceKind.File)
+                    {
+                        <a asp-action="Download" asp-route-id="@item.Id" class="btn btn-primary btn-sm"><i class="bi bi-download me-1"></i>Download</a>
+                    }
+                    else
+                    {
+                        <a asp-action="OpenLink" asp-route-id="@item.Id" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-up-right me-1"></i>Open</a>
+                    }
+                    <div class="d-flex gap-1">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-icon btn-ghost btn-sm" title="Details"><i class="bi bi-eye"></i></a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-icon btn-ghost btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+}

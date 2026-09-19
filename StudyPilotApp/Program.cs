@@ -59,6 +59,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 // StudyPilot services
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IAssessmentService, AssessmentService>();
+builder.Services.AddScoped<IGpaService, GpaService>();
+builder.Services.AddScoped<IPriorityService, PriorityService>();
+builder.Services.AddScoped<IProgressService, ProgressService>();
+builder.Services.AddScoped<IResourceService, ResourceService>();
 
 // MVC
 builder.Services.AddControllersWithViews();

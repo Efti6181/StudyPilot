@@ -1,0 +1,79 @@
+@model StudyPilotApp.ViewModels.PriorityListViewModel
+@{ ViewData["Title"] = "Course Priorities"; Layout = "/Views/Shared/_StudentLayout.cshtml"; }
+
+<div class="page-heading">
+    <div><h1>Course Priorities</h1><p>Focus where your study time can create the greatest academic impact.</p></div>
+    <div class="page-actions"><a asp-action="Settings" class="btn btn-ghost"><i class="bi bi-sliders me-2"></i>Engine Weights</a></div>
+</div>
+
+@if (TempData["PrioritySuccess"] is string message) { <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@message</div> }
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon metric-icon-danger"><i class="bi bi-exclamation-octagon"></i></div><span>Critical</span><strong>@Model.CriticalCount</strong><small>Immediate attention</small></div></div>
+    <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon metric-icon-warning"><i class="bi bi-arrow-up-circle"></i></div><span>High Priority</span><strong>@Model.HighCount</strong><small>Plan study blocks</small></div></div>
+    <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon"><i class="bi bi-calendar-week"></i></div><span>Due This Week</span><strong>@Model.DueThisWeekCount</strong><small>Course deadlines</small></div></div>
+    <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon metric-icon-teal"><i class="bi bi-clipboard2-check"></i></div><span>Pending Work</span><strong>@Model.PendingAssessmentCount</strong><small>All assessments</small></div></div>
+</div>
+
+@if (Model.TodayFocus.Count > 0)
+{
+    <section class="focus-section mb-4">
+        <div class="focus-head"><div><span>Recommended now</span><h2>Today's Focus</h2></div><i class="bi bi-stars"></i></div>
+        <div class="focus-grid">
+        @for (var i = 0; i < Model.TodayFocus.Count; i++)
+        {
+            var item = Model.TodayFocus[i];
+            <a asp-action="Details" asp-route-id="@item.CourseId" class="focus-card">
+                <span class="focus-number">0@(i + 1)</span>
+                <div><span class="priority-level @item.LevelCss">@item.DisplayLevel</span><h3>@item.CourseCode</h3><p>@item.CourseName</p></div>
+                <div class="focus-time"><strong>@item.SuggestedStudyMinutes</strong><span>minutes</span></div>
+            </a>
+        }
+        </div>
+    </section>
+}
+
+<section class="card-ui mb-4"><div class="card-body-ui"><form asp-action="Index" method="get" class="priority-filter-form">
+    <div class="course-search-field"><i class="bi bi-search"></i><input name="search" value="@Model.Search" class="form-control" placeholder="Search course…" /></div>
+    <select asp-for="Level" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.PriorityLevel>()" class="form-select"><option value="">All levels</option></select>
+    <select name="sort" class="form-select">
+        <option value="priority" selected="@(Model.Sort == "priority" ? "selected" : null)">Highest priority</option>
+        <option value="deadline" selected="@(Model.Sort == "deadline" ? "selected" : null)">Nearest deadline</option>
+        <option value="course" selected="@(Model.Sort == "course" ? "selected" : null)">Course code</option>
+        <option value="credits" selected="@(Model.Sort == "credits" ? "selected" : null)">Highest credits</option>
+    </select>
+    <button class="btn btn-primary" type="submit">Apply</button><a asp-action="Index" class="btn btn-ghost" aria-label="Clear filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+</form></div></section>
+
+@if (Model.Courses.Count == 0)
+{
+    <section class="card-ui empty-module-state"><div class="empty-icon"><i class="bi bi-lightning-charge"></i></div><h2>No priority courses found</h2><p>Add an active Course or clear the current filters.</p><a asp-controller="Courses" asp-action="Create" class="btn btn-primary">Add Course</a></section>
+}
+else
+{
+    <div class="priority-course-grid">
+    @foreach (var item in Model.Courses)
+    {
+        <article class="priority-card level-@item.LevelCss">
+            <div class="priority-card-head">
+                <div><div class="d-flex align-items-center gap-2"><span class="course-code">@item.CourseCode</span><span class="priority-level @item.LevelCss">@item.DisplayLevel</span>@if (item.IsManualOverride) { <span class="mini-badge neutral">Manual</span> }</div><h2>@item.CourseName</h2></div>
+                <div class="priority-score-ring" style="--score:@item.Score"><strong>@item.Score.ToString("0")</strong><span>/100</span></div>
+            </div>
+            <div class="priority-evidence">
+                <span><i class="bi bi-clock"></i>@(item.NearestDeadline.HasValue ? (item.IsOverdue ? "Overdue" : $"Due {item.NearestDeadline.Value:dd MMM}") : "No deadline")</span>
+                <span><i class="bi bi-clipboard2"></i>@item.PendingAssessments pending</span>
+                <span><i class="bi bi-graph-up"></i>@(item.AssessmentAverage.HasValue ? $"{item.AssessmentAverage.Value:0.#}% avg" : $"{item.CourseProgress}% progress")</span>
+            </div>
+            <ul class="priority-reasons">@foreach (var reason in item.Reasons) { <li>@reason</li> }</ul>
+            <div class="priority-card-footer">
+                <div><strong>@item.SuggestedStudyMinutes min</strong><span>suggested focus block</span></div>
+                <div class="d-flex gap-1">
+                    <form asp-action="TogglePin" asp-route-id="@item.CourseId" method="post"><button type="submit" class="btn btn-icon btn-ghost" title="@(item.IsPinned ? "Unpin" : "Pin to Today's Focus")"><i class="bi @(item.IsPinned ? "bi-pin-angle-fill" : "bi-pin-angle")"></i></button></form>
+                    <a asp-action="Details" asp-route-id="@item.CourseId" class="btn btn-sm btn-ghost">Why?</a>
+                    <a asp-action="Configure" asp-route-id="@item.CourseId" class="btn btn-sm btn-primary">Configure</a>
+                </div>
+            </div>
+        </article>
+    }
+    </div>
+}

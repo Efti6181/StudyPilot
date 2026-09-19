@@ -1,0 +1,6 @@
+@model StudyPilotApp.ViewModels.SemesterFormViewModel
+@{ ViewData["Title"] = "Add Semester"; Layout = "/Views/Shared/_StudentLayout.cshtml"; }
+
+<div class="page-heading"><div><h1>Add Semester</h1><p>Create a result period before adding course grades.</p></div><a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>Back</a></div>
+<section class="card-ui gpa-form-card"><div class="card-head"><div><h2>Semester information</h2><p>Each academic period can be created once.</p></div></div><div class="card-body-ui"><form asp-action="CreateSemester" method="post"><partial name="_SemesterForm" model="Model" /><div class="d-flex justify-content-end gap-2 mt-4"><a asp-action="Index" class="btn btn-ghost">Cancel</a><button class="btn btn-primary" type="submit">Create Semester</button></div></form></div></section>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

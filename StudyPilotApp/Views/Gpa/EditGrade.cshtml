@@ -1,0 +1,6 @@
+@model StudyPilotApp.ViewModels.CourseGradeFormViewModel
+@{ ViewData["Title"] = "Edit Course Grade"; Layout = "/Views/Shared/_StudentLayout.cshtml"; }
+
+<div class="page-heading"><div><h1>Edit Course Grade</h1><p>@Model.SemesterLabel</p></div><a asp-action="Semester" asp-route-id="@Model.SemesterResultId" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>Back</a></div>
+<section class="card-ui gpa-form-card"><div class="card-head"><div><h2>Course result</h2><p>Add the actual grade when the university publishes it.</p></div></div><div class="card-body-ui"><form asp-action="EditGrade" asp-route-id="@Model.Id" method="post"><input asp-for="Id" type="hidden" /><input asp-for="SemesterResultId" type="hidden" /><partial name="_GradeForm" model="Model" /><div class="d-flex justify-content-end gap-2 mt-4"><a asp-action="Semester" asp-route-id="@Model.SemesterResultId" class="btn btn-ghost">Cancel</a><button class="btn btn-primary" type="submit">Save Grade</button></div></form></div></section>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -105,6 +105,11 @@ public sealed class CourseService : ICourseService
             assessment.ApplicationUserId == userId &&
             assessment.CourseId == courseId);
 
+    public Task<int> GetCourseGradeCountAsync(string userId, int courseId) =>
+        _dbContext.CourseGrades.CountAsync(grade =>
+            grade.ApplicationUserId == userId &&
+            grade.CourseId == courseId);
+
     public Task<bool> DuplicateExistsAsync(
         string userId,
         string courseCode,

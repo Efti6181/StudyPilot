@@ -100,10 +100,12 @@ public sealed class CourseDetailsViewModel : StudentShellViewModel
 {
     public CourseCardViewModel Course { get; set; } = new();
     public int AssessmentCount { get; set; }
+    public int CourseGradeCount { get; set; }
 }
 
 public sealed class CourseDeleteViewModel : StudentShellViewModel
 {
     public CourseCardViewModel Course { get; set; } = new();
     public int RelatedAssessmentCount { get; set; }
+    public int RelatedCourseGradeCount { get; set; }
 }

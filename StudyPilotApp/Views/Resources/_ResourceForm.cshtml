@@ -1,0 +1,77 @@
+@model StudyPilotApp.ViewModels.ResourceFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" placeholder="Example: Data Communication Chapter 4 Notes" />
+        <span asp-validation-for="Title" class="text-danger small"></span>
+    </div>
+    <div class="col-lg-4">
+        <label asp-for="CourseId" class="form-label"></label>
+        <select asp-for="CourseId" asp-items="Model.CourseOptions" class="form-select">
+            <option value="">General / No course</option>
+        </select>
+        <span asp-validation-for="CourseId" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Category" class="form-label"></label>
+        <select asp-for="Category" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.ResourceCategory>()" class="form-select">
+            <option value="">Select category</option>
+        </select>
+        <span asp-validation-for="Category" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Tags" class="form-label"></label>
+        <input asp-for="Tags" class="form-control" placeholder="exam, chapter 4, networking" />
+        <div class="form-text">Separate useful keywords with commas.</div>
+        <span asp-validation-for="Tags" class="text-danger small"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Briefly describe what this resource contains…"></textarea>
+        <span asp-validation-for="Description" class="text-danger small"></span>
+    </div>
+</div>
+
+<hr class="resource-form-divider" />
+
+<div class="resource-source-picker" role="radiogroup" aria-label="Resource source">
+    <label class="source-option">
+        <input asp-for="Kind" type="radio" value="File" />
+        <span><i class="bi bi-cloud-arrow-up"></i><strong>Upload File</strong><small>PDF, document, slides, image, code or ZIP</small></span>
+    </label>
+    <label class="source-option">
+        <input asp-for="Kind" type="radio" value="Link" />
+        <span><i class="bi bi-link-45deg"></i><strong>Save Link</strong><small>Website, video, tutorial or online book</small></span>
+    </label>
+</div>
+<span asp-validation-for="Kind" class="text-danger small"></span>
+
+<div id="fileSourceFields" class="resource-source-fields">
+    <label asp-for="Upload" class="form-label"></label>
+    <label class="resource-upload-zone" for="Upload">
+        <i class="bi bi-cloud-arrow-up"></i>
+        <strong id="uploadFileName">Choose a file</strong>
+        <span>Maximum 20 MB. Allowed: PDF, Office, text, ZIP, images and common source-code files.</span>
+    </label>
+    <input asp-for="Upload" class="visually-hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.md,.zip,.png,.jpg,.jpeg,.gif,.webp,.cs,.java,.py,.js,.html,.css" />
+    @if (!string.IsNullOrWhiteSpace(Model.ExistingFileName))
+    {
+        <div class="existing-resource-file"><i class="bi bi-paperclip"></i> Current file: <strong>@Model.ExistingFileName</strong> (@Model.ExistingFileSize). Leave empty to keep it.</div>
+    }
+    <span asp-validation-for="Upload" class="text-danger small d-block"></span>
+</div>
+
+<div id="linkSourceFields" class="resource-source-fields">
+    <label asp-for="ExternalUrl" class="form-label"></label>
+    <input asp-for="ExternalUrl" class="form-control" placeholder="https://example.com/useful-resource" />
+    <div class="form-text">Only HTTP and HTTPS links are accepted.</div>
+    <span asp-validation-for="ExternalUrl" class="text-danger small"></span>
+</div>
+
+<div class="form-check form-switch mt-4">
+    <input asp-for="IsFavorite" class="form-check-input" />
+    <label asp-for="IsFavorite" class="form-check-label"></label>
+</div>

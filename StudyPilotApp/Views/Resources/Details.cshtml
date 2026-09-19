@@ -1,0 +1,83 @@
+@model StudyPilotApp.ViewModels.ResourceDetailsViewModel
+@{
+    ViewData["Title"] = Model.Resource.Title;
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+    var item = Model.Resource;
+}
+@section Styles { <link rel="stylesheet" href="~/css/resources.css" asp-append-version="true" /> }
+
+<div class="page-heading">
+    <div><h1>Resource Details</h1><p>Review and access this saved learning material.</p></div>
+    <div class="page-actions">
+        <a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>Resources</a>
+        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary"><i class="bi bi-pencil me-2"></i>Edit</a>
+    </div>
+</div>
+
+@if (TempData["ResourceSuccess"] is string message)
+{
+    <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@message</div>
+}
+
+<section class="resource-detail-hero mb-4">
+    <div class="resource-detail-icon"><i class="bi @item.Icon"></i></div>
+    <div class="resource-detail-main">
+        <div class="resource-badges"><span>@item.CategoryLabel</span><span class="kind">@item.Kind</span>@if (item.IsFavorite) { <span class="favorite"><i class="bi bi-star-fill"></i> Favorite</span> }</div>
+        <h2>@item.Title</h2>
+        <p>@(string.IsNullOrWhiteSpace(item.Description) ? "No description added." : item.Description)</p>
+    </div>
+    <div class="resource-detail-action">
+        @if (item.Kind == StudyPilotApp.Models.ResourceKind.File)
+        {
+            <a asp-action="Download" asp-route-id="@item.Id" class="btn btn-light"><i class="bi bi-download me-2"></i>Download File</a>
+        }
+        else
+        {
+            <a asp-action="OpenLink" asp-route-id="@item.Id" target="_blank" rel="noopener noreferrer" class="btn btn-light"><i class="bi bi-box-arrow-up-right me-2"></i>Open Link</a>
+        }
+    </div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <section class="card-ui h-100">
+            <div class="card-head"><div><h2>Resource information</h2><p>Stored details and academic connection.</p></div></div>
+            <div class="card-body-ui resource-info-list">
+                <div><span>Course</span><strong>@(item.CourseCode is null ? "General resource" : $"{item.CourseCode} — {item.CourseName}")</strong></div>
+                <div><span>Source</span><strong>@item.Kind</strong></div>
+                <div><span>@(item.Kind == StudyPilotApp.Models.ResourceKind.File ? "File" : "Link")</span><strong>@(item.OriginalFileName ?? item.ExternalUrl)</strong></div>
+                <div><span>Size</span><strong>@item.FileSizeLabel</strong></div>
+                <div><span>Added</span><strong>@item.CreatedAt.LocalDateTime.ToString("dd MMM yyyy, h:mm tt")</strong></div>
+                <div><span>Last updated</span><strong>@(item.UpdatedAt?.LocalDateTime.ToString("dd MMM yyyy, h:mm tt") ?? "Not edited")</strong></div>
+            </div>
+        </section>
+    </div>
+    <div class="col-lg-4">
+        <section class="card-ui h-100">
+            <div class="card-head"><div><h2>Tags</h2><p>Search keywords for this resource.</p></div></div>
+            <div class="card-body-ui">
+                @if (string.IsNullOrWhiteSpace(item.Tags))
+                {
+                    <p class="text-muted mb-0">No tags added.</p>
+                }
+                else
+                {
+                    <div class="resource-tag-cloud">
+                        @foreach (var tag in item.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        {
+                            <span>@tag</span>
+                        }
+                    </div>
+                }
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="resource-danger-actions mt-4">
+    <form asp-action="ToggleFavorite" asp-route-id="@item.Id" method="post">
+        <input type="hidden" name="returnUrl" value="@Url.Action("Details", new { id = item.Id })" />
+        <button type="submit" class="btn btn-ghost"><i class="bi @(item.IsFavorite ? "bi-star-fill" : "bi-star") me-2"></i>@(item.IsFavorite ? "Remove Favorite" : "Add Favorite")</button>
+    </form>
+    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger"><i class="bi bi-trash3 me-2"></i>Delete Resource</a>
+</div>

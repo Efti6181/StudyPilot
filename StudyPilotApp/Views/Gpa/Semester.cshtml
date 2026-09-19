@@ -1,0 +1,40 @@
+@model StudyPilotApp.ViewModels.SemesterDetailsViewModel
+@{ ViewData["Title"] = $"Semester {Model.SemesterNumber}"; Layout = "/Views/Shared/_StudentLayout.cshtml"; }
+
+<div class="page-heading">
+    <div><h1>Semester @Model.SemesterNumber</h1><p>@Model.AcademicTerm @Model.AcademicYear · @Model.Grades.Count course(s)</p></div>
+    <div class="page-actions"><a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>All Semesters</a><a asp-action="EditSemester" asp-route-id="@Model.Id" class="btn btn-ghost"><i class="bi bi-pencil me-2"></i>Edit</a><a asp-action="AddGrade" asp-route-semesterId="@Model.Id" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Add Course Grade</a></div>
+</div>
+
+@if (TempData["GpaSuccess"] is string message) { <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@message</div> }
+
+<section class="semester-hero mb-4">
+    <div><span>@Model.AcademicTerm @Model.AcademicYear</span><h2>Your semester performance</h2><p>@(string.IsNullOrWhiteSpace(Model.Notes) ? "Add expected grades now and replace them with actual grades when results are published." : Model.Notes)</p></div>
+    <div class="semester-hero-metrics"><div><strong>@(Model.ActualCredits > 0 ? Model.SemesterGpa.ToString("0.00") : "—")</strong><span>Actual GPA</span></div><div><strong>@Model.ProjectedGpa.ToString("0.00")</strong><span>Projected GPA</span></div><div><strong>@Model.PlannedCredits.ToString("0.#")</strong><span>Planned Credits</span></div></div>
+</section>
+
+<section class="card-ui overflow-hidden">
+    <div class="card-head"><div><h2>Course grades</h2><p>Actual grades override expected grades in official GPA totals.</p></div></div>
+    @if (Model.Grades.Count == 0)
+    {
+        <div class="empty-module-state"><div class="empty-icon"><i class="bi bi-journal-plus"></i></div><h2>No course grades yet</h2><p>Add one of your existing StudyPilot courses to this semester.</p><a asp-action="AddGrade" asp-route-semesterId="@Model.Id" class="btn btn-primary">Add Course Grade</a></div>
+    }
+    else
+    {
+        <div class="table-responsive"><table class="table gpa-table align-middle mb-0"><thead><tr><th>Course</th><th>Credits</th><th>Expected</th><th>Actual</th><th>Grade Points</th><th class="text-end">Actions</th></tr></thead><tbody>
+        @foreach (var grade in Model.Grades)
+        {
+            <tr>
+                <td><a asp-controller="Courses" asp-action="Details" asp-route-id="@grade.CourseId" class="assessment-title">@grade.CourseCode</a><small>@grade.CourseName</small></td>
+                <td><strong>@grade.CreditHours.ToString("0.#")</strong></td>
+                <td><span class="grade-chip expected">@grade.ExpectedLetterGrade</span><small>@grade.ExpectedGradePoint.ToString("0.00") points</small></td>
+                <td>@if (grade.ActualLetterGrade is null) { <span class="text-muted">Pending</span> } else { <span class="grade-chip actual">@grade.ActualLetterGrade</span> }</td>
+                <td><strong>@(grade.ActualGradePoint?.ToString("0.00") ?? "—")</strong></td>
+                <td class="text-end"><div class="d-inline-flex gap-1"><a asp-action="EditGrade" asp-route-id="@grade.Id" class="btn btn-sm btn-ghost" aria-label="Edit"><i class="bi bi-pencil"></i></a><form asp-action="DeleteGrade" asp-route-id="@grade.Id" method="post" onsubmit="return confirm('Remove this course grade?');"><button class="btn btn-sm btn-ghost text-danger" type="submit" aria-label="Delete"><i class="bi bi-trash3"></i></button></form></div></td>
+            </tr>
+        }
+        </tbody></table></div>
+    }
+</section>
+
+<div class="text-end mt-3"><a asp-action="DeleteSemester" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash3 me-2"></i>Delete Semester</a></div>

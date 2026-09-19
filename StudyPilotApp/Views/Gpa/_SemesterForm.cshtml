@@ -1,0 +1,9 @@
+@model StudyPilotApp.ViewModels.SemesterFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-4"></div>
+<div class="row g-3">
+    <div class="col-md-4"><label asp-for="SemesterNumber" class="form-label"></label><select asp-for="SemesterNumber" class="form-select"><option value="">Select semester</option>@for (var i = 1; i <= 12; i++) { <option value="@i">Semester @i</option> }</select><span asp-validation-for="SemesterNumber" class="text-danger small"></span></div>
+    <div class="col-md-4"><label asp-for="AcademicTerm" class="form-label"></label><select asp-for="AcademicTerm" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.AcademicTerm>()" class="form-select"><option value="">Select term</option></select><span asp-validation-for="AcademicTerm" class="text-danger small"></span></div>
+    <div class="col-md-4"><label asp-for="AcademicYear" class="form-label"></label><input asp-for="AcademicYear" class="form-control" min="2000" max="2100" /><span asp-validation-for="AcademicYear" class="text-danger small"></span></div>
+    <div class="col-12"><label asp-for="Notes" class="form-label"></label><textarea asp-for="Notes" class="form-control" rows="4" maxlength="500" placeholder="Optional notes about this semester…"></textarea><span asp-validation-for="Notes" class="text-danger small"></span></div>
+</div>

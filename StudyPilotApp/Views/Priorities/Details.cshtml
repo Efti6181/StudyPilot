@@ -1,0 +1,35 @@
+@model StudyPilotApp.ViewModels.PriorityDetailsViewModel
+@{ ViewData["Title"] = "Priority Details"; Layout = "/Views/Shared/_StudentLayout.cshtml"; var item = Model.Priority; }
+
+<div class="page-heading"><div><div class="d-flex gap-2 align-items-center mb-2"><span class="course-code">@item.CourseCode</span><span class="priority-level @item.LevelCss">@item.DisplayLevel</span>@if (item.IsManualOverride) { <span class="mini-badge neutral">Manual override</span> }</div><h1>@item.CourseName</h1><p>Transparent factor-by-factor priority explanation.</p></div><div class="page-actions"><a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>All Priorities</a><a asp-action="Configure" asp-route-id="@item.CourseId" class="btn btn-primary"><i class="bi bi-sliders me-2"></i>Configure</a></div></div>
+
+@if (TempData["PrioritySuccess"] is string message) { <div class="alert alert-success rounded-4"><i class="bi bi-check-circle me-2"></i>@message</div> }
+
+<section class="priority-detail-hero level-@item.LevelCss mb-4">
+    <div><span>Calculated priority score</span><strong>@item.Score.ToString("0.0")</strong><small>out of 100</small></div>
+    <div><h2>@item.DisplayLevel priority</h2><p>Recommended focus block: <strong>@item.SuggestedStudyMinutes minutes</strong>. The score automatically updates as deadlines, marks and progress change.</p></div>
+</section>
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <section class="card-ui"><div class="card-head"><div><h2>Score breakdown</h2><p>Each factor is normalized from 0 to 100 before its weight is applied.</p></div></div><div class="card-body-ui priority-breakdown">
+            <div class="factor-row"><div><strong>Target-grade gap</strong><span>@Model.Weights.TargetGradeGapWeight.ToString("0.##")% weight</span></div><div class="factor-bar"><span style="width:@item.Factors.TargetGradeGap%"></span></div><b>@item.Factors.TargetGradeGap.ToString("0")</b></div>
+            <div class="factor-row"><div><strong>Assessment urgency</strong><span>@Model.Weights.AssessmentUrgencyWeight.ToString("0.##")% weight</span></div><div class="factor-bar"><span style="width:@item.Factors.AssessmentUrgency%"></span></div><b>@item.Factors.AssessmentUrgency.ToString("0")</b></div>
+            <div class="factor-row"><div><strong>Course credit</strong><span>@Model.Weights.CourseCreditWeight.ToString("0.##")% weight</span></div><div class="factor-bar"><span style="width:@item.Factors.CourseCredit%"></span></div><b>@item.Factors.CourseCredit.ToString("0")</b></div>
+            <div class="factor-row"><div><strong>Confidence / weakness</strong><span>@Model.Weights.WeaknessWeight.ToString("0.##")% weight</span></div><div class="factor-bar"><span style="width:@item.Factors.Weakness%"></span></div><b>@item.Factors.Weakness.ToString("0")</b></div>
+            <div class="factor-row"><div><strong>Incomplete topics</strong><span>@Model.Weights.IncompleteTopicsWeight.ToString("0.##")% weight</span></div><div class="factor-bar"><span style="width:@item.Factors.IncompleteTopics%"></span></div><b>@item.Factors.IncompleteTopics.ToString("0")</b></div>
+            <div class="factor-row"><div><strong>Workload risk</strong><span>@Model.Weights.WorkloadRiskWeight.ToString("0.##")% weight</span></div><div class="factor-bar"><span style="width:@item.Factors.WorkloadRisk%"></span></div><b>@item.Factors.WorkloadRisk.ToString("0")</b></div>
+        </div></section>
+
+        <section class="card-ui mt-4"><div class="card-head"><div><h2>Why this rank?</h2><p>The three strongest current signals</p></div></div><div class="card-body-ui"><ol class="reason-list">@foreach (var reason in item.Reasons) { <li><i class="bi bi-check2-circle"></i><span>@reason</span></li> }</ol></div></section>
+    </div>
+    <div class="col-xl-4">
+        <section class="card-ui"><div class="card-head"><div><h2>Current evidence</h2><p>Course and assessment data</p></div></div><div class="card-body-ui"><div class="data-pair"><span>Credits</span><strong>@item.CreditHours.ToString("0.#")</strong></div><div class="data-pair"><span>Target grade</span><strong>@(item.TargetGrade ?? "Not set")</strong></div><div class="data-pair"><span>Progress</span><strong>@item.CourseProgress%</strong></div><div class="data-pair"><span>Assessment average</span><strong>@(item.AssessmentAverage.HasValue ? $"{item.AssessmentAverage.Value:0.#}%" : "No marked work")</strong></div><div class="data-pair"><span>Pending assessments</span><strong>@item.PendingAssessments</strong></div><div class="data-pair"><span>Nearest deadline</span><strong>@(item.NearestDeadline?.ToString("dd MMM yyyy") ?? "None")</strong></div><div class="data-pair"><span>Confidence</span><strong>@item.ConfidenceRating / 5</strong></div><div class="data-pair"><span>Topics complete</span><strong>@item.TopicCompletionPercentage%</strong></div><div class="data-pair"><span>Workload risk</span><strong>@item.WorkloadRisk / 5</strong></div></div></section>
+
+        @if (item.IsManualOverride)
+        {
+            <form asp-action="ClearOverride" asp-route-id="@item.CourseId" method="post" class="mt-3"><button class="btn btn-outline-warning w-100" type="submit"><i class="bi bi-arrow-counterclockwise me-2"></i>Clear Manual Override</button></form>
+        }
+        <form asp-action="Reset" asp-route-id="@item.CourseId" method="post" class="mt-2" onsubmit="return confirm('Reset this course to automatic priority defaults?');"><button class="btn btn-outline-danger w-100" type="submit"><i class="bi bi-trash3 me-2"></i>Reset Priority Inputs</button></form>
+    </div>
+</div>

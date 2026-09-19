@@ -1,0 +1,5 @@
+@model StudyPilotApp.ViewModels.SemesterDeleteViewModel
+@{ ViewData["Title"] = "Delete Semester"; Layout = "/Views/Shared/_StudentLayout.cshtml"; }
+
+<div class="page-heading"><div><h1>Delete Semester</h1><p>Review this permanent action carefully.</p></div></div>
+<div class="row justify-content-center"><div class="col-xl-7"><section class="card-ui delete-confirmation"><div class="card-body-ui p-lg-5"><div class="delete-warning-icon"><i class="bi bi-exclamation-triangle"></i></div><h2>Delete @Model.SemesterLabel?</h2><p class="text-muted">This will also delete <strong>@Model.CourseCount saved course grade(s)</strong> from this semester. Your Course records themselves will not be deleted.</p><form asp-action="DeleteSemester" asp-route-id="@Model.Id" method="post" class="d-flex justify-content-center gap-2 mt-4"><a asp-action="Semester" asp-route-id="@Model.Id" class="btn btn-ghost">Keep Semester</a><button class="btn btn-danger" type="submit"><i class="bi bi-trash3 me-2"></i>Yes, Delete</button></form></div></section></div></div>

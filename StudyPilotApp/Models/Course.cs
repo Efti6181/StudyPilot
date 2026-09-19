@@ -49,4 +49,7 @@ public class Course
     public DateTimeOffset? UpdatedAt { get; set; }
 
     public ICollection<Assessment> Assessments { get; set; } = [];
+    public ICollection<CourseGrade> CourseGrades { get; set; } = [];
+    public CoursePriorityPreference? PriorityPreference { get; set; }
+    public ICollection<StudyResource> Resources { get; set; } = [];
 }

@@ -1,0 +1,26 @@
+@model StudyPilotApp.ViewModels.ResourceFormViewModel
+@{
+    ViewData["Title"] = "Add Resource";
+    Layout = "/Views/Shared/_StudentLayout.cshtml";
+}
+@section Styles { <link rel="stylesheet" href="~/css/resources.css" asp-append-version="true" /> }
+
+<div class="page-heading">
+    <div><h1>Add Resource</h1><p>Upload a study file or save a trusted academic link.</p></div>
+    <a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>Back to Resources</a>
+</div>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="card-ui resource-form-card">
+    <div class="card-body-ui">
+        <partial name="_ResourceForm" model="Model" />
+    </div>
+    <div class="resource-form-actions">
+        <a asp-action="Index" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Add Resource</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/resources.js" asp-append-version="true"></script>
+}
