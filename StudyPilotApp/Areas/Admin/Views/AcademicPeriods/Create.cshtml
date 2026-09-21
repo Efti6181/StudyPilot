@@ -1,0 +1,11 @@
+@model AcademicPeriodFormViewModel
+@{
+    ViewData["Title"] = "Add Academic Term";
+}
+<section class="admin-page-heading compact"><div><a class="admin-back-link" asp-action="Index"><i class="bi bi-arrow-left"></i>Academic terms</a><h1>Add academic term</h1><p>Create dates and registration availability for a Spring, Summer or Fall term.</p></div></section>
+<form asp-action="Create" method="post" class="admin-form-panel">
+    <header><span><i class="bi bi-calendar-plus"></i></span><div><h2>Academic calendar information</h2><p>Term and year must be unique, and active date ranges cannot overlap.</p></div></header>
+    <div class="admin-form-body"><partial name="_AcademicPeriodForm" model="Model" /></div>
+    <footer><a class="admin-secondary-button" asp-action="Index">Cancel</a><button class="admin-primary-button" type="submit"><i class="bi bi-check-lg"></i>Create academic term</button></footer>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

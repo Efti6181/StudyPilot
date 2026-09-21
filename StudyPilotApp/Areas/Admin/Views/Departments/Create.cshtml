@@ -1,0 +1,22 @@
+@model DepartmentFormViewModel
+@{
+    ViewData["Title"] = "Add Department";
+}
+
+<section class="admin-page-heading compact">
+    <div>
+        <a class="admin-back-link" asp-action="Index"><i class="bi bi-arrow-left"></i>Departments</a>
+        <h1>Add department</h1>
+        <p>Create a centralized academic department record.</p>
+    </div>
+</section>
+
+<form asp-action="Create" method="post" class="admin-form-panel">
+    <header><span><i class="bi bi-building-add"></i></span><div><h2>Department information</h2><p>Code and name must be unique across StudyPilot.</p></div></header>
+    <div class="admin-form-body"><partial name="_DepartmentForm" model="Model" /></div>
+    <footer><a class="admin-secondary-button" asp-action="Index">Cancel</a><button class="admin-primary-button" type="submit"><i class="bi bi-check-lg"></i>Create department</button></footer>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

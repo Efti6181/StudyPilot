@@ -1,0 +1,88 @@
+@model DepartmentIndexViewModel
+@{
+    ViewData["Title"] = "Departments";
+}
+
+<section class="admin-page-heading">
+    <div>
+        <span class="admin-eyebrow"><i class="bi bi-building"></i> Academic structure</span>
+        <h1>Departments</h1>
+        <p>Create and maintain the university departments used by future Programs and registration authorization.</p>
+    </div>
+    <a class="admin-primary-button" asp-action="Create"><i class="bi bi-plus-lg"></i>Add department</a>
+</section>
+
+<section class="admin-stat-strip" aria-label="Department statistics">
+    <div><span class="blue"><i class="bi bi-buildings"></i></span><p><small>All departments</small><strong>@Model.TotalCount</strong></p></div>
+    <div><span class="green"><i class="bi bi-check-circle"></i></span><p><small>Active</small><strong>@Model.ActiveCount</strong></p></div>
+    <div><span class="slate"><i class="bi bi-pause-circle"></i></span><p><small>Inactive</small><strong>@Model.InactiveCount</strong></p></div>
+</section>
+
+<section class="admin-panel admin-directory-panel">
+    <form class="admin-filter-bar" method="get">
+        <label class="admin-search-box">
+            <i class="bi bi-search"></i>
+            <input type="search" name="search" value="@Model.Search" maxlength="100" placeholder="Search code, name, or description" aria-label="Search departments" />
+        </label>
+        <select asp-for="Status" aria-label="Filter by status">
+            <option value="all">All statuses</option>
+            <option value="active">Active only</option>
+            <option value="inactive">Inactive only</option>
+        </select>
+        <button class="admin-secondary-button" type="submit"><i class="bi bi-funnel"></i>Filter</button>
+        @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.Status != "all")
+        {
+            <a class="admin-text-button" asp-action="Index">Clear</a>
+        }
+    </form>
+
+    <div class="admin-directory-summary">
+        <span>Showing <strong>@Model.Departments.Count</strong> of <strong>@Model.FilteredCount</strong> matching departments</span>
+        <small>Records are preserved by deactivation instead of permanent deletion.</small>
+    </div>
+
+    @if (Model.Departments.Count == 0)
+    {
+        <div class="admin-empty admin-empty-large">
+            <i class="bi bi-building-x"></i>
+            <h2>No departments found</h2>
+            <p>Adjust the filters or add the first university department.</p>
+            <a class="admin-primary-button" asp-action="Create"><i class="bi bi-plus-lg"></i>Add department</a>
+        </div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-data-table">
+                <thead><tr><th>Department</th><th>Description</th><th>Status</th><th>Created</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+                <tbody>
+                @foreach (var item in Model.Departments)
+                {
+                    <tr>
+                        <td data-label="Department"><div class="admin-department-name"><span>@item.Code</span><div><strong>@item.Name</strong><small>Department #@item.Id</small></div></div></td>
+                        <td data-label="Description"><span class="admin-table-description">@(string.IsNullOrWhiteSpace(item.Description) ? "No description provided." : item.Description)</span></td>
+                        <td data-label="Status"><span class="admin-status-pill @(item.IsActive ? "active" : "inactive")"><i></i>@(item.IsActive ? "Active" : "Inactive")</span></td>
+                        <td data-label="Created"><span class="admin-table-date">@item.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</span></td>
+                        <td class="admin-table-actions">
+                            <a asp-action="Details" asp-route-id="@item.Id" title="View department"><i class="bi bi-eye"></i></a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" title="Edit department"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="admin-pagination" aria-label="Department pages">
+            <a class="@(Model.Page == 1 ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i></a>
+            @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
+            {
+                <a class="@(pageNumber == Model.Page ? "active" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-page="@pageNumber">@pageNumber</a>
+            }
+            <a class="@(Model.Page == Model.TotalPages ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-page="@(Model.Page + 1)"><i class="bi bi-chevron-right"></i></a>
+        </nav>
+    }
+</section>

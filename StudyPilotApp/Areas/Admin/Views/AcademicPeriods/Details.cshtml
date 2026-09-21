@@ -1,0 +1,27 @@
+@model AcademicPeriodDetailsViewModel
+@{
+    ViewData["Title"] = Model.Label;
+}
+<section class="admin-page-heading">
+    <div><a class="admin-back-link" asp-action="Index"><i class="bi bi-arrow-left"></i>Academic terms</a><h1>@Model.Label</h1><p>Review calendar dates, registration availability and operational status.</p></div>
+    <div class="admin-heading-actions">
+        <a class="admin-secondary-button" asp-action="Edit" asp-route-id="@Model.Id"><i class="bi bi-pencil"></i>Edit</a>
+        @if (Model.IsActive && !Model.IsCurrent)
+        {
+            <form asp-action="SetCurrent" asp-route-id="@Model.Id" method="post"><button class="admin-primary-button" type="submit"><i class="bi bi-check2-circle"></i>Make current</button></form>
+        }
+        <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post"><input type="hidden" name="isActive" value="@(!Model.IsActive)" /><button class="@(Model.IsActive ? "admin-danger-button" : "admin-primary-button")" type="submit"><i class="bi @(Model.IsActive ? "bi-archive" : "bi-arrow-counterclockwise")"></i>@(Model.IsActive ? "Archive" : "Activate")</button></form>
+    </div>
+</section>
+
+<div class="admin-details-grid">
+    <section class="admin-panel admin-term-hero">
+        <div class="admin-term-icon"><i class="bi bi-calendar3"></i></div>
+        <div class="admin-term-hero-copy"><span class="admin-status-pill @Model.StatusClass"><i></i>@Model.DisplayStatus</span><h2>@Model.Label</h2><p>@(string.IsNullOrWhiteSpace(Model.Notes) ? "No additional calendar notes have been provided." : Model.Notes)</p><div class="admin-term-timeline"><span><small>Starts</small><strong>@Model.StartDate.ToString("dd MMM yyyy")</strong></span><i class="bi bi-arrow-right"></i><span><small>Ends</small><strong>@Model.EndDate.ToString("dd MMM yyyy")</strong></span></div></div>
+    </section>
+    <aside class="admin-panel admin-record-meta">
+        <h2>Record information</h2>
+        <dl><div><dt>Registration window</dt><dd>@(Model.RegistrationStartDate.HasValue ? $"{Model.RegistrationStartDate:dd MMM yyyy} – {Model.RegistrationEndDate:dd MMM yyyy}" : "Not configured")</dd></div><div><dt>Current term</dt><dd>@(Model.IsCurrent ? "Yes" : "No")</dd></div><div><dt>Created</dt><dd>@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</dd></div><div><dt>Last updated</dt><dd>@(Model.UpdatedAt?.ToLocalTime().ToString("dd MMM yyyy, h:mm tt") ?? "Not updated yet")</dd></div></dl>
+    </aside>
+</div>
+<div class="admin-info-callout"><i class="bi bi-link-45deg"></i><div><strong>Compatible academic identity</strong><p>This term uses the same @Model.Term enum value and @Model.AcademicYear year used by Courses, GPA records and Smart Study Plans.</p></div></div>

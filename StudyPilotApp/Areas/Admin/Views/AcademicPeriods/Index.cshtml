@@ -1,0 +1,79 @@
+@model AcademicPeriodIndexViewModel
+@{
+    ViewData["Title"] = "Academic Terms";
+}
+
+<section class="admin-page-heading">
+    <div>
+        <span class="admin-eyebrow"><i class="bi bi-calendar3"></i> Academic calendar</span>
+        <h1>Academic terms</h1>
+        <p>Manage semester dates, registration windows, current-term selection and archived terms.</p>
+    </div>
+    <a class="admin-primary-button" asp-action="Create"><i class="bi bi-calendar-plus"></i>Add academic term</a>
+</section>
+
+<section class="admin-term-stat-grid" aria-label="Academic term statistics">
+    <div><small>All terms</small><strong>@Model.TotalCount</strong></div>
+    <div class="current"><small>Current</small><strong>@Model.CurrentCount</strong></div>
+    <div class="upcoming"><small>Upcoming</small><strong>@Model.UpcomingCount</strong></div>
+    <div><small>Past</small><strong>@Model.PastCount</strong></div>
+    <div class="muted"><small>Inactive</small><strong>@Model.InactiveCount</strong></div>
+</section>
+
+<section class="admin-panel admin-directory-panel">
+    <form class="admin-filter-bar admin-term-filters" method="get">
+        <label class="admin-search-box"><i class="bi bi-search"></i><input type="search" name="search" value="@Model.Search" maxlength="100" placeholder="Search Spring, Summer, Fall, year or notes" /></label>
+        <select asp-for="Status" aria-label="Filter academic terms">
+            <option value="all">All terms</option>
+            <option value="active">All active</option>
+            <option value="current">Current</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="past">Past</option>
+            <option value="inactive">Inactive</option>
+        </select>
+        <button class="admin-secondary-button" type="submit"><i class="bi bi-funnel"></i>Filter</button>
+        @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.Status != "all")
+        {
+            <a class="admin-text-button" asp-action="Index">Clear</a>
+        }
+    </form>
+
+    <div class="admin-directory-summary"><span>Showing <strong>@Model.Periods.Count</strong> of <strong>@Model.FilteredCount</strong> matching terms</span><small>Only one active term can be marked current.</small></div>
+
+    @if (Model.Periods.Count == 0)
+    {
+        <div class="admin-empty admin-empty-large"><i class="bi bi-calendar-x"></i><h2>No academic terms found</h2><p>Adjust the filters or create the university's first academic term.</p><a class="admin-primary-button" asp-action="Create"><i class="bi bi-plus-lg"></i>Add academic term</a></div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-data-table">
+                <thead><tr><th>Academic term</th><th>Duration</th><th>Registration</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var item in Model.Periods)
+                {
+                    <tr>
+                        <td data-label="Academic term"><div class="admin-term-name"><span><i class="bi bi-calendar3"></i></span><div><strong>@item.Label</strong><small>Term record #@item.Id</small></div></div></td>
+                        <td data-label="Duration"><span class="admin-date-range"><strong>@item.StartDate.ToString("dd MMM yyyy")</strong><i class="bi bi-arrow-right"></i><strong>@item.EndDate.ToString("dd MMM yyyy")</strong></span></td>
+                        <td data-label="Registration"><span class="admin-table-date">@(item.RegistrationStartDate.HasValue ? $"{item.RegistrationStartDate:dd MMM} – {item.RegistrationEndDate:dd MMM yyyy}" : "Not configured")</span></td>
+                        <td data-label="Status"><span class="admin-status-pill @item.StatusClass"><i></i>@item.DisplayStatus</span></td>
+                        <td class="admin-table-actions"><a asp-action="Details" asp-route-id="@item.Id" title="View term"><i class="bi bi-eye"></i></a><a asp-action="Edit" asp-route-id="@item.Id" title="Edit term"><i class="bi bi-pencil"></i></a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="admin-pagination" aria-label="Academic term pages">
+            <a class="@(Model.Page == 1 ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i></a>
+            @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
+            {
+                <a class="@(pageNumber == Model.Page ? "active" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-page="@pageNumber">@pageNumber</a>
+            }
+            <a class="@(Model.Page == Model.TotalPages ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-page="@(Model.Page + 1)"><i class="bi bi-chevron-right"></i></a>
+        </nav>
+    }
+</section>

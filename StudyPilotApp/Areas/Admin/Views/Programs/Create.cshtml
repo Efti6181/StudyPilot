@@ -1,0 +1,26 @@
+@model AcademicProgramFormViewModel
+@{
+    ViewData["Title"] = "Add Program";
+}
+
+<section class="admin-page-heading compact"><div><a class="admin-back-link" asp-action="Index"><i class="bi bi-arrow-left"></i>Programs</a><h1>Add program</h1><p>Create a degree program connected to an academic department.</p></div></section>
+
+<form asp-action="Create" method="post" class="admin-form-panel">
+    <header><span><i class="bi bi-diagram-3"></i></span><div><h2>Program information</h2><p>Program code must be unique across StudyPilot.</p></div></header>
+    <div class="admin-form-body"><partial name="_ProgramForm" model="Model" /></div>
+    <footer>
+        <a class="admin-secondary-button" asp-action="Index">Cancel</a>
+        @if (Model.DepartmentOptions.Count == 0)
+        {
+            <button class="admin-primary-button" type="button" disabled><i class="bi bi-check-lg"></i>Create program</button>
+        }
+        else
+        {
+            <button class="admin-primary-button" type="submit"><i class="bi bi-check-lg"></i>Create program</button>
+        }
+    </footer>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

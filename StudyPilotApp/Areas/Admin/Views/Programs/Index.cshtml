@@ -1,0 +1,88 @@
+@model AcademicProgramIndexViewModel
+@{
+    ViewData["Title"] = "Programs";
+}
+
+<section class="admin-page-heading">
+    <div>
+        <span class="admin-eyebrow"><i class="bi bi-diagram-3"></i> Academic structure</span>
+        <h1>Programs</h1>
+        <p>Manage degree programs and connect each one to its responsible department.</p>
+    </div>
+    <a class="admin-primary-button" asp-action="Create"><i class="bi bi-plus-lg"></i>Add program</a>
+</section>
+
+<section class="admin-stat-strip" aria-label="Program statistics">
+    <div><span class="blue"><i class="bi bi-mortarboard"></i></span><p><small>All programs</small><strong>@Model.TotalCount</strong></p></div>
+    <div><span class="green"><i class="bi bi-check-circle"></i></span><p><small>Active</small><strong>@Model.ActiveCount</strong></p></div>
+    <div><span class="slate"><i class="bi bi-pause-circle"></i></span><p><small>Inactive</small><strong>@Model.InactiveCount</strong></p></div>
+</section>
+
+<section class="admin-panel admin-directory-panel">
+    <form class="admin-filter-bar admin-program-filters" method="get">
+        <label class="admin-search-box">
+            <i class="bi bi-search"></i>
+            <input type="search" name="search" value="@Model.Search" maxlength="100" placeholder="Search program or department" aria-label="Search programs" />
+        </label>
+        <select asp-for="DepartmentId" asp-items="Model.DepartmentOptions" aria-label="Filter by department">
+            <option value="">All departments</option>
+        </select>
+        <select asp-for="Status" aria-label="Filter by status">
+            <option value="all">All statuses</option>
+            <option value="active">Active only</option>
+            <option value="inactive">Inactive only</option>
+        </select>
+        <button class="admin-secondary-button" type="submit"><i class="bi bi-funnel"></i>Filter</button>
+        @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.DepartmentId.HasValue || Model.Status != "all")
+        {
+            <a class="admin-text-button" asp-action="Index">Clear</a>
+        }
+    </form>
+
+    <div class="admin-directory-summary">
+        <span>Showing <strong>@Model.Programs.Count</strong> of <strong>@Model.FilteredCount</strong> matching programs</span>
+        <small>Program records are preserved by deactivation.</small>
+    </div>
+
+    @if (Model.Programs.Count == 0)
+    {
+        <div class="admin-empty admin-empty-large">
+            <i class="bi bi-diagram-3"></i><h2>No programs found</h2>
+            <p>Add a program after creating at least one active department.</p>
+            <a class="admin-primary-button" asp-action="Create"><i class="bi bi-plus-lg"></i>Add program</a>
+        </div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-data-table">
+                <thead><tr><th>Program</th><th>Department</th><th>Credits</th><th>Duration</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+                <tbody>
+                @foreach (var item in Model.Programs)
+                {
+                    <tr>
+                        <td data-label="Program"><div class="admin-department-name admin-program-name"><span>@item.Code</span><div><strong>@item.Name</strong><small>Program #@item.Id</small></div></div></td>
+                        <td data-label="Department"><span class="admin-department-chip"><strong>@item.DepartmentCode</strong>@item.DepartmentName</span></td>
+                        <td data-label="Credits"><span class="admin-number-value">@item.TotalCredits.ToString("0.#")</span></td>
+                        <td data-label="Duration"><span class="admin-table-date">@item.DurationYears.ToString("0.#") years</span></td>
+                        <td data-label="Status"><span class="admin-status-pill @(item.IsActive ? "active" : "inactive")"><i></i>@(item.IsActive ? "Active" : "Inactive")</span></td>
+                        <td class="admin-table-actions"><a asp-action="Details" asp-route-id="@item.Id" title="View program"><i class="bi bi-eye"></i></a><a asp-action="Edit" asp-route-id="@item.Id" title="Edit program"><i class="bi bi-pencil"></i></a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="admin-pagination" aria-label="Program pages">
+            <a class="@(Model.Page == 1 ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-departmentId="@Model.DepartmentId" asp-route-status="@Model.Status" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i></a>
+            @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
+            {
+                <a class="@(pageNumber == Model.Page ? "active" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-departmentId="@Model.DepartmentId" asp-route-status="@Model.Status" asp-route-page="@pageNumber">@pageNumber</a>
+            }
+            <a class="@(Model.Page == Model.TotalPages ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-departmentId="@Model.DepartmentId" asp-route-status="@Model.Status" asp-route-page="@(Model.Page + 1)"><i class="bi bi-chevron-right"></i></a>
+        </nav>
+    }
+</section>

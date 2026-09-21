@@ -1,0 +1,13 @@
+@model RegistrationAuthorizationFormViewModel
+@{ ViewData["Title"] = "Edit Registration Authorization"; }
+<section class="admin-page-heading compact"><div><a class="admin-back-link" asp-action="Details" asp-route-id="@Model.Id"><i class="bi bi-arrow-left"></i>Authorization details</a><h1>Edit @Model.UniversityId</h1><p>Update academic placement and authorization status.</p></div></section>
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="admin-form-panel">
+    <input asp-for="Id" type="hidden" /><input asp-for="IsClaimed" type="hidden" />
+    <header><span><i class="bi bi-pencil-square"></i></span><div><h2>Authorization information</h2><p>Claimed identity fields are protected from modification.</p></div></header>
+    <div class="admin-form-body"><partial name="_AuthorizationForm" model="Model" /></div>
+    <footer><a class="admin-secondary-button" asp-action="Details" asp-route-id="@Model.Id">Cancel</a><button class="admin-primary-button" type="submit"><i class="bi bi-check-lg"></i>Save changes</button></footer>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/admin-registration-authorization.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,29 @@
+@model DepartmentFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="admin-validation-summary"></div>
+
+<div class="admin-form-grid">
+    <div class="admin-field">
+        <label asp-for="Code"></label>
+        <div class="admin-input-with-icon"><i class="bi bi-braces-asterisk"></i><input asp-for="Code" placeholder="Example: CSE" autocomplete="off" /></div>
+        <span asp-validation-for="Code"></span>
+        <small>A short, unique institutional code. It will be saved in uppercase.</small>
+    </div>
+    <div class="admin-field">
+        <label asp-for="Name"></label>
+        <div class="admin-input-with-icon"><i class="bi bi-building"></i><input asp-for="Name" placeholder="Computer Science & Engineering" autocomplete="off" /></div>
+        <span asp-validation-for="Name"></span>
+    </div>
+    <div class="admin-field admin-field-full">
+        <label asp-for="Description"></label>
+        <textarea asp-for="Description" rows="5" placeholder="Briefly describe the department and its academic scope."></textarea>
+        <div class="admin-field-meta"><span asp-validation-for="Description"></span><small>Maximum 1,000 characters</small></div>
+    </div>
+    <div class="admin-field admin-field-full">
+        <label class="admin-switch-row">
+            <input asp-for="IsActive" />
+            <span class="admin-switch-control"></span>
+            <span><strong>Active department</strong><small>Active departments can be selected by future Programs and authorization records.</small></span>
+        </label>
+    </div>
+</div>

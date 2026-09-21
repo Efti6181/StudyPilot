@@ -70,12 +70,14 @@ public class AccountController : Controller
 
         try
         {
-            var member = await _dbContext.UniversityMembers.SingleOrDefaultAsync(x =>
-                x.UniversityId == universityId &&
-                x.NormalizedEmail == normalizedEmail &&
-                x.Role == model.AccountType &&
-                x.IsActive &&
-                !x.IsClaimed);
+            var member = await _dbContext.UniversityMembers
+                .Include(x => x.Department)
+                .SingleOrDefaultAsync(x =>
+                    x.UniversityId == universityId &&
+                    x.NormalizedEmail == normalizedEmail &&
+                    x.Role == model.AccountType &&
+                    x.IsActive &&
+                    !x.IsClaimed);
 
             if (member is null)
             {
@@ -95,7 +97,9 @@ public class AccountController : Controller
 
             var user = new ApplicationUser
             {
-                FullName = model.FullName.Trim(),
+                FullName = string.IsNullOrWhiteSpace(member.FullName)
+                    ? model.FullName.Trim()
+                    : member.FullName!,
                 Email = email,
                 UserName = email,
                 CreatedAt = DateTimeOffset.UtcNow
@@ -124,7 +128,10 @@ public class AccountController : Controller
                 _dbContext.StudentProfiles.Add(new StudentProfile
                 {
                     StudentId = universityId,
-                    ApplicationUserId = user.Id
+                    ApplicationUserId = user.Id,
+                    Department = member.Department?.Name,
+                    Batch = member.Batch,
+                    Semester = member.CurrentSemester
                 });
             }
             else
@@ -138,6 +145,8 @@ public class AccountController : Controller
 
             member.IsClaimed = true;
             member.ApplicationUserId = user.Id;
+            member.RegisteredAt = DateTimeOffset.UtcNow;
+            member.UpdatedAt = DateTimeOffset.UtcNow;
 
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -156,7 +165,7 @@ public class AccountController : Controller
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> Login(string? returnUrl = null)
+    public async Task<IActionResult> Login(string? returnUrl = null, bool disabled = false)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
@@ -168,6 +177,7 @@ public class AccountController : Controller
         }
 
         ViewData["ReturnUrl"] = returnUrl;
+        if (disabled) ViewData["AccountDisabled"] = true;
         return View(new LoginViewModel());
     }
 
@@ -187,6 +197,12 @@ public class AccountController : Controller
         if (user is null)
         {
             AddInvalidLoginError();
+            return View(model);
+        }
+
+        if (!user.IsActive)
+        {
+            ModelState.AddModelError(string.Empty, "This account has been disabled. Contact the StudyPilot administrator.");
             return View(model);
         }
 

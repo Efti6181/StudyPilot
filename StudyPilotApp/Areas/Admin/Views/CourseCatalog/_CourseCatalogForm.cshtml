@@ -1,0 +1,19 @@
+@model CourseCatalogFormViewModel
+@{
+    var programsUrl = Url.Action("Programs", "CourseCatalog", new { area = "Admin" });
+}
+<div asp-validation-summary="ModelOnly" class="admin-validation-summary"></div>
+<div class="admin-form-grid" data-course-catalog-form data-programs-url="@programsUrl">
+    <div class="admin-field"><label asp-for="Code"></label><input asp-for="Code" placeholder="Example: CSE 321" autocomplete="off" /><span asp-validation-for="Code"></span><small>Saved in uppercase and unique across the catalog.</small></div>
+    <div class="admin-field"><label asp-for="Name"></label><input asp-for="Name" placeholder="Data Structures and Algorithms" /><span asp-validation-for="Name"></span></div>
+    <div class="admin-field"><label asp-for="DepartmentId"></label><select asp-for="DepartmentId" asp-items="Model.DepartmentOptions" data-catalog-department><option value="">Select department</option></select><span asp-validation-for="DepartmentId"></span></div>
+    <div class="admin-field"><label asp-for="ProgramId"></label><select asp-for="ProgramId" asp-items="Model.ProgramOptions" data-catalog-program><option value="">Available to all department programs</option></select><span asp-validation-for="ProgramId"></span></div>
+    <div class="admin-field"><label asp-for="CreditHours"></label><input asp-for="CreditHours" type="number" min="0.5" max="9" step="0.5" /><span asp-validation-for="CreditHours"></span></div>
+    <div class="admin-field"><label asp-for="CourseType"></label><select asp-for="CourseType"><option value="">Select course type</option>@foreach(var type in Enum.GetValues<StudyPilotApp.Models.CourseType>()){<option value="@((int)type)">@type</option>}</select><span asp-validation-for="CourseType"></span></div>
+    <div class="admin-field"><label asp-for="RecommendedSemester"></label><select asp-for="RecommendedSemester"><option value="">No fixed semester</option>@for(var semester=1;semester<=12;semester++){<option value="@semester">Semester @semester</option>}</select><span asp-validation-for="RecommendedSemester"></span></div>
+    <div class="admin-field"><label asp-for="Difficulty"></label><select asp-for="Difficulty">@foreach(var level in Enum.GetValues<StudyPilotApp.Models.CourseDifficultyLevel>()){<option value="@((int)level)">@level</option>}</select><span asp-validation-for="Difficulty"></span></div>
+    <div class="admin-field"><label asp-for="CareerRelevance"></label><select asp-for="CareerRelevance">@foreach(var level in Enum.GetValues<StudyPilotApp.Models.CareerRelevanceLevel>()){<option value="@((int)level)">@level</option>}</select><span asp-validation-for="CareerRelevance"></span><small>Used by future Smart Study Plan prioritization.</small></div>
+    <div class="admin-field admin-field-full"><label asp-for="Prerequisites"></label><textarea asp-for="Prerequisites" rows="3" placeholder="Example: CSE 211 — Object-Oriented Programming"></textarea><div class="admin-field-meta"><span asp-validation-for="Prerequisites"></span><small>Maximum 500 characters</small></div></div>
+    <div class="admin-field admin-field-full"><label asp-for="Description"></label><textarea asp-for="Description" rows="5" placeholder="Official course description and learning scope."></textarea><div class="admin-field-meta"><span asp-validation-for="Description"></span><small>Maximum 1,500 characters</small></div></div>
+    <div class="admin-field admin-field-full"><label class="admin-switch-row"><input asp-for="IsActive" /><span class="admin-switch-control"></span><span><strong>Active catalog course</strong><small>Only active definitions should be offered in future academic workflows.</small></span></label></div>
+</div>

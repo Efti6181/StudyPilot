@@ -1,0 +1,54 @@
+@model CourseCatalogIndexViewModel
+@{
+    ViewData["Title"] = "Course Catalog";
+}
+<section class="admin-page-heading">
+    <div><span class="admin-eyebrow"><i class="bi bi-journal-bookmark"></i> Academic structure</span><h1>Course catalog</h1><p>Maintain official course definitions, difficulty, credits and career relevance.</p></div>
+    <a class="admin-primary-button" asp-action="Create"><i class="bi bi-journal-plus"></i>Add catalog course</a>
+</section>
+
+<section class="admin-catalog-stat-grid">
+    <div><small>All courses</small><strong>@Model.TotalCount</strong></div>
+    <div class="active"><small>Active</small><strong>@Model.ActiveCount</strong></div>
+    <div><small>High relevance</small><strong>@Model.CoreCount</strong></div>
+    <div class="hard"><small>Hard difficulty</small><strong>@Model.HardCount</strong></div>
+    <div class="muted"><small>Inactive</small><strong>@Model.InactiveCount</strong></div>
+</section>
+
+<section class="admin-panel admin-directory-panel">
+    <form class="admin-filter-bar admin-catalog-filters" method="get">
+        <label class="admin-search-box"><i class="bi bi-search"></i><input type="search" name="search" value="@Model.Search" maxlength="100" placeholder="Search code, course, department or prerequisite" /></label>
+        <select asp-for="DepartmentId" asp-items="Model.DepartmentOptions"><option value="">All departments</option></select>
+        <select asp-for="ProgramId" asp-items="Model.ProgramOptions"><option value="">All programs</option></select>
+        <select asp-for="CourseType"><option value="">All types</option>@foreach(var type in Enum.GetValues<StudyPilotApp.Models.CourseType>()){<option value="@((int)type)">@type</option>}</select>
+        <select asp-for="Difficulty"><option value="">All difficulty</option>@foreach(var level in Enum.GetValues<StudyPilotApp.Models.CourseDifficultyLevel>()){<option value="@((int)level)">@level</option>}</select>
+        <select asp-for="Status"><option value="all">All statuses</option><option value="active">Active only</option><option value="inactive">Inactive only</option></select>
+        <button class="admin-secondary-button" type="submit"><i class="bi bi-funnel"></i>Filter</button>
+        <a class="admin-text-button" asp-action="Index">Clear</a>
+    </form>
+    <div class="admin-directory-summary"><span>Showing <strong>@Model.Courses.Count</strong> of <strong>@Model.FilteredCount</strong> matching courses</span><small>Catalog records are archived instead of deleted.</small></div>
+    @if(Model.Courses.Count == 0)
+    {
+        <div class="admin-empty admin-empty-large"><i class="bi bi-journal-x"></i><h2>No catalog courses found</h2><p>Adjust the filters or create the first official course definition.</p><a class="admin-primary-button" asp-action="Create"><i class="bi bi-plus-lg"></i>Add catalog course</a></div>
+    }
+    else
+    {
+        <div class="admin-table-wrap"><table class="admin-data-table"><thead><tr><th>Course</th><th>Academic unit</th><th>Credits / type</th><th>Planning metadata</th><th>Status</th><th></th></tr></thead><tbody>
+        @foreach(var item in Model.Courses)
+        {
+            <tr>
+                <td data-label="Course"><div class="admin-catalog-course"><span>@item.Code</span><div><strong>@item.Name</strong><small>@(item.RecommendedSemester.HasValue ? $"Recommended semester {item.RecommendedSemester}" : "No semester recommendation")</small></div></div></td>
+                <td data-label="Academic unit"><span class="admin-unit-value"><strong>@item.DepartmentCode — @item.DepartmentName</strong>@(item.ProgramCode is null ? "All department programs" : $"{item.ProgramCode} — {item.ProgramName}")</span></td>
+                <td data-label="Credits / type"><span class="admin-catalog-credit"><strong>@item.CreditHours.ToString("0.#") credits</strong><small>@item.CourseType</small></span></td>
+                <td data-label="Planning metadata"><div class="admin-catalog-badges"><span class="difficulty-@item.Difficulty.ToString().ToLowerInvariant()">@item.Difficulty</span><span class="career-@item.CareerRelevance.ToString().ToLowerInvariant()">@item.CareerRelevance</span></div></td>
+                <td data-label="Status"><span class="admin-status-pill @(item.IsActive ? "active" : "inactive")"><i></i>@(item.IsActive ? "Active" : "Inactive")</span></td>
+                <td class="admin-table-actions"><a asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a><a asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a></td>
+            </tr>
+        }
+        </tbody></table></div>
+    }
+    @if(Model.TotalPages > 1)
+    {
+        <nav class="admin-pagination"><a class="@(Model.Page == 1 ? "disabled" : null)" asp-action="Index" asp-route-page="@(Model.Page-1)" asp-route-search="@Model.Search" asp-route-departmentId="@Model.DepartmentId" asp-route-programId="@Model.ProgramId" asp-route-courseType="@Model.CourseType" asp-route-difficulty="@Model.Difficulty" asp-route-status="@Model.Status"><i class="bi bi-chevron-left"></i></a>@for(var p=1;p<=Model.TotalPages;p++){<a class="@(p==Model.Page ? "active" : null)" asp-action="Index" asp-route-page="@p" asp-route-search="@Model.Search" asp-route-departmentId="@Model.DepartmentId" asp-route-programId="@Model.ProgramId" asp-route-courseType="@Model.CourseType" asp-route-difficulty="@Model.Difficulty" asp-route-status="@Model.Status">@p</a>}<a class="@(Model.Page == Model.TotalPages ? "disabled" : null)" asp-action="Index" asp-route-page="@(Model.Page+1)" asp-route-search="@Model.Search" asp-route-departmentId="@Model.DepartmentId" asp-route-programId="@Model.ProgramId" asp-route-courseType="@Model.CourseType" asp-route-difficulty="@Model.Difficulty" asp-route-status="@Model.Status"><i class="bi bi-chevron-right"></i></a></nav>
+    }
+</section>

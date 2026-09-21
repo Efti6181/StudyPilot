@@ -1,0 +1,51 @@
+@model AcademicPeriodFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="admin-validation-summary"></div>
+<div class="admin-form-grid">
+    <div class="admin-field">
+        <label asp-for="Term"></label>
+        <select asp-for="Term">
+            <option value="">Select term</option>
+            @foreach (var term in Enum.GetValues<StudyPilotApp.Models.AcademicTerm>())
+            {
+                <option value="@((int)term)">@term</option>
+            }
+        </select>
+        <span asp-validation-for="Term"></span>
+    </div>
+    <div class="admin-field">
+        <label asp-for="AcademicYear"></label>
+        <input asp-for="AcademicYear" type="number" min="2000" max="2100" />
+        <span asp-validation-for="AcademicYear"></span>
+    </div>
+    <div class="admin-field">
+        <label asp-for="StartDate"></label>
+        <input asp-for="StartDate" type="date" />
+        <span asp-validation-for="StartDate"></span>
+    </div>
+    <div class="admin-field">
+        <label asp-for="EndDate"></label>
+        <input asp-for="EndDate" type="date" />
+        <span asp-validation-for="EndDate"></span>
+    </div>
+    <div class="admin-field">
+        <label asp-for="RegistrationStartDate"></label>
+        <input asp-for="RegistrationStartDate" type="date" />
+        <span asp-validation-for="RegistrationStartDate"></span>
+    </div>
+    <div class="admin-field">
+        <label asp-for="RegistrationEndDate"></label>
+        <input asp-for="RegistrationEndDate" type="date" />
+        <span asp-validation-for="RegistrationEndDate"></span>
+        <small>Provide both registration dates or leave both empty.</small>
+    </div>
+    <div class="admin-field admin-field-full">
+        <label asp-for="Notes"></label>
+        <textarea asp-for="Notes" rows="4" placeholder="Optional calendar notes, holidays, examination period, or special instructions."></textarea>
+        <div class="admin-field-meta"><span asp-validation-for="Notes"></span><small>Maximum 500 characters</small></div>
+    </div>
+    <div class="admin-field admin-field-full admin-term-switches">
+        <label class="admin-switch-row"><input asp-for="IsActive" /><span class="admin-switch-control"></span><span><strong>Active academic term</strong><small>Active terms remain available to StudyPilot academic workflows.</small></span></label>
+        <label class="admin-switch-row"><input asp-for="IsCurrent" /><span class="admin-switch-control"></span><span><strong>Set as current term</strong><small>This automatically removes the current flag from the previous term.</small></span></label>
+    </div>
+</div>

@@ -1,0 +1,23 @@
+@model RegistrationAuthorizationFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="admin-validation-summary"></div>
+@if (Model.IsClaimed)
+{<div class="admin-inline-warning claimed"><i class="bi bi-shield-lock"></i><div><strong>Registered authorization</strong><p>University ID, email, and user type are locked because an Identity account has claimed this record.</p></div></div>}
+@if (Model.DepartmentOptions.Count == 0)
+{<div class="admin-inline-warning"><i class="bi bi-exclamation-triangle"></i><div><strong>An active Department is required</strong><p>Create or activate a Department before adding authorization records.</p></div></div>}
+
+<div class="admin-form-grid" id="authorizationForm" data-program-url="@Url.Action("ProgramOptions")">
+    <div class="admin-field"><label asp-for="Role"></label>
+        @if (Model.IsClaimed) { <input asp-for="Role" type="hidden" /><input value="@Model.Role" readonly /> }
+        else { <select asp-for="Role" id="authorizationRole"><option value="Student">Student</option><option value="Faculty">Faculty</option></select> }
+        <span asp-validation-for="Role"></span>
+    </div>
+    <div class="admin-field"><label asp-for="UniversityId"></label><div class="admin-input-with-icon"><i class="bi bi-person-vcard"></i><input asp-for="UniversityId" readonly="@Model.IsClaimed" placeholder="Student or Faculty ID" autocomplete="off" /></div><span asp-validation-for="UniversityId"></span></div>
+    <div class="admin-field"><label asp-for="FullName"></label><div class="admin-input-with-icon"><i class="bi bi-person"></i><input asp-for="FullName" placeholder="Official full name" autocomplete="name" /></div><span asp-validation-for="FullName"></span></div>
+    <div class="admin-field"><label asp-for="Email"></label><div class="admin-input-with-icon"><i class="bi bi-envelope"></i><input asp-for="Email" readonly="@Model.IsClaimed" placeholder="University email address" autocomplete="email" /></div><span asp-validation-for="Email"></span></div>
+    <div class="admin-field admin-field-full"><label asp-for="DepartmentId"></label><select asp-for="DepartmentId" asp-items="Model.DepartmentOptions" id="authorizationDepartment"><option value="0">Select a department</option></select><span asp-validation-for="DepartmentId"></span></div>
+    <div class="admin-field admin-student-field"><label asp-for="ProgramId"></label><select asp-for="ProgramId" asp-items="Model.ProgramOptions" id="authorizationProgram"><option value="">Select a program</option></select><span asp-validation-for="ProgramId"></span></div>
+    <div class="admin-field admin-student-field"><label asp-for="Batch"></label><div class="admin-input-with-icon"><i class="bi bi-people"></i><input asp-for="Batch" placeholder="Example: 42" /></div><span asp-validation-for="Batch"></span></div>
+    <div class="admin-field admin-student-field"><label asp-for="CurrentSemester"></label><div class="admin-input-with-icon"><i class="bi bi-calendar3"></i><input asp-for="CurrentSemester" type="number" min="1" max="12" /></div><span asp-validation-for="CurrentSemester"></span></div>
+    <div class="admin-field admin-field-full"><label class="admin-switch-row"><input asp-for="IsActive" /><span class="admin-switch-control"></span><span><strong>Active authorization</strong><small>Only an active, unclaimed authorization can be used to register.</small></span></label></div>
+</div>

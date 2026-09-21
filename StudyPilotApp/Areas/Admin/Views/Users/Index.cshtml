@@ -1,0 +1,99 @@
+@model StudyPilotApp.Areas.Admin.ViewModels.AdminUserIndexViewModel
+@{
+    ViewData["Title"] = "Users";
+}
+
+<section class="admin-page-heading">
+    <div>
+        <span class="admin-eyebrow">Identity &amp; access</span>
+        <h1>User management</h1>
+        <p>Review registered accounts and control Student and Faculty access.</p>
+    </div>
+    <a class="admin-secondary-button" asp-controller="RegistrationAuthorizations" asp-action="Index">
+        <i class="bi bi-person-check"></i>Registration authorization
+    </a>
+</section>
+
+<section class="admin-user-stat-grid" aria-label="User account totals">
+    <div><span class="blue"><i class="bi bi-people"></i></span><small>Total users</small><strong>@Model.TotalCount</strong></div>
+    <div><span class="green"><i class="bi bi-person-check"></i></span><small>Active</small><strong>@Model.ActiveCount</strong></div>
+    <div><span class="slate"><i class="bi bi-person-dash"></i></span><small>Disabled</small><strong>@Model.DisabledCount</strong></div>
+</section>
+
+<section class="admin-panel admin-directory-panel">
+    <nav class="admin-role-tabs" aria-label="Filter by role">
+        <a class="@(Model.Role == "all" ? "active" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-departmentId="@Model.DepartmentId">All <span>@Model.TotalCount</span></a>
+        <a class="@(Model.Role == "Student" ? "active" : null)" asp-action="Index" asp-route-role="Student" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-departmentId="@Model.DepartmentId">Students <span>@Model.StudentCount</span></a>
+        <a class="@(Model.Role == "Faculty" ? "active" : null)" asp-action="Index" asp-route-role="Faculty" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-departmentId="@Model.DepartmentId">Faculty <span>@Model.FacultyCount</span></a>
+        <a class="@(Model.Role == "Admin" ? "active" : null)" asp-action="Index" asp-route-role="Admin" asp-route-search="@Model.Search" asp-route-status="@Model.Status">Admins <span>@Model.AdminCount</span></a>
+    </nav>
+
+    <form class="admin-filter-bar admin-user-filters" method="get">
+        <input type="hidden" name="role" value="@Model.Role" />
+        <label class="admin-search-box">
+            <i class="bi bi-search"></i>
+            <input type="search" name="search" value="@Model.Search" maxlength="100" placeholder="Search name, email, ID, department or program" />
+        </label>
+        <select name="status" aria-label="Account status">
+            <option value="all" selected="@(Model.Status == "all")">All statuses</option>
+            <option value="active" selected="@(Model.Status == "active")">Active</option>
+            <option value="disabled" selected="@(Model.Status == "disabled")">Disabled</option>
+        </select>
+        <select name="departmentId" asp-items="Model.DepartmentOptions" aria-label="Department">
+            <option value="">All departments</option>
+        </select>
+        <button class="admin-primary-button" type="submit"><i class="bi bi-funnel"></i>Apply</button>
+        <a class="admin-text-button" asp-action="Index" asp-route-role="@Model.Role">Clear</a>
+    </form>
+
+    <div class="admin-directory-summary">
+        <span>Showing <strong>@Model.Users.Count</strong> of <strong>@Model.FilteredCount</strong> matching accounts</span>
+        <span>Passwords and security credentials are never displayed.</span>
+    </div>
+
+    @if (Model.Users.Count == 0)
+    {
+        <div class="admin-empty admin-empty-large">
+            <i class="bi bi-person-x"></i><h2>No accounts match these filters</h2><p>Change or clear the filters and try again.</p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-data-table">
+                <thead><tr><th>User</th><th>Role</th><th>University ID</th><th>Department</th><th>Status</th><th>Registered</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var item in Model.Users)
+                {
+                    <tr>
+                        <td data-label="User">
+                            <div class="admin-user-directory-name">
+                                <span class="@item.Role.ToLowerInvariant()">@item.Initials</span>
+                                <div><strong>@item.FullName</strong><small>@item.Email</small></div>
+                            </div>
+                        </td>
+                        <td data-label="Role"><span class="admin-role-chip @item.Role.ToLowerInvariant()">@item.Role</span></td>
+                        <td data-label="University ID"><span class="admin-id-value">@(item.UniversityId ?? "—")</span></td>
+                        <td data-label="Department"><span class="admin-unit-value"><strong>@(item.DepartmentCode ?? "—")</strong>@(item.DepartmentName ?? (item.Role == "Admin" ? "Administration" : "Not assigned"))</span></td>
+                        <td data-label="Status"><span class="admin-status-pill @(item.IsActive ? "active" : "inactive")"><i></i>@(item.IsActive ? "Active" : "Disabled")</span></td>
+                        <td data-label="Registered"><time class="admin-table-date">@item.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</time></td>
+                        <td class="admin-table-actions"><a asp-action="Details" asp-route-id="@item.Id" aria-label="View @item.FullName"><i class="bi bi-eye"></i></a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="admin-pagination" aria-label="User directory pages">
+            <a class="@(Model.Page <= 1 ? "disabled" : null)" asp-action="Index" asp-route-page="@(Model.Page - 1)" asp-route-search="@Model.Search" asp-route-role="@Model.Role" asp-route-status="@Model.Status" asp-route-departmentId="@Model.DepartmentId"><i class="bi bi-chevron-left"></i></a>
+            @for (var pageNumber = Math.Max(1, Model.Page - 2); pageNumber <= Math.Min(Model.TotalPages, Model.Page + 2); pageNumber++)
+            {
+                <a class="@(pageNumber == Model.Page ? "active" : null)" asp-action="Index" asp-route-page="@pageNumber" asp-route-search="@Model.Search" asp-route-role="@Model.Role" asp-route-status="@Model.Status" asp-route-departmentId="@Model.DepartmentId">@pageNumber</a>
+            }
+            <a class="@(Model.Page >= Model.TotalPages ? "disabled" : null)" asp-action="Index" asp-route-page="@(Model.Page + 1)" asp-route-search="@Model.Search" asp-route-role="@Model.Role" asp-route-status="@Model.Status" asp-route-departmentId="@Model.DepartmentId"><i class="bi bi-chevron-right"></i></a>
+        </nav>
+    }
+</section>

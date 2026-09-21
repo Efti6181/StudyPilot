@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
 using StudyPilotApp.Data;
 using StudyPilotApp.Models;
+using StudyPilotApp.Middleware;
 using StudyPilotApp.Options;
 using StudyPilotApp.Services;
 
@@ -71,6 +72,13 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
 builder.Services.AddScoped<ISmartStudyPlanService, SmartStudyPlanService>();
+builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<IAcademicProgramService, AcademicProgramService>();
+builder.Services.AddScoped<IAcademicPeriodService, AcademicPeriodService>();
+builder.Services.AddScoped<ICourseCatalogService, CourseCatalogService>();
+builder.Services.AddScoped<IRegistrationAuthorizationService, RegistrationAuthorizationService>();
+builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IAcademicContextService, AcademicContextService>();
 builder.Services.AddScoped<IAcademicAIConversationService, AcademicAIConversationService>();
 builder.Services.AddScoped<IAcademicAIService, AcademicAIService>();
@@ -119,6 +127,7 @@ app.UseRouting();
 
 // Authentication must come before authorization
 app.UseAuthentication();
+app.UseMiddleware<ActiveAccountMiddleware>();
 app.UseRateLimiter();
 app.UseAuthorization();
 
@@ -126,6 +135,11 @@ app.UseAuthorization();
 app.MapStaticAssets();
 
 // MVC routes
+app.MapControllerRoute(
+    name: "admin-area",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}")
+    .WithStaticAssets();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")

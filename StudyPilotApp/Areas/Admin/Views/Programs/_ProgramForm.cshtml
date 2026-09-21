@@ -1,0 +1,44 @@
+@model AcademicProgramFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="admin-validation-summary"></div>
+
+@if (Model.DepartmentOptions.Count == 0)
+{
+    <div class="admin-inline-warning"><i class="bi bi-exclamation-triangle"></i><div><strong>An active department is required</strong><p>Create or activate a Department before saving a Program.</p><a asp-area="Admin" asp-controller="Departments" asp-action="Create">Create department</a></div></div>
+}
+
+<div class="admin-form-grid">
+    <div class="admin-field">
+        <label asp-for="Code"></label>
+        <div class="admin-input-with-icon"><i class="bi bi-braces-asterisk"></i><input asp-for="Code" placeholder="Example: BSC-CSE" autocomplete="off" /></div>
+        <span asp-validation-for="Code"></span><small>A unique institutional code, saved in uppercase.</small>
+    </div>
+    <div class="admin-field">
+        <label asp-for="Name"></label>
+        <div class="admin-input-with-icon"><i class="bi bi-mortarboard"></i><input asp-for="Name" placeholder="BSc in Computer Science & Engineering" autocomplete="off" /></div>
+        <span asp-validation-for="Name"></span>
+    </div>
+    <div class="admin-field admin-field-full">
+        <label asp-for="DepartmentId"></label>
+        <select asp-for="DepartmentId" asp-items="Model.DepartmentOptions"><option value="0">Select a department</option></select>
+        <span asp-validation-for="DepartmentId"></span><small>Programs are linked to Departments by a database foreign key.</small>
+    </div>
+    <div class="admin-field">
+        <label asp-for="TotalCredits"></label>
+        <div class="admin-input-with-icon"><i class="bi bi-journal-check"></i><input asp-for="TotalCredits" type="number" min="1" max="500" step="0.5" /></div>
+        <span asp-validation-for="TotalCredits"></span>
+    </div>
+    <div class="admin-field">
+        <label asp-for="DurationYears"></label>
+        <div class="admin-input-with-icon"><i class="bi bi-hourglass-split"></i><input asp-for="DurationYears" type="number" min="0.5" max="10" step="0.5" /></div>
+        <span asp-validation-for="DurationYears"></span>
+    </div>
+    <div class="admin-field admin-field-full">
+        <label asp-for="Description"></label>
+        <textarea asp-for="Description" rows="5" placeholder="Describe the program, its academic focus, and intended outcomes."></textarea>
+        <div class="admin-field-meta"><span asp-validation-for="Description"></span><small>Maximum 1,200 characters</small></div>
+    </div>
+    <div class="admin-field admin-field-full">
+        <label class="admin-switch-row"><input asp-for="IsActive" /><span class="admin-switch-control"></span><span><strong>Active program</strong><small>Only active Programs under active Departments should be used by later registration records.</small></span></label>
+    </div>
+</div>

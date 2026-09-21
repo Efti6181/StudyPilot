@@ -12,6 +12,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<UniversityMember> UniversityMembers => Set<UniversityMember>();
+    public DbSet<Department> Departments => Set<Department>();
+    public DbSet<AcademicProgram> AcademicPrograms => Set<AcademicProgram>();
+    public DbSet<AcademicPeriod> AcademicPeriods => Set<AcademicPeriod>();
+    public DbSet<CatalogCourse> CatalogCourses => Set<CatalogCourse>();
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<FacultyProfile> FacultyProfiles => Set<FacultyProfile>();
     public DbSet<Course> Courses => Set<Course>();
@@ -41,17 +45,104 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(builder);
 
+        builder.Entity<ApplicationUser>(entity =>
+        {
+            entity.Property(x => x.IsActive).HasDefaultValue(true);
+            entity.HasIndex(x => new { x.IsActive, x.CreatedAt });
+        });
+
         builder.Entity<UniversityMember>(entity =>
         {
             entity.HasIndex(x => x.UniversityId).IsUnique();
             entity.HasIndex(x => x.NormalizedEmail).IsUnique();
+            entity.HasIndex(x => x.DepartmentId);
+            entity.HasIndex(x => x.ProgramId);
+            entity.HasIndex(x => x.CreatedByAdminId);
+            entity.HasIndex(x => new { x.Role, x.IsClaimed, x.IsActive });
             entity.Property(x => x.IsActive).HasDefaultValue(true);
             entity.Property(x => x.IsClaimed).HasDefaultValue(false);
             entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-            entity.HasOne<ApplicationUser>()
+            entity.HasOne(x => x.RegisteredUser)
                 .WithMany()
                 .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.CreatedByAdmin)
+                .WithMany()
+                .HasForeignKey(x => x.CreatedByAdminId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.Department)
+                .WithMany(x => x.AuthorizedMembers)
+                .HasForeignKey(x => x.DepartmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.Program)
+                .WithMany(x => x.AuthorizedMembers)
+                .HasForeignKey(x => x.ProgramId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Department>(entity =>
+        {
+            entity.HasIndex(x => x.NormalizedCode).IsUnique();
+            entity.HasIndex(x => x.NormalizedName).IsUnique();
+            entity.HasIndex(x => new { x.IsActive, x.Name });
+            entity.Property(x => x.IsActive).HasDefaultValue(true);
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        });
+
+        builder.Entity<AcademicProgram>(entity =>
+        {
+            entity.HasIndex(x => x.NormalizedCode).IsUnique();
+            entity.HasIndex(x => new { x.DepartmentId, x.NormalizedName }).IsUnique();
+            entity.HasIndex(x => new { x.IsActive, x.Name });
+            entity.Property(x => x.TotalCredits).HasPrecision(6, 1);
+            entity.Property(x => x.DurationYears).HasPrecision(3, 1);
+            entity.Property(x => x.IsActive).HasDefaultValue(true);
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.Department)
+                .WithMany(x => x.Programs)
+                .HasForeignKey(x => x.DepartmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<AcademicPeriod>(entity =>
+        {
+            entity.HasIndex(x => new { x.Term, x.AcademicYear }).IsUnique();
+            entity.HasIndex(x => new { x.IsActive, x.StartDate, x.EndDate });
+            entity.HasIndex(x => x.IsCurrent)
+                .IsUnique()
+                .HasFilter("\"IsCurrent\" = TRUE");
+            entity.Property(x => x.IsActive).HasDefaultValue(true);
+            entity.Property(x => x.IsCurrent).HasDefaultValue(false);
+            entity.Property(x => x.StartDate).HasColumnType("date");
+            entity.Property(x => x.EndDate).HasColumnType("date");
+            entity.Property(x => x.RegistrationStartDate).HasColumnType("date");
+            entity.Property(x => x.RegistrationEndDate).HasColumnType("date");
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        });
+
+        builder.Entity<CatalogCourse>(entity =>
+        {
+            entity.HasIndex(x => x.NormalizedCode).IsUnique();
+            entity.HasIndex(x => new { x.DepartmentId, x.IsActive, x.Code });
+            entity.HasIndex(x => x.ProgramId);
+            entity.HasIndex(x => new { x.Difficulty, x.CareerRelevance });
+            entity.Property(x => x.CreditHours).HasPrecision(4, 1);
+            entity.Property(x => x.IsActive).HasDefaultValue(true);
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.Department)
+                .WithMany(x => x.CatalogCourses)
+                .HasForeignKey(x => x.DepartmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.Program)
+                .WithMany(x => x.CatalogCourses)
+                .HasForeignKey(x => x.ProgramId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

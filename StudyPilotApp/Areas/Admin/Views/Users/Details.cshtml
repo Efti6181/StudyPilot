@@ -1,0 +1,72 @@
+@model StudyPilotApp.Areas.Admin.ViewModels.AdminUserDetailsViewModel
+@{
+    ViewData["Title"] = "User details";
+}
+
+<section class="admin-page-heading">
+    <div>
+        <a class="admin-back-link" asp-action="Index"><i class="bi bi-arrow-left"></i>User management</a>
+        <h1>@Model.UserFullName</h1>
+        <p>Account identity, academic placement and access status.</p>
+    </div>
+    @if (!Model.IsProtectedAdmin && !Model.IsCurrentAdmin)
+    {
+        <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post">
+            <input type="hidden" name="isActive" value="@(!Model.IsActive)" />
+            <button class="@(Model.IsActive ? "admin-danger-button" : "admin-primary-button")" type="submit">
+                <i class="bi @(Model.IsActive ? "bi-person-dash" : "bi-person-check")"></i>@(Model.IsActive ? "Disable account" : "Reactivate account")
+            </button>
+        </form>
+    }
+</section>
+
+<div class="admin-details-grid">
+    <section class="admin-panel admin-user-profile-card">
+        <div class="admin-user-profile-head">
+            <span class="@Model.Role.ToLowerInvariant()">@Model.UserInitials</span>
+            <div>
+                <span class="admin-role-chip @Model.Role.ToLowerInvariant()">@Model.Role</span>
+                <h2>@Model.UserFullName</h2>
+                <p>@Model.UserEmail</p>
+                <span class="admin-status-pill @(Model.IsActive ? "active" : "inactive")"><i></i>@(Model.IsActive ? "Active account" : "Disabled account")</span>
+            </div>
+        </div>
+
+        <dl class="admin-user-facts">
+            <div><dt>University ID</dt><dd>@(Model.UniversityId ?? "Not assigned")</dd></div>
+            <div><dt>Department</dt><dd>@(Model.DepartmentCode is null ? (Model.Role == "Admin" ? "Administration" : "Not assigned") : $"{Model.DepartmentCode} — {Model.DepartmentName}")</dd></div>
+            @if (Model.Role == "Student")
+            {
+                <div><dt>Program</dt><dd>@(Model.ProgramCode is null ? "Not assigned" : $"{Model.ProgramCode} — {Model.ProgramName}")</dd></div>
+                <div><dt>Batch / semester</dt><dd>@(Model.Batch ?? "—") / @(Model.CurrentSemester?.ToString() ?? "—")</dd></div>
+            }
+            <div><dt>Phone</dt><dd>@(Model.PhoneNumber ?? "Not provided")</dd></div>
+            <div><dt>Email confirmed</dt><dd>@(Model.EmailConfirmed ? "Yes" : "No")</dd></div>
+        </dl>
+    </section>
+
+    <aside class="admin-panel admin-record-meta">
+        <h2>Security &amp; account</h2>
+        <dl>
+            <div><dt>Registered</dt><dd>@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</dd></div>
+            <div><dt>Last status change</dt><dd>@(Model.AccountStatusChangedAt?.ToLocalTime().ToString("dd MMM yyyy, h:mm tt") ?? "No status changes")</dd></div>
+            @if (Model.DeactivatedAt.HasValue)
+            {
+                <div><dt>Disabled</dt><dd>@Model.DeactivatedAt.Value.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</dd></div>
+            }
+            <div><dt>Temporary lockout</dt><dd>@(Model.IsTemporarilyLocked ? $"Until {Model.LockoutEnd!.Value.ToLocalTime():dd MMM yyyy, h:mm tt}" : "No")</dd></div>
+            <div><dt>Failed sign-ins</dt><dd>@Model.AccessFailedCount</dd></div>
+        </dl>
+    </aside>
+</div>
+
+@if (Model.IsProtectedAdmin)
+{
+    <div class="admin-info-callout"><i class="bi bi-shield-lock"></i><div><strong>Protected administrator account</strong><p>Admin accounts cannot be disabled from this screen, preventing accidental loss of portal access.</p></div></div>
+}
+else if (!Model.IsActive)
+{
+    <div class="admin-info-callout admin-disabled-callout"><i class="bi bi-person-lock"></i><div><strong>Access is blocked</strong><p>This user cannot sign in. Existing authenticated sessions are rejected and redirected to the sign-in page.</p></div></div>
+}
+
+<div class="admin-security-note"><i class="bi bi-lock"></i><span>Password hashes, security stamps, tokens and other authentication secrets are intentionally never loaded into this page.</span></div>

@@ -1,0 +1,125 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<section class="admin-page-heading">
+    <div>
+        <span class="admin-eyebrow"><i class="bi bi-shield-check"></i> Secure admin workspace</span>
+        <h1>Welcome back, @Model.FullName</h1>
+        <p>Here is the current operational picture from StudyPilot's database.</p>
+    </div>
+    <div class="admin-heading-date"><i class="bi bi-calendar3"></i><span><small>Today</small>@DateTimeOffset.Now.ToString("dd MMM yyyy")</span></div>
+</section>
+
+<section class="admin-metric-grid" aria-label="Platform statistics">
+    <article class="admin-metric-card blue">
+        <span class="admin-metric-icon"><i class="bi bi-mortarboard"></i></span>
+        <div><small>Total students</small><strong>@Model.TotalStudents</strong><span>@Model.ActiveStudents active authorized</span></div>
+    </article>
+    <article class="admin-metric-card violet">
+        <span class="admin-metric-icon"><i class="bi bi-person-badge"></i></span>
+        <div><small>Total faculty</small><strong>@Model.TotalFaculty</strong><span>@Model.ActiveFaculty active authorized</span></div>
+    </article>
+    <article class="admin-metric-card amber">
+        <span class="admin-metric-icon"><i class="bi bi-person-check"></i></span>
+        <div><small>Pending registrations</small><strong>@Model.PendingRegistrations</strong><span>Authorized but unclaimed</span></div>
+    </article>
+    <article class="admin-metric-card teal">
+        <span class="admin-metric-icon"><i class="bi bi-calendar-event"></i></span>
+        <div><small>Upcoming events</small><strong>@Model.UpcomingEvents</strong><span>@Model.UnpublishedEvents unpublished</span></div>
+    </article>
+</section>
+
+<section class="admin-mini-grid">
+    <div><i class="bi bi-journals"></i><span><strong>@Model.StudentCourseRecords</strong><small>Student course records</small></span></div>
+    <div><i class="bi bi-chat-square-text"></i><span><strong>@Model.CommunityPosts</strong><small>Community posts</small></span></div>
+    <div><i class="bi bi-collection-play"></i><span><strong>@Model.Resources</strong><small>Study resources</small></span></div>
+    <div><i class="bi bi-people"></i><span><strong>@(Model.TotalStudents + Model.TotalFaculty)</strong><small>Academic users</small></span></div>
+</section>
+
+<div class="admin-dashboard-grid wide-left">
+    <section class="admin-panel">
+        <header class="admin-panel-head"><div><span>Registration statistics</span><h2>User growth</h2></div><span class="admin-live-pill"><i></i>Database live</span></header>
+        <div class="admin-chart-wrap"><canvas id="adminGrowthChart" aria-label="Student and faculty registrations during the last six months"></canvas></div>
+    </section>
+
+    <section class="admin-panel">
+        <header class="admin-panel-head"><div><span>Requires attention</span><h2>Pending actions</h2></div></header>
+        <div class="admin-action-list">
+            <div class="admin-action-row warning"><i class="bi bi-person-exclamation"></i><span><strong>@Model.PendingRegistrations authorization records</strong><small>Waiting for Student or Faculty registration</small></span><em>Pending</em></div>
+            <div class="admin-action-row neutral"><i class="bi bi-calendar2-x"></i><span><strong>@Model.UnpublishedEvents event records</strong><small>Upcoming events that are not published</small></span><em>Review</em></div>
+            <div class="admin-action-row info"><i class="bi bi-shield-check"></i><span><strong>Admin access protected</strong><small>Role authorization is enforced on the entire Area</small></span><em>Secure</em></div>
+        </div>
+    </section>
+</div>
+
+<div class="admin-dashboard-grid equal">
+    <section class="admin-panel">
+        <header class="admin-panel-head"><div><span>Identity accounts</span><h2>Recent registrations</h2></div></header>
+        @if (Model.RecentRegistrations.Count == 0)
+        {
+            <div class="admin-empty"><i class="bi bi-person-plus"></i><p>No Student or Faculty registrations yet.</p></div>
+        }
+        else
+        {
+            <div class="admin-registration-list">
+                @foreach (var item in Model.RecentRegistrations)
+                {
+                    <article>
+                        <span class="admin-list-avatar">@item.Initials</span>
+                        <div><strong>@item.FullName</strong><small>@item.Email</small></div>
+                        <div class="admin-list-end"><span class="admin-role-chip @item.Role.ToLowerInvariant()">@item.Role</span><small>@item.RegisteredAt.ToLocalTime().ToString("dd MMM")</small></div>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="admin-panel">
+        <header class="admin-panel-head"><div><span>Campus schedule</span><h2>Upcoming events</h2></div></header>
+        @if (Model.UpcomingEventItems.Count == 0)
+        {
+            <div class="admin-empty"><i class="bi bi-calendar-event"></i><p>No published upcoming events.</p></div>
+        }
+        else
+        {
+            <div class="admin-event-list">
+                @foreach (var item in Model.UpcomingEventItems)
+                {
+                    <article>
+                        <time><strong>@item.StartAt.ToLocalTime().Day</strong><span>@item.StartAt.ToLocalTime().ToString("MMM")</span></time>
+                        <div><strong>@item.Title</strong><small>@item.Type · @item.Location</small></div>
+                        <span class="admin-event-count"><i class="bi bi-people"></i>@item.RegistrationCount@(item.Capacity.HasValue ? $"/{item.Capacity.Value}" : "")</span>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+<section class="admin-panel">
+    <header class="admin-panel-head"><div><span>Platform timeline</span><h2>Recent activity</h2></div><small>Audit logging will replace this operational feed in its dedicated module.</small></header>
+    @if (Model.RecentActivity.Count == 0)
+    {
+        <div class="admin-empty"><i class="bi bi-activity"></i><p>No recent platform activity.</p></div>
+    }
+    else
+    {
+        <div class="admin-activity-grid">
+            @foreach (var item in Model.RecentActivity)
+            {
+                <article><span><i class="bi @item.Icon"></i></span><div><small>@item.Kind</small><strong>@item.Title</strong><p>@item.Description</p></div><time>@item.OccurredAt.ToLocalTime().ToString("dd MMM · h:mm tt")</time></article>
+            }
+        </div>
+    }
+</section>
+
+<script id="adminGrowthData" type="application/json">
+    @Json.Serialize(new
+    {
+        labels = Model.UserGrowth.Select(item => item.Label),
+        students = Model.UserGrowth.Select(item => item.Students),
+        faculty = Model.UserGrowth.Select(item => item.Faculty)
+    })
+</script>

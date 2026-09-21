@@ -34,6 +34,13 @@
                 <h2>Sign in to StudyPilot</h2>
                 <p class="sp-form-intro">Use the email and password connected to your account.</p>
 
+                @if (ViewData["AccountDisabled"] as bool? == true)
+                {
+                    <div class="sp-validation-summary" role="alert">
+                        This account has been disabled. Contact the StudyPilot administrator.
+                    </div>
+                }
+
                 <form asp-controller="Account" asp-action="Login" method="post" novalidate>
                     <input type="hidden" name="returnUrl" value="@returnUrl" />
                     <div asp-validation-summary="ModelOnly" class="sp-validation-summary"></div>

@@ -1,0 +1,38 @@
+@model DepartmentDetailsViewModel
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<section class="admin-page-heading">
+    <div>
+        <a class="admin-back-link" asp-action="Index"><i class="bi bi-arrow-left"></i>Departments</a>
+        <h1>@Model.Name</h1>
+        <p>Review the department record and availability status.</p>
+    </div>
+    <div class="admin-heading-actions">
+        <a class="admin-secondary-button" asp-action="Edit" asp-route-id="@Model.Id"><i class="bi bi-pencil"></i>Edit</a>
+        <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post">
+            <input type="hidden" name="isActive" value="@(!Model.IsActive)" />
+            <button class="@(Model.IsActive ? "admin-danger-button" : "admin-primary-button")" type="submit">
+                <i class="bi @(Model.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>@(Model.IsActive ? "Deactivate" : "Activate")
+            </button>
+        </form>
+    </div>
+</section>
+
+<div class="admin-details-grid">
+    <section class="admin-panel admin-department-hero">
+        <span class="admin-department-code">@Model.Code</span>
+        <div><span class="admin-status-pill @(Model.IsActive ? "active" : "inactive")"><i></i>@(Model.IsActive ? "Active" : "Inactive")</span><h2>@Model.Name</h2><p>@(string.IsNullOrWhiteSpace(Model.Description) ? "No department description has been provided." : Model.Description)</p></div>
+    </section>
+    <aside class="admin-panel admin-record-meta">
+        <h2>Record information</h2>
+        <dl>
+            <div><dt>Department ID</dt><dd>#@Model.Id</dd></div>
+            <div><dt>Created</dt><dd>@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</dd></div>
+            <div><dt>Last updated</dt><dd>@(Model.UpdatedAt?.ToLocalTime().ToString("dd MMM yyyy, h:mm tt") ?? "Not updated yet")</dd></div>
+        </dl>
+    </aside>
+</div>
+
+<section class="admin-info-callout"><i class="bi bi-diagram-3"></i><div><strong>Next integration: Programs</strong><p>Programs will reference this department by ID. Deactivation preserves the department for historical and linked records.</p></div></section>

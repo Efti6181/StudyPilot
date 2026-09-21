@@ -1,0 +1,5 @@
+@model CourseCatalogFormViewModel
+@{ ViewData["Title"] = "Edit Catalog Course"; }
+<section class="admin-page-heading compact"><div><a class="admin-back-link" asp-action="Details" asp-route-id="@Model.Id"><i class="bi bi-arrow-left"></i>Course details</a><h1>Edit @Model.Code</h1><p>Update the official catalog metadata while preserving the record.</p></div></section>
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="admin-form-panel"><input asp-for="Id" type="hidden" /><header><span><i class="bi bi-pencil-square"></i></span><div><h2>Course information</h2><p>Difficulty and career relevance support Smart Study Plan decisions.</p></div></header><div class="admin-form-body"><partial name="_CourseCatalogForm" model="Model" /></div><footer><a class="admin-secondary-button" asp-action="Details" asp-route-id="@Model.Id">Cancel</a><button class="admin-primary-button" type="submit"><i class="bi bi-check-lg"></i>Save changes</button></footer></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/admin-course-catalog.js" asp-append-version="true"></script> }

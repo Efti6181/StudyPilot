@@ -1,0 +1,12 @@
+@model AcademicPeriodFormViewModel
+@{
+    ViewData["Title"] = "Edit Academic Term";
+}
+<section class="admin-page-heading compact"><div><a class="admin-back-link" asp-action="Details" asp-route-id="@Model.Id"><i class="bi bi-arrow-left"></i>Academic term details</a><h1>Edit @Model.Term @Model.AcademicYear</h1><p>Update calendar dates and availability while preserving the term record.</p></div></section>
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="admin-form-panel">
+    <input asp-for="Id" type="hidden" />
+    <header><span><i class="bi bi-calendar2-week"></i></span><div><h2>Academic calendar information</h2><p>Existing Student records continue using the same Spring, Summer and Fall values.</p></div></header>
+    <div class="admin-form-body"><partial name="_AcademicPeriodForm" model="Model" /></div>
+    <footer><a class="admin-secondary-button" asp-action="Details" asp-route-id="@Model.Id">Cancel</a><button class="admin-primary-button" type="submit"><i class="bi bi-check-lg"></i>Save changes</button></footer>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

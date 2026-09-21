@@ -360,11 +360,17 @@ namespace StudyPilotApp.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<DateTimeOffset?>("AccountStatusChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeactivatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -378,6 +384,11 @@ namespace StudyPilotApp.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -417,11 +428,144 @@ namespace StudyPilotApp.Migrations
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
+                    b.HasIndex("IsActive", "CreatedAt");
+
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.AcademicPeriod", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicYear")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsCurrent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly?>("RegistrationEndDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("RegistrationStartDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Term")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive", "StartDate", "EndDate");
+
+                    b.HasIndex("IsCurrent")
+                        .IsUnique()
+                        .HasFilter("\"IsCurrent\" = TRUE");
+
+                    b.HasIndex("Term", "AcademicYear")
+                        .IsUnique();
+
+                    b.ToTable("AcademicPeriods");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.AcademicProgram", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
+                    b.Property<decimal>("DurationYears")
+                        .HasPrecision(3, 1)
+                        .HasColumnType("numeric(3,1)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<string>("NormalizedCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<decimal>("TotalCredits")
+                        .HasPrecision(6, 1)
+                        .HasColumnType("numeric(6,1)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedCode")
+                        .IsUnique();
+
+                    b.HasIndex("DepartmentId", "NormalizedName")
+                        .IsUnique();
+
+                    b.HasIndex("IsActive", "Name");
+
+                    b.ToTable("AcademicPrograms");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.Assessment", b =>
@@ -586,6 +730,86 @@ namespace StudyPilotApp.Migrations
                     b.ToTable("CampusEvents");
                 });
 
+            modelBuilder.Entity("StudyPilotApp.Models.CatalogCourse", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CareerRelevance")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int>("CourseType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<decimal>("CreditHours")
+                        .HasPrecision(4, 1)
+                        .HasColumnType("numeric(4,1)");
+
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1500)
+                        .HasColumnType("character varying(1500)");
+
+                    b.Property<int>("Difficulty")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<string>("NormalizedCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Prerequisites")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("ProgramId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("RecommendedSemester")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedCode")
+                        .IsUnique();
+
+                    b.HasIndex("ProgramId");
+
+                    b.HasIndex("DepartmentId", "IsActive", "Code");
+
+                    b.HasIndex("Difficulty", "CareerRelevance");
+
+                    b.ToTable("CatalogCourses");
+                });
+
             modelBuilder.Entity("StudyPilotApp.Models.CommunityComment", b =>
                 {
                     b.Property<int>("Id")
@@ -707,6 +931,64 @@ namespace StudyPilotApp.Migrations
                     b.HasIndex("ApplicationUserId");
 
                     b.ToTable("CommunityPostLikes");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.Department", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("NormalizedCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedCode")
+                        .IsUnique();
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
+
+                    b.HasIndex("IsActive", "Name");
+
+                    b.ToTable("Departments");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.Course", b =>
@@ -1450,15 +1732,32 @@ namespace StudyPilotApp.Migrations
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("text");
 
+                    b.Property<string>("Batch")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<string>("CreatedByAdminId")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("CurrentSemester")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
+
+                    b.Property<string>("FullName")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -1475,6 +1774,12 @@ namespace StudyPilotApp.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<int?>("ProgramId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("RegisteredAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1485,12 +1790,23 @@ namespace StudyPilotApp.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");
 
+                    b.HasIndex("CreatedByAdminId");
+
+                    b.HasIndex("DepartmentId");
+
                     b.HasIndex("NormalizedEmail")
                         .IsUnique();
+
+                    b.HasIndex("ProgramId");
+
+                    b.HasIndex("Role", "IsClaimed", "IsActive");
 
                     b.HasIndex("UniversityId")
                         .IsUnique();
@@ -1593,6 +1909,17 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
+            modelBuilder.Entity("StudyPilotApp.Models.AcademicProgram", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.Department", "Department")
+                        .WithMany("Programs")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+                });
+
             modelBuilder.Entity("StudyPilotApp.Models.Assessment", b =>
                 {
                     b.HasOne("StudyPilotApp.Models.Course", "Course")
@@ -1614,6 +1941,24 @@ namespace StudyPilotApp.Migrations
                         .IsRequired();
 
                     b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.CatalogCourse", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.Department", "Department")
+                        .WithMany("CatalogCourses")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StudyPilotApp.Models.AcademicProgram", "Program")
+                        .WithMany("CatalogCourses")
+                        .HasForeignKey("ProgramId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Program");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.CommunityComment", b =>
@@ -1875,15 +2220,45 @@ namespace StudyPilotApp.Migrations
 
             modelBuilder.Entity("StudyPilotApp.Models.UniversityMember", b =>
                 {
-                    b.HasOne("StudyPilotApp.Models.ApplicationUser", null)
+                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "CreatedByAdmin")
+                        .WithMany()
+                        .HasForeignKey("CreatedByAdminId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("StudyPilotApp.Models.Department", "Department")
+                        .WithMany("AuthorizedMembers")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("StudyPilotApp.Models.AcademicProgram", "Program")
+                        .WithMany("AuthorizedMembers")
+                        .HasForeignKey("ProgramId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "RegisteredUser")
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedByAdmin");
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Program");
+
+                    b.Navigation("RegisteredUser");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.AcademicAIConversation", b =>
                 {
                     b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.AcademicProgram", b =>
+                {
+                    b.Navigation("AuthorizedMembers");
+
+                    b.Navigation("CatalogCourses");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.CampusEvent", b =>
@@ -1914,6 +2289,15 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("PriorityPreference");
 
                     b.Navigation("Resources");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.Department", b =>
+                {
+                    b.Navigation("AuthorizedMembers");
+
+                    b.Navigation("CatalogCourses");
+
+                    b.Navigation("Programs");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.SemesterResult", b =>

@@ -1,0 +1,22 @@
+@model RegistrationAuthorizationFormViewModel
+@{ ViewData["Title"] = "Add Registration Authorization"; }
+<section class="admin-page-heading compact"><div><a class="admin-back-link" asp-action="Index"><i class="bi bi-arrow-left"></i>Registration Authorization</a><h1>Add @Model.Role authorization</h1><p>Pre-authorize a verified university member to create an account.</p></div></section>
+<form asp-action="Create" method="post" class="admin-form-panel">
+    <header><span><i class="bi bi-person-check"></i></span><div><h2>Authorization information</h2><p>The ID, email, and role must match during public registration.</p></div></header>
+    <div class="admin-form-body"><partial name="_AuthorizationForm" model="Model" /></div>
+    <footer>
+        <a class="admin-secondary-button" asp-action="Index">Cancel</a>
+        @if (Model.DepartmentOptions.Count == 0)
+        {
+            <button class="admin-primary-button" type="button" disabled>Create authorization</button>
+        }
+        else
+        {
+            <button class="admin-primary-button" type="submit"><i class="bi bi-check-lg"></i>Create authorization</button>
+        }
+    </footer>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/admin-registration-authorization.js" asp-append-version="true"></script>
+}

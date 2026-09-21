@@ -1,0 +1,56 @@
+@model RegistrationAuthorizationIndexViewModel
+@{
+    ViewData["Title"] = "Registration Authorization";
+}
+
+<section class="admin-page-heading">
+    <div><span class="admin-eyebrow"><i class="bi bi-person-check"></i> Verified university access</span><h1>Registration Authorization</h1><p>Control which Students and Faculty members can create StudyPilot accounts.</p></div>
+    <div class="admin-heading-actions"><a class="admin-secondary-button" asp-action="Create" asp-route-role="Faculty"><i class="bi bi-person-badge"></i>Add Faculty</a><a class="admin-primary-button" asp-action="Create" asp-route-role="Student"><i class="bi bi-person-plus"></i>Add Student</a></div>
+</section>
+
+<section class="admin-auth-stat-grid">
+    <div><small>All records</small><strong>@Model.TotalCount</strong></div><div><small>Students</small><strong>@Model.StudentCount</strong></div><div><small>Faculty</small><strong>@Model.FacultyCount</strong></div><div class="success"><small>Registered</small><strong>@Model.RegisteredCount</strong></div><div class="warning"><small>Waiting</small><strong>@Model.UnregisteredCount</strong></div><div class="muted"><small>Disabled</small><strong>@Model.DisabledCount</strong></div>
+</section>
+
+<section class="admin-panel admin-directory-panel">
+    <form class="admin-filter-bar admin-auth-filters" method="get">
+        <label class="admin-search-box"><i class="bi bi-search"></i><input type="search" name="search" value="@Model.Search" maxlength="100" placeholder="Search ID, name, email, department" /></label>
+        <select asp-for="Role"><option value="all">All users</option><option value="Student">Students</option><option value="Faculty">Faculty</option></select>
+        <select asp-for="Status"><option value="all">All statuses</option><option value="registered">Registered</option><option value="unregistered">Not registered</option><option value="disabled">Disabled</option></select>
+        <select asp-for="DepartmentId" asp-items="Model.DepartmentOptions"><option value="">All departments</option></select>
+        <button class="admin-secondary-button" type="submit"><i class="bi bi-funnel"></i>Filter</button>
+        @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.Role != "all" || Model.Status != "all" || Model.DepartmentId.HasValue)
+        {<a class="admin-text-button" asp-action="Index">Clear</a>}
+    </form>
+    <div class="admin-directory-summary"><span>Showing <strong>@Model.Records.Count</strong> of <strong>@Model.FilteredCount</strong> matching records</span><small>Only active, unclaimed records can be used for registration.</small></div>
+
+    @if (Model.Records.Count == 0)
+    {
+        <div class="admin-empty admin-empty-large"><i class="bi bi-person-x"></i><h2>No authorization records found</h2><p>Add the first Student or Faculty authorization.</p><a class="admin-primary-button" asp-action="Create"><i class="bi bi-plus-lg"></i>Add authorization</a></div>
+    }
+    else
+    {
+        <div class="admin-table-wrap"><table class="admin-data-table"><thead><tr><th>Authorized user</th><th>University ID</th><th>Academic unit</th><th>Registration</th><th>Access</th><th><span class="visually-hidden">Actions</span></th></tr></thead><tbody>
+        @foreach (var item in Model.Records)
+        {
+            <tr>
+                <td data-label="User"><div class="admin-auth-user"><span class="@item.Role.ToLowerInvariant()"><i class="bi @(item.Role == "Student" ? "bi-mortarboard" : "bi-person-badge")"></i></span><div><strong>@item.FullName</strong><small>@item.Email</small></div></div></td>
+                <td data-label="University ID"><strong class="admin-id-value">@item.UniversityId</strong><small class="admin-role-label">@item.Role</small></td>
+                <td data-label="Academic unit"><span class="admin-unit-value"><strong>@(item.DepartmentCode ?? "—")</strong>@(item.ProgramCode ?? (item.Role == "Faculty" ? "Faculty" : "No program"))</span></td>
+                <td data-label="Registration"><span class="admin-status-pill @(item.IsClaimed ? "active" : "pending")"><i></i>@(item.IsClaimed ? "Registered" : "Waiting")</span></td>
+                <td data-label="Access"><span class="admin-status-pill @(item.IsActive ? "active" : "inactive")"><i></i>@(item.IsActive ? "Enabled" : "Disabled")</span></td>
+                <td class="admin-table-actions"><a asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a><a asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a></td>
+            </tr>
+        }
+        </tbody></table></div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="admin-pagination">
+            <a class="@(Model.Page == 1 ? "disabled" : null)" asp-route-search="@Model.Search" asp-route-role="@Model.Role" asp-route-status="@Model.Status" asp-route-departmentId="@Model.DepartmentId" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i></a>
+            @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++) { <a class="@(pageNumber == Model.Page ? "active" : null)" asp-route-search="@Model.Search" asp-route-role="@Model.Role" asp-route-status="@Model.Status" asp-route-departmentId="@Model.DepartmentId" asp-route-page="@pageNumber">@pageNumber</a> }
+            <a class="@(Model.Page == Model.TotalPages ? "disabled" : null)" asp-route-search="@Model.Search" asp-route-role="@Model.Role" asp-route-status="@Model.Status" asp-route-departmentId="@Model.DepartmentId" asp-route-page="@(Model.Page + 1)"><i class="bi bi-chevron-right"></i></a>
+        </nav>
+    }
+</section>

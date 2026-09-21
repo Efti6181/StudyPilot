@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace StudyPilotApp.Controllers;
 
 [Authorize(Roles = "Admin")]
-public class AdminController : Controller
+public sealed class AdminController : Controller
 {
-    public IActionResult Index() => View();
+    public IActionResult Index() =>
+        RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 }
