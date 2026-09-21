@@ -1,0 +1,5 @@
+@model AnnouncementFormViewModel
+@{ ViewData["Title"] = "Edit Announcement"; }
+<section class="admin-page-heading compact"><div><a class="admin-back-link" asp-action="Details" asp-route-id="@Model.Id"><i class="bi bi-arrow-left"></i>Announcement details</a><h1>Edit announcement</h1><p>Update content, priority, expiry and publication status.</p></div></section>
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="admin-form-panel admin-announcement-form"><input asp-for="Id" type="hidden" /><header><span><i class="bi bi-pencil-square"></i></span><div><h2>Announcement information</h2><p>Delivered notifications remain in recipient history when an announcement is unpublished.</p></div></header><div class="admin-form-body"><partial name="_AnnouncementForm" model="Model" /></div><footer><a class="admin-secondary-button" asp-action="Details" asp-route-id="@Model.Id">Cancel</a><button class="admin-primary-button" type="submit"><i class="bi bi-check-lg"></i>Save changes</button></footer></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

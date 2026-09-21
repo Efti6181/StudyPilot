@@ -1,0 +1,40 @@
+@model AnnouncementIndexViewModel
+@{
+    ViewData["Title"] = "Announcements";
+    var campusOffset = TimeSpan.FromHours(6);
+}
+<section class="admin-page-heading">
+    <div><span class="admin-eyebrow"><i class="bi bi-megaphone"></i> Campus communication</span><h1>Announcements</h1><p>Create targeted notices and deliver them through StudyPilot notifications.</p></div>
+    <a class="admin-primary-button" asp-action="Create"><i class="bi bi-plus-lg"></i>Create announcement</a>
+</section>
+<section class="admin-announcement-stat-grid">
+    <div><small>All announcements</small><strong>@Model.TotalCount</strong></div><div class="published"><small>Published</small><strong>@Model.PublishedCount</strong></div><div class="draft"><small>Drafts</small><strong>@Model.DraftCount</strong></div><div class="urgent"><small>Active urgent</small><strong>@Model.UrgentCount</strong></div><div><small>Notifications delivered</small><strong>@Model.DeliveredRecipientCount</strong></div>
+</section>
+<section class="admin-panel admin-directory-panel">
+    <form class="admin-filter-bar admin-announcement-filters" method="get">
+        <label class="admin-search-box"><i class="bi bi-search"></i><input type="search" name="search" value="@Model.Search" maxlength="100" placeholder="Search title, summary or content" /></label>
+        <select asp-for="Audience"><option value="">All audiences</option>@foreach(var audience in Enum.GetValues<AnnouncementAudience>()){<option value="@((int)audience)">@audience</option>}</select>
+        <select asp-for="Priority"><option value="">All priorities</option>@foreach(var priority in Enum.GetValues<AnnouncementPriority>()){<option value="@((int)priority)">@priority</option>}</select>
+        <select asp-for="Status"><option value="all">All statuses</option><option value="active">Active</option><option value="published">Published</option><option value="draft">Draft</option><option value="expired">Expired</option></select>
+        <button class="admin-secondary-button" type="submit"><i class="bi bi-funnel"></i>Filter</button>
+        @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.Audience.HasValue || Model.Priority.HasValue || Model.Status != "all") { <a class="admin-text-button" asp-action="Index">Clear</a> }
+    </form>
+    <div class="admin-directory-summary"><span>Showing <strong>@Model.Announcements.Count</strong> of <strong>@Model.FilteredCount</strong> matching announcements</span><small>@Model.ActiveCount currently active</small></div>
+    @if (Model.Announcements.Count == 0)
+    {
+        <div class="admin-empty admin-empty-large"><i class="bi bi-megaphone"></i><h2>No announcements found</h2><p>Adjust the filters or prepare a new campus announcement.</p><a class="admin-primary-button" asp-action="Create">Create announcement</a></div>
+    }
+    else
+    {
+        <div class="admin-table-wrap"><table class="admin-data-table"><thead><tr><th>Announcement</th><th>Audience</th><th>Priority</th><th>Delivery</th><th>Status</th><th></th></tr></thead><tbody>
+        @foreach (var item in Model.Announcements)
+        {
+            <tr><td data-label="Announcement"><div class="admin-announcement-name"><span class="@item.Priority.ToString().ToLowerInvariant()"><i class="bi bi-megaphone"></i></span><div><strong>@item.Title</strong><small>@item.Summary</small></div></div></td><td data-label="Audience"><span class="admin-audience-chip"><i class="bi bi-people"></i>@item.Audience</span></td><td data-label="Priority"><span class="admin-priority-chip @item.Priority.ToString().ToLowerInvariant()">@item.Priority</span></td><td data-label="Delivery"><span class="admin-announcement-delivery"><strong>@item.RecipientCount</strong><small>@(item.PublishedAt.HasValue ? item.PublishedAt.Value.ToOffset(campusOffset).ToString("dd MMM yyyy") : "Not delivered")</small></span></td><td data-label="Status"><span class="admin-status-pill @item.StatusClass"><i></i>@item.DisplayStatus</span></td><td class="admin-table-actions"><a asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a><a asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a></td></tr>
+        }
+        </tbody></table></div>
+    }
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="admin-pagination"><a class="@(Model.Page == 1 ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-audience="@Model.Audience" asp-route-priority="@Model.Priority" asp-route-status="@Model.Status" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i></a>@for(var pageNumber=1;pageNumber<=Model.TotalPages;pageNumber++){<a class="@(pageNumber == Model.Page ? "active" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-audience="@Model.Audience" asp-route-priority="@Model.Priority" asp-route-status="@Model.Status" asp-route-page="@pageNumber">@pageNumber</a>}<a class="@(Model.Page == Model.TotalPages ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-audience="@Model.Audience" asp-route-priority="@Model.Priority" asp-route-status="@Model.Status" asp-route-page="@(Model.Page + 1)"><i class="bi bi-chevron-right"></i></a></nav>
+    }
+</section>

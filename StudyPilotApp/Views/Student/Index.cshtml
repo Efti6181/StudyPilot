@@ -12,6 +12,10 @@
         <span>@successMessage</span>
     </div>
 }
+@if (TempData["DashboardError"] is string errorMessage)
+{
+    <div class="alert alert-warning d-flex align-items-center gap-2" role="alert"><i class="bi bi-exclamation-triangle-fill"></i><span>@errorMessage</span></div>
+}
 
 <div class="page-heading">
     <div>

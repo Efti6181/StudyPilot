@@ -1,0 +1,51 @@
+@model PlatformSettingsViewModel
+@{
+    ViewData["Title"] = "System Settings";
+    var campusOffset = TimeSpan.FromHours(6);
+}
+<section class="admin-page-heading">
+    <div><span class="admin-eyebrow"><i class="bi bi-gear"></i> Platform configuration</span><h1>System Settings</h1><p>Manage institutional identity, availability switches, and governance defaults.</p></div>
+</section>
+
+<form class="admin-settings-form" asp-action="Index" method="post" novalidate>
+    <div asp-validation-summary="ModelOnly" class="admin-validation-summary"></div>
+    <div class="admin-settings-grid">
+        <section class="admin-panel admin-settings-section">
+            <header><span><i class="bi bi-building"></i></span><div><h2>General</h2><p>Institution and display defaults</p></div></header>
+            <div class="admin-form-grid">
+                <label class="admin-field admin-span-2"><span>Institution name</span><input asp-for="InstitutionName" /><small asp-validation-for="InstitutionName"></small></label>
+                <label class="admin-field"><span>Support email</span><input asp-for="SupportEmail" /><small asp-validation-for="SupportEmail"></small></label>
+                <label class="admin-field"><span>Time zone</span><select asp-for="TimeZoneId"><option value="Asia/Dhaka">Asia/Dhaka (UTC+06)</option><option value="UTC">UTC</option><option value="Asia/Kolkata">Asia/Kolkata (UTC+05:30)</option><option value="America/New_York">America/New_York</option><option value="Europe/London">Europe/London</option></select><small asp-validation-for="TimeZoneId"></small></label>
+                <label class="admin-field"><span>Date format</span><select asp-for="DateFormat"><option value="dd MMM yyyy">21 Sep 2026</option><option value="dd/MM/yyyy">21/09/2026</option><option value="MM/dd/yyyy">09/21/2026</option><option value="yyyy-MM-dd">2026-09-21</option></select><small asp-validation-for="DateFormat"></small></label>
+                <label class="admin-field"><span>Default page size</span><input asp-for="DefaultPageSize" type="number" min="5" max="100" /><small asp-validation-for="DefaultPageSize"></small></label>
+            </div>
+        </section>
+
+        <section class="admin-panel admin-settings-section">
+            <header><span><i class="bi bi-toggles"></i></span><div><h2>Feature availability</h2><p>Central switches for platform capabilities</p></div></header>
+            <div class="admin-settings-switches">
+                <label><span><strong>Student registration</strong><small>Allow authorized students to create accounts</small></span><input asp-for="StudentRegistrationEnabled" type="checkbox" role="switch" /></label>
+                <label><span><strong>Faculty registration</strong><small>Allow authorized faculty to create accounts</small></span><input asp-for="FacultyRegistrationEnabled" type="checkbox" role="switch" /></label>
+                <label><span><strong>Academic AI</strong><small>Make AI study assistance available</small></span><input asp-for="AcademicAiEnabled" type="checkbox" role="switch" /></label>
+                <label><span><strong>Student community</strong><small>Allow access to community discussions</small></span><input asp-for="CommunityEnabled" type="checkbox" role="switch" /></label>
+                <label><span><strong>Campus events</strong><small>Allow students to browse and join events</small></span><input asp-for="EventsEnabled" type="checkbox" role="switch" /></label>
+            </div>
+        </section>
+
+        <section class="admin-panel admin-settings-section">
+            <header><span><i class="bi bi-shield-lock"></i></span><div><h2>Governance</h2><p>Audit and maintenance communication</p></div></header>
+            <div class="admin-form-grid">
+                <label class="admin-field"><span>Audit retention (days)</span><input asp-for="AuditRetentionDays" type="number" min="30" max="3650" /><small>Policy value used for future retention jobs.</small><small asp-validation-for="AuditRetentionDays"></small></label>
+                <label class="admin-settings-notice-toggle"><span><strong>Maintenance notice</strong><small>Prepare a visible service notice</small></span><input asp-for="MaintenanceNoticeEnabled" type="checkbox" role="switch" /></label>
+                <label class="admin-field admin-span-2"><span>Maintenance notice</span><textarea asp-for="MaintenanceNotice" rows="4" maxlength="500" placeholder="Example: StudyPilot will be unavailable Saturday from 1:00 AM to 2:00 AM."></textarea><small asp-validation-for="MaintenanceNotice"></small></label>
+            </div>
+        </section>
+    </div>
+
+    <footer class="admin-settings-footer">
+        <div><i class="bi bi-clock-history"></i><span>@if (Model.UpdatedAt.HasValue) { <text>Last updated @Model.UpdatedAt.Value.ToOffset(campusOffset).ToString("dd MMM yyyy, hh:mm tt")</text>@if (!string.IsNullOrWhiteSpace(Model.UpdatedByName)) { <text> by @Model.UpdatedByName</text> } } else { <text>Using default settings</text> }</span></div>
+        <button class="admin-primary-button" type="submit"><i class="bi bi-check2-circle"></i>Save settings</button>
+    </footer>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

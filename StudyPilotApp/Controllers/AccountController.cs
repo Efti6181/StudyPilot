@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudyPilotApp.Data;
 using StudyPilotApp.Models;
+using StudyPilotApp.Services;
 using StudyPilotApp.ViewModels;
 
 namespace StudyPilotApp.Controllers;
@@ -17,17 +18,20 @@ public class AccountController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IPlatformSettingsService _settingsService;
     private readonly ILogger<AccountController> _logger;
 
     public AccountController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         ApplicationDbContext dbContext,
+        IPlatformSettingsService settingsService,
         ILogger<AccountController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _dbContext = dbContext;
+        _settingsService = settingsService;
         _logger = logger;
     }
 
@@ -55,6 +59,16 @@ public class AccountController : Controller
         if (!AllowedRegistrationRoles.Contains(model.AccountType))
         {
             ModelState.AddModelError(nameof(model.AccountType), "Please select Student or Faculty.");
+        }
+
+        if (AllowedRegistrationRoles.Contains(model.AccountType))
+        {
+            var settings = await _settingsService.GetAsync();
+            var registrationEnabled = model.AccountType == "Student"
+                ? settings.StudentRegistrationEnabled
+                : settings.FacultyRegistrationEnabled;
+            if (!registrationEnabled)
+                ModelState.AddModelError(nameof(model.AccountType), $"{model.AccountType} registration is temporarily disabled.");
         }
 
         if (!ModelState.IsValid)

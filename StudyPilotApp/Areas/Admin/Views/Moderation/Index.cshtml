@@ -1,0 +1,39 @@
+@model ModerationIndexViewModel
+@{
+    ViewData["Title"] = "Content Moderation";
+    var campusOffset = TimeSpan.FromHours(6);
+}
+<section class="admin-page-heading"><div><span class="admin-eyebrow"><i class="bi bi-shield-check"></i> Platform safety</span><h1>Content moderation</h1><p>Review community discussions and private resource records, remove violations, and preserve an audit trail.</p></div></section>
+<section class="admin-moderation-stat-grid"><div><small>Community posts</small><strong>@Model.PostCount</strong></div><div><small>Comments</small><strong>@Model.CommentCount</strong></div><div><small>Student resources</small><strong>@Model.ResourceCount</strong></div><div class="removed"><small>Removed records</small><strong>@Model.RemovedCount</strong></div></section>
+<section class="admin-panel admin-directory-panel">
+    <nav class="admin-moderation-tabs"><a class="@(Model.Scope == "all" ? "active" : null)" asp-action="Index" asp-route-scope="all">All content</a><a class="@(Model.Scope == "posts" ? "active" : null)" asp-action="Index" asp-route-scope="posts">Posts <span>@Model.PostCount</span></a><a class="@(Model.Scope == "comments" ? "active" : null)" asp-action="Index" asp-route-scope="comments">Comments <span>@Model.CommentCount</span></a><a class="@(Model.Scope == "resources" ? "active" : null)" asp-action="Index" asp-route-scope="resources">Resources <span>@Model.ResourceCount</span></a><a class="@(Model.Scope == "history" ? "active" : null)" asp-action="Index" asp-route-scope="history">Removal history <span>@Model.RemovedCount</span></a></nav>
+    <form class="admin-filter-bar" method="get"><input type="hidden" name="scope" value="@Model.Scope" /><label class="admin-search-box"><i class="bi bi-search"></i><input type="search" name="search" value="@Model.Search" maxlength="100" placeholder="Search content, owner or moderation reason" /></label><button class="admin-secondary-button" type="submit"><i class="bi bi-search"></i>Search</button>@if(!string.IsNullOrWhiteSpace(Model.Search)){<a class="admin-text-button" asp-action="Index" asp-route-scope="@Model.Scope">Clear</a>}</form>
+    <div class="admin-directory-summary"><span><strong>@Model.FilteredCount</strong> matching record(s)</span><small>Removal actions are permanent and recorded.</small></div>
+    @if (Model.Scope == "history")
+    {
+        @if (Model.History.Count == 0) { <div class="admin-empty admin-empty-large"><i class="bi bi-clock-history"></i><h2>No moderation history</h2><p>No content has been removed using this module.</p></div> }
+        else
+        {
+            <div class="admin-moderation-history">
+            @foreach(var item in Model.History)
+            {
+                <article><div class="admin-moderation-type @item.ContentType.ToString().ToLowerInvariant()"><i class="bi @(item.ContentType == ModeratedContentType.StudyResource ? "bi-file-earmark-x" : item.ContentType == ModeratedContentType.CommunityComment ? "bi-chat-left-x" : "bi-postcard")"></i></div><div class="admin-moderation-main"><div><span>@item.ContentType</span><small>Original record #@item.SourceId</small></div><h2>@item.ContentTitle</h2><p>@item.ContentExcerpt</p><div class="admin-moderation-owner"><i class="bi bi-person"></i>@item.OwnerName · @item.OwnerEmail</div><div class="admin-removal-reason"><strong>Reason</strong><p>@item.Reason</p></div></div><aside><small>Removed by</small><strong>@item.ModeratorName</strong><time>@item.ModeratedAt.ToOffset(campusOffset).ToString("dd MMM yyyy, h:mm tt")</time></aside></article>
+            }
+            </div>
+        }
+    }
+    else
+    {
+        @if (Model.Items.Count == 0) { <div class="admin-empty admin-empty-large"><i class="bi bi-shield-check"></i><h2>No content found</h2><p>Try another moderation scope or search term.</p></div> }
+        else
+        {
+            <div class="admin-moderation-list">
+            @foreach(var item in Model.Items)
+            {
+                <article><div class="admin-moderation-type @item.ContentType.ToString().ToLowerInvariant()"><i class="bi @(item.ContentType == ModeratedContentType.StudyResource ? "bi-file-earmark" : item.ContentType == ModeratedContentType.CommunityComment ? "bi-chat-left-text" : "bi-postcard")"></i></div><div class="admin-moderation-main"><div><span>@item.ContentType</span><small>@item.Detail · Record #@item.SourceId</small></div><h2>@item.Title</h2><p>@item.Content</p><div class="admin-moderation-owner"><i class="bi bi-person"></i>@item.OwnerName · @item.OwnerEmail <span><i class="bi bi-calendar3"></i>@item.CreatedAt.ToOffset(campusOffset).ToString("dd MMM yyyy")</span></div></div><aside><span><i class="bi bi-heart"></i>@item.InteractionCount interactions</span><a class="admin-secondary-button" asp-action="Review" asp-route-contentType="@item.ContentType" asp-route-id="@item.SourceId"><i class="bi bi-eye"></i>Review</a></aside></article>
+            }
+            </div>
+        }
+    }
+    @if(Model.TotalPages > 1){<nav class="admin-pagination"><a class="@(Model.Page == 1 ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-scope="@Model.Scope" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i></a>@for(var n=1;n<=Model.TotalPages;n++){<a class="@(n == Model.Page ? "active" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-scope="@Model.Scope" asp-route-page="@n">@n</a>}<a class="@(Model.Page == Model.TotalPages ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-scope="@Model.Scope" asp-route-page="@(Model.Page + 1)"><i class="bi bi-chevron-right"></i></a></nav>}
+</section>

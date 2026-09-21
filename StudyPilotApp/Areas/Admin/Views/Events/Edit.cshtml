@@ -1,0 +1,10 @@
+@model AdminEventFormViewModel
+@{ ViewData["Title"] = "Edit Event"; }
+<section class="admin-page-heading compact"><div><a class="admin-back-link" asp-action="Details" asp-route-id="@Model.Id"><i class="bi bi-arrow-left"></i>Event details</a><h1>Edit event</h1><p>Update the event while preserving its registrations and saved-student records.</p></div></section>
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="admin-form-panel admin-event-form">
+    <input asp-for="Id" type="hidden" />
+    <header><span><i class="bi bi-calendar2-week"></i></span><div><h2>Event information</h2><p>Capacity cannot be reduced below the number of active registrations.</p></div></header>
+    <div class="admin-form-body"><partial name="_EventForm" model="Model" /></div>
+    <footer><a class="admin-secondary-button" asp-action="Details" asp-route-id="@Model.Id">Cancel</a><button class="admin-primary-button" type="submit"><i class="bi bi-check-lg"></i>Save changes</button></footer>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/admin-events.js" asp-append-version="true"></script> }

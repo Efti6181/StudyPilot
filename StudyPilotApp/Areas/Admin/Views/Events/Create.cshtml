@@ -1,0 +1,9 @@
+@model AdminEventFormViewModel
+@{ ViewData["Title"] = "Create Event"; }
+<section class="admin-page-heading compact"><div><a class="admin-back-link" asp-action="Index"><i class="bi bi-arrow-left"></i>Event management</a><h1>Create campus event</h1><p>Prepare the schedule, registration rules and student-facing event information.</p></div></section>
+<form asp-action="Create" method="post" class="admin-form-panel admin-event-form">
+    <header><span><i class="bi bi-calendar-plus"></i></span><div><h2>Event information</h2><p>Save as a draft for review or publish it immediately for students.</p></div></header>
+    <div class="admin-form-body"><partial name="_EventForm" model="Model" /></div>
+    <footer><a class="admin-secondary-button" asp-action="Index">Cancel</a><button class="admin-primary-button" type="submit"><i class="bi bi-check-lg"></i>Create event</button></footer>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/admin-events.js" asp-append-version="true"></script> }

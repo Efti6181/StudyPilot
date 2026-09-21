@@ -1,0 +1,51 @@
+@model AdminAuditIndexViewModel
+@{
+    ViewData["Title"] = "Audit Logs";
+    var campusOffset = TimeSpan.FromHours(6);
+}
+<section class="admin-page-heading">
+    <div><span class="admin-eyebrow"><i class="bi bi-clock-history"></i> Accountability trail</span><h1>Audit Logs</h1><p>Immutable records of changes made through the administration portal.</p></div>
+    <a class="admin-secondary-button" asp-action="Export" asp-route-search="@Model.Search" asp-route-controllerFilter="@Model.ControllerFilter" asp-route-status="@Model.Status"><i class="bi bi-file-earmark-arrow-down"></i>Export filtered CSV</a>
+</section>
+
+<section class="admin-audit-stat-grid">
+    <div><small>All recorded actions</small><strong>@Model.TotalCount.ToString("N0")</strong></div>
+    <div class="today"><small>Today</small><strong>@Model.TodayCount.ToString("N0")</strong></div>
+    <div class="failed"><small>Failed actions</small><strong>@Model.FailedCount.ToString("N0")</strong></div>
+    <div><small>Administrators</small><strong>@Model.UniqueAdminCount.ToString("N0")</strong></div>
+</section>
+
+<section class="admin-panel admin-directory-panel">
+    <form class="admin-filter-bar admin-audit-filters" method="get">
+        <label class="admin-search-box"><i class="bi bi-search"></i><input type="search" name="search" value="@Model.Search" maxlength="100" placeholder="Search admin, action, route or entity" /></label>
+        <select asp-for="ControllerFilter"><option value="">All modules</option>@foreach (var item in Model.Controllers) { <option value="@item">@item</option> }</select>
+        <select asp-for="Status"><option value="all">All outcomes</option><option value="success">Successful</option><option value="failed">Failed</option></select>
+        <button class="admin-secondary-button" type="submit"><i class="bi bi-funnel"></i>Filter</button>
+        @if (!string.IsNullOrWhiteSpace(Model.Search) || !string.IsNullOrWhiteSpace(Model.ControllerFilter) || Model.Status != "all") { <a class="admin-text-button" asp-action="Index">Clear</a> }
+    </form>
+    <div class="admin-directory-summary"><span>Showing <strong>@Model.Items.Count</strong> of <strong>@Model.FilteredCount</strong> matching records</span><small>Audit entries cannot be edited or deleted</small></div>
+    @if (Model.Items.Count == 0)
+    {
+        <div class="admin-empty admin-empty-large"><i class="bi bi-clock-history"></i><h2>No audit entries found</h2><p>Admin changes will appear here automatically after the migration is applied.</p></div>
+    }
+    else
+    {
+        <div class="admin-table-wrap"><table class="admin-data-table"><thead><tr><th>Time</th><th>Administrator</th><th>Action</th><th>Request</th><th>Outcome</th><th>Source</th></tr></thead><tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td data-label="Time"><time class="admin-audit-time">@item.CreatedAt.ToOffset(campusOffset).ToString("dd MMM yyyy")<small>@item.CreatedAt.ToOffset(campusOffset).ToString("hh:mm:ss tt")</small></time></td>
+                <td data-label="Administrator"><strong>@item.AdminName</strong></td>
+                <td data-label="Action"><span class="admin-audit-action"><i class="bi bi-box-arrow-in-right"></i><strong>@item.Controller.@item.Action</strong><small>@(item.EntityId is null ? "No entity ID" : $"Entity #{item.EntityId}")</small></span></td>
+                <td data-label="Request"><span class="admin-audit-request"><strong>@item.HttpMethod</strong><small>@item.RequestPath</small></span></td>
+                <td data-label="Outcome"><span class="admin-status-pill @(item.Succeeded ? "active" : "inactive")"><i></i>@(item.Succeeded ? "Success" : "Failed")</span><small class="admin-audit-code">HTTP @item.StatusCode</small></td>
+                <td data-label="Source"><span class="admin-muted-copy">@(item.IpAddress ?? "Unknown")</span></td>
+            </tr>
+        }
+        </tbody></table></div>
+    }
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="admin-pagination"><a class="@(Model.Page == 1 ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-controllerFilter="@Model.ControllerFilter" asp-route-status="@Model.Status" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i></a>@for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++) { <a class="@(pageNumber == Model.Page ? "active" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-controllerFilter="@Model.ControllerFilter" asp-route-status="@Model.Status" asp-route-page="@pageNumber">@pageNumber</a> }<a class="@(Model.Page == Model.TotalPages ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-controllerFilter="@Model.ControllerFilter" asp-route-status="@Model.Status" asp-route-page="@(Model.Page + 1)"><i class="bi bi-chevron-right"></i></a></nav>
+    }
+</section>

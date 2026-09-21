@@ -16,6 +16,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AcademicProgram> AcademicPrograms => Set<AcademicProgram>();
     public DbSet<AcademicPeriod> AcademicPeriods => Set<AcademicPeriod>();
     public DbSet<CatalogCourse> CatalogCourses => Set<CatalogCourse>();
+    public DbSet<Announcement> Announcements => Set<Announcement>();
+    public DbSet<ContentModerationRecord> ContentModerationRecords => Set<ContentModerationRecord>();
+    public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
+    public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<FacultyProfile> FacultyProfiles => Set<FacultyProfile>();
     public DbSet<Course> Courses => Set<Course>();
@@ -144,6 +148,60 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany(x => x.CatalogCourses)
                 .HasForeignKey(x => x.ProgramId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Announcement>(entity =>
+        {
+            entity.HasIndex(x => x.CreatedByUserId);
+            entity.HasIndex(x => new { x.IsPublished, x.PublishedAt });
+            entity.HasIndex(x => new { x.Audience, x.Priority, x.CreatedAt });
+            entity.Property(x => x.IsPublished).HasDefaultValue(false);
+            entity.Property(x => x.RecipientCount).HasDefaultValue(0);
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<ContentModerationRecord>(entity =>
+        {
+            entity.HasIndex(x => new { x.ContentType, x.ModeratedAt });
+            entity.HasIndex(x => new { x.ContentType, x.SourceId });
+            entity.HasIndex(x => x.ModeratedByUserId);
+            entity.Property(x => x.ModeratedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.ModeratedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.ModeratedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<AdminAuditLog>(entity =>
+        {
+            entity.HasIndex(x => x.CreatedAt);
+            entity.HasIndex(x => new { x.Controller, x.CreatedAt });
+            entity.HasIndex(x => new { x.Succeeded, x.CreatedAt });
+            entity.HasIndex(x => new { x.AdminUserId, x.CreatedAt });
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.AdminUser)
+                .WithMany()
+                .HasForeignKey(x => x.AdminUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<PlatformSetting>(entity =>
+        {
+            entity.Property(x => x.Id).ValueGeneratedNever();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(x => x.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.UpdatedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.UpdatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         builder.Entity<StudentProfile>(entity =>

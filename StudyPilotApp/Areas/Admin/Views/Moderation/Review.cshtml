@@ -1,0 +1,11 @@
+@model ModerationReviewViewModel
+@{
+    ViewData["Title"] = "Review Content";
+    var campusOffset = TimeSpan.FromHours(6);
+}
+<section class="admin-page-heading compact"><div><a class="admin-back-link" asp-action="Index"><i class="bi bi-arrow-left"></i>Content moderation</a><h1>Review @Model.ContentType</h1><p>Verify the content and provide a clear reason before permanent removal.</p></div></section>
+<div class="admin-moderation-review-grid">
+    <section class="admin-panel admin-moderation-preview"><header><span class="admin-moderation-type @Model.ContentType.ToString().ToLowerInvariant()"><i class="bi bi-shield-exclamation"></i></span><div><small>@Model.ContentType · Record #@Model.SourceId</small><h2>@Model.Title</h2></div></header><div class="admin-moderation-preview-content">@Model.Content</div><footer><span><i class="bi bi-person"></i><strong>@Model.OwnerName</strong><small>@Model.OwnerEmail</small></span><span><i class="bi bi-calendar3"></i><strong>@Model.CreatedAt.ToOffset(campusOffset).ToString("dd MMM yyyy, h:mm tt")</strong><small>@Model.Detail · @Model.InteractionCount interactions</small></span></footer></section>
+    <aside class="admin-panel admin-moderation-action"><div class="admin-danger-icon"><i class="bi bi-trash3"></i></div><h2>Remove content</h2><p>This permanently removes the original record, stores an audit snapshot, and notifies the owner.</p><form asp-action="Remove" method="post" onsubmit="return confirm('Permanently remove this content?');"><input asp-for="ContentType" type="hidden" /><input asp-for="SourceId" type="hidden" /><div asp-validation-summary="ModelOnly" class="admin-validation-summary"></div><div class="admin-field"><label asp-for="Reason"></label><textarea asp-for="Reason" rows="6" maxlength="1000" placeholder="Explain which guideline was violated and why the content is being removed."></textarea><span asp-validation-for="Reason"></span><small>10–1,000 characters. This reason is sent to the owner.</small></div><button class="admin-danger-button" type="submit"><i class="bi bi-trash3"></i>Remove permanently</button></form></aside>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

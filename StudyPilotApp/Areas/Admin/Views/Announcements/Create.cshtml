@@ -1,0 +1,5 @@
+@model AnnouncementFormViewModel
+@{ ViewData["Title"] = "Create Announcement"; }
+<section class="admin-page-heading compact"><div><a class="admin-back-link" asp-action="Index"><i class="bi bi-arrow-left"></i>Announcements</a><h1>Create announcement</h1><p>Prepare a targeted campus message and choose whether to publish it now.</p></div></section>
+<form asp-action="Create" method="post" class="admin-form-panel admin-announcement-form"><header><span><i class="bi bi-megaphone"></i></span><div><h2>Announcement information</h2><p>Drafts do not send notifications until they are published.</p></div></header><div class="admin-form-body"><partial name="_AnnouncementForm" model="Model" /></div><footer><a class="admin-secondary-button" asp-action="Index">Cancel</a><button class="admin-primary-button" type="submit"><i class="bi bi-check-lg"></i>Create announcement</button></footer></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

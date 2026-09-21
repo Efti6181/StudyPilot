@@ -1,0 +1,52 @@
+@model AdminReportsViewModel
+@{
+    ViewData["Title"] = "Reports & Analytics";
+}
+<section class="admin-page-heading">
+    <div><span class="admin-eyebrow"><i class="bi bi-bar-chart"></i> Institutional intelligence</span><h1>Reports &amp; Analytics</h1><p>Live operational, academic, and engagement metrics from StudyPilot data.</p></div>
+    <div class="admin-report-export-menu dropdown">
+        <button class="admin-primary-button dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-download"></i>Export CSV</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" asp-action="Export" asp-route-report="users">Users report</a></li>
+            <li><a class="dropdown-item" asp-action="Export" asp-route-report="academics">Academic report</a></li>
+            <li><a class="dropdown-item" asp-action="Export" asp-route-report="engagement">Engagement summary</a></li>
+            <li><a class="dropdown-item" asp-action="Export" asp-route-report="events">Events report</a></li>
+        </ul>
+    </div>
+</section>
+
+<section class="admin-report-kpis">
+    <article><span><i class="bi bi-people"></i></span><div><small>Total users</small><strong>@Model.TotalUsers.ToString("N0")</strong><em>@Model.ActiveUsers.ToString("N0") active</em></div></article>
+    <article><span><i class="bi bi-journal-bookmark"></i></span><div><small>Course records</small><strong>@Model.TotalCourses.ToString("N0")</strong><em>@Model.AverageCourseProgress.ToString("N1")% average progress</em></div></article>
+    <article><span><i class="bi bi-check2-circle"></i></span><div><small>Assessments complete</small><strong>@Model.CompletedAssessments.ToString("N0")</strong><em>of @Model.TotalAssessments.ToString("N0") recorded</em></div></article>
+    <article><span><i class="bi bi-chat-square-heart"></i></span><div><small>Community interactions</small><strong>@Model.CommunityInteractions.ToString("N0")</strong><em>Posts, comments and likes</em></div></article>
+    <article><span><i class="bi bi-calendar-event"></i></span><div><small>Upcoming events</small><strong>@Model.UpcomingEvents.ToString("N0")</strong><em>@Model.PublishedAnnouncements.ToString("N0") published announcements</em></div></article>
+</section>
+
+<section class="admin-report-grid">
+    <article class="admin-panel admin-report-chart admin-report-chart-wide"><header><div><h2>User growth</h2><p>New student and faculty accounts over six months</p></div></header><div><canvas id="adminGrowthChart"></canvas></div></article>
+    <article class="admin-panel admin-report-chart"><header><div><h2>Account roles</h2><p>Current registered user distribution</p></div></header><div><canvas id="adminRoleChart"></canvas></div></article>
+    <article class="admin-panel admin-report-chart"><header><div><h2>Platform engagement</h2><p>Content and event participation</p></div></header><div><canvas id="adminContentChart"></canvas></div></article>
+</section>
+
+<section class="admin-panel admin-report-summary">
+    <header><div><h2>Operational summary</h2><p>Important platform indicators at a glance</p></div><span>Live database totals</span></header>
+    <div class="admin-table-wrap"><table class="admin-data-table"><thead><tr><th>Area</th><th>Metric</th><th>Value</th><th>Context</th></tr></thead><tbody>
+    @foreach (var row in Model.SummaryRows)
+    {
+        <tr><td data-label="Area"><span class="admin-report-area">@row.Area</span></td><td data-label="Metric"><strong>@row.Metric</strong></td><td data-label="Value"><span class="admin-report-value">@row.Value</span></td><td data-label="Context"><span class="admin-muted-copy">@row.Context</span></td></tr>
+    }
+    </tbody></table></div>
+</section>
+
+<script id="adminReportsData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
+    growthLabels = Model.GrowthLabels,
+    students = Model.StudentGrowth,
+    faculty = Model.FacultyGrowth,
+    roleLabels = Model.RoleLabels,
+    roleCounts = Model.RoleCounts,
+    contentLabels = Model.ContentLabels,
+    contentCounts = Model.ContentCounts
+}))</script>
+
+@section Scripts { <script src="~/js/admin-reports.js" asp-append-version="true"></script> }

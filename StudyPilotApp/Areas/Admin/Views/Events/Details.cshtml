@@ -1,0 +1,61 @@
+@model AdminEventDetailsViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    var campusOffset = TimeSpan.FromHours(6);
+    var start = Model.StartAt.ToOffset(campusOffset);
+    var end = Model.EndAt.ToOffset(campusOffset);
+    var deadline = Model.RegistrationDeadline.ToOffset(campusOffset);
+    var capacityPercent = Model.Capacity.HasValue && Model.Capacity.Value > 0
+        ? Math.Min(100, (int)Math.Round(Model.RegistrationCount * 100d / Model.Capacity.Value))
+        : 0;
+}
+
+<section class="admin-page-heading">
+    <div><a class="admin-back-link" asp-action="Index"><i class="bi bi-arrow-left"></i>Event management</a><h1>@Model.Title</h1><p>Review publication, schedule, capacity and student registrations.</p></div>
+    <div class="admin-heading-actions">
+        <a class="admin-secondary-button" asp-action="Edit" asp-route-id="@Model.Id"><i class="bi bi-pencil"></i>Edit</a>
+        <form asp-action="SetPublished" asp-route-id="@Model.Id" method="post"><input type="hidden" name="isPublished" value="@(!Model.IsPublished)" /><button class="@(Model.IsPublished ? "admin-secondary-button" : "admin-primary-button")" type="submit"><i class="bi @(Model.IsPublished ? "bi-eye-slash" : "bi-send-check")"></i>@(Model.IsPublished ? "Move to draft" : "Publish")</button></form>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Permanently delete this event? This cannot be undone.');"><button class="admin-danger-button" type="submit"><i class="bi bi-trash3"></i>Delete</button></form>
+    </div>
+</section>
+
+<div class="admin-details-grid">
+    <section class="admin-panel admin-event-hero">
+        <div class="admin-event-date-card"><strong>@start.Day</strong><span>@start.ToString("MMM")</span><small>@start.Year</small></div>
+        <div class="admin-event-hero-copy">
+            <div class="admin-event-badge-row"><span class="admin-status-pill @Model.StatusClass"><i></i>@Model.DisplayStatus</span><span>@Model.Type</span><span>@Model.LocationType</span></div>
+            <h2>@Model.Title</h2><p class="summary">@Model.ShortDescription</p>
+            <div class="admin-event-timeline"><span><i class="bi bi-clock"></i><strong>@start.ToString("ddd, dd MMM yyyy · h:mm tt")</strong><small>to @end.ToString("dd MMM · h:mm tt")</small></span><span><i class="bi bi-geo-alt"></i><strong>@(Model.LocationType == EventLocationType.Online ? "Online event" : Model.Venue)</strong><small>Hosted by @Model.OrganizerName</small></span></div>
+        </div>
+    </section>
+    <aside class="admin-panel admin-record-meta">
+        <h2>Registration overview</h2>
+        <dl><div><dt>Registration deadline</dt><dd>@deadline.ToString("dd MMM yyyy, h:mm tt")</dd></div><div><dt>Active registrations</dt><dd>@Model.RegistrationCount @(Model.Capacity.HasValue ? $"/ {Model.Capacity}" : "· unlimited")</dd></div><div><dt>Cancelled registrations</dt><dd>@Model.CancelledCount</dd></div><div><dt>Saved by students</dt><dd>@Model.SavedCount</dd></div></dl>
+        @if (Model.Capacity.HasValue) { <div class="admin-event-capacity"><div><span>Capacity used</span><strong>@capacityPercent%</strong></div><div><i style="width:@capacityPercent%"></i></div></div> }
+    </aside>
+</div>
+
+<section class="admin-panel admin-event-description-panel">
+    <header><div><h2>About this event</h2><p>Student-facing event description and access information.</p></div></header>
+    <div class="admin-event-description">@Model.Description</div>
+    @if (!string.IsNullOrWhiteSpace(Model.OnlineUrl)) { <div class="admin-info-callout"><i class="bi bi-camera-video"></i><div><strong>Online access configured</strong><p>The meeting link is protected by the Student Events controller and is available only to registered students.</p></div></div> }
+</section>
+
+<section class="admin-panel admin-event-registrants">
+    <header><div><h2>Student registrations</h2><p>Active and cancelled registration history for this event.</p></div><span>@Model.Registrants.Count total records</span></header>
+    @if (Model.Registrants.Count == 0)
+    {
+        <div class="admin-empty"><i class="bi bi-people"></i><h2>No registrations yet</h2><p>Student registrations will appear here after the event is published.</p></div>
+    }
+    else
+    {
+        <div class="admin-table-wrap"><table class="admin-data-table"><thead><tr><th>Student</th><th>Registered</th><th>Status</th></tr></thead><tbody>
+        @foreach (var registration in Model.Registrants)
+        {
+            <tr><td data-label="Student"><div class="admin-event-registrant"><span><i class="bi bi-person"></i></span><div><strong>@registration.FullName</strong><small>@registration.Email</small></div></div></td><td data-label="Registered"><span class="admin-table-date">@registration.RegisteredAt.ToOffset(campusOffset).ToString("dd MMM yyyy, h:mm tt")</span></td><td data-label="Status"><span class="admin-status-pill @(registration.IsActive ? "active" : "inactive")"><i></i>@(registration.IsActive ? "Registered" : "Cancelled")</span></td></tr>
+        }
+        </tbody></table></div>
+    }
+</section>
+
+<div class="admin-event-record-footer"><span>Created by <strong>@Model.CreatedByName</strong> on @Model.CreatedAt.ToOffset(campusOffset).ToString("dd MMM yyyy, h:mm tt")</span><span>Last updated: @(Model.UpdatedAt?.ToOffset(campusOffset).ToString("dd MMM yyyy, h:mm tt") ?? "Not updated yet")</span></div>

@@ -301,6 +301,94 @@ namespace StudyPilotApp.Migrations
                     b.ToTable("AcademicProgressSnapshots");
                 });
 
+            modelBuilder.Entity("StudyPilotApp.Models.AdminAuditLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("AdminName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("AdminUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Controller")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("EntityId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("HttpMethod")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("RequestPath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("AdminUserId", "CreatedAt");
+
+                    b.HasIndex("Controller", "CreatedAt");
+
+                    b.HasIndex("Succeeded", "CreatedAt");
+
+                    b.ToTable("AdminAuditLogs");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.AdminAuditLog", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "AdminUser")
+                        .WithMany()
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AdminUser");
+                });
+
             modelBuilder.Entity("StudyPilotApp.Models.AppNotification", b =>
                 {
                     b.Property<long>("Id")
@@ -350,6 +438,77 @@ namespace StudyPilotApp.Migrations
                     b.HasIndex("ApplicationUserId", "Type", "CreatedAt");
 
                     b.ToTable("AppNotifications");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.Announcement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Audience")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeliveredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsPublished")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RecipientCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("Audience", "Priority", "CreatedAt");
+
+                    b.HasIndex("IsPublished", "PublishedAt");
+
+                    b.ToTable("Announcements");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.ApplicationUser", b =>
@@ -933,6 +1092,70 @@ namespace StudyPilotApp.Migrations
                     b.ToTable("CommunityPostLikes");
                 });
 
+            modelBuilder.Entity("StudyPilotApp.Models.ContentModerationRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ContentExcerpt")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("ContentTitle")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<int>("ContentType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("ModeratedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("ModeratedByUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OwnerEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("OwnerName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("OwnerUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("SourceId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModeratedByUserId");
+
+                    b.HasIndex("ContentType", "ModeratedAt");
+
+                    b.HasIndex("ContentType", "SourceId");
+
+                    b.ToTable("ContentModerationRecords");
+                });
+
             modelBuilder.Entity("StudyPilotApp.Models.Department", b =>
                 {
                     b.Property<int>("Id")
@@ -1278,6 +1501,16 @@ namespace StudyPilotApp.Migrations
                     b.ToTable("GradingScaleEntries");
                 });
 
+            modelBuilder.Entity("StudyPilotApp.Models.PlatformSetting", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("UpdatedByUser");
+                });
+
             modelBuilder.Entity("StudyPilotApp.Models.PriorityWeightSettings", b =>
                 {
                     b.Property<int>("Id")
@@ -1328,6 +1561,79 @@ namespace StudyPilotApp.Migrations
                         .IsUnique();
 
                     b.ToTable("PriorityWeightSettings");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.PlatformSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("AcademicAiEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("AuditRetentionDays")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("CommunityEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("DateFormat")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int>("DefaultPageSize")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("EventsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("FacultyRegistrationEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("InstitutionName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("MaintenanceNotice")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("MaintenanceNoticeEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("StudentRegistrationEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SupportEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.ToTable("PlatformSettings");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.SavedEvent", b =>
@@ -1909,6 +2215,17 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
+            modelBuilder.Entity("StudyPilotApp.Models.Announcement", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+                });
+
             modelBuilder.Entity("StudyPilotApp.Models.AcademicProgram", b =>
                 {
                     b.HasOne("StudyPilotApp.Models.Department", "Department")
@@ -2027,6 +2344,17 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("ApplicationUser");
 
                     b.Navigation("CommunityPost");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.ContentModerationRecord", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "ModeratedByUser")
+                        .WithMany()
+                        .HasForeignKey("ModeratedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ModeratedByUser");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.Course", b =>

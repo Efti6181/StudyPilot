@@ -51,14 +51,20 @@
                 </a>
 
                 <span class="admin-nav-label">Campus &amp; content</span>
-                <span class="admin-nav-link disabled"><i class="bi bi-calendar-event"></i><span>Events</span><small>Soon</small></span>
-                <span class="admin-nav-link disabled"><i class="bi bi-megaphone"></i><span>Announcements</span><small>Soon</small></span>
-                <span class="admin-nav-link disabled"><i class="bi bi-shield-check"></i><span>Moderation</span><small>Soon</small></span>
+                <a class="admin-nav-link @(controller == "Events" ? "active" : null)" asp-area="Admin" asp-controller="Events" asp-action="Index">
+                    <i class="bi bi-calendar-event"></i><span>Events</span>
+                </a>
+                <a class="admin-nav-link @(controller == "Announcements" ? "active" : null)" asp-area="Admin" asp-controller="Announcements" asp-action="Index">
+                    <i class="bi bi-megaphone"></i><span>Announcements</span>
+                </a>
+                <a class="admin-nav-link @(controller == "Moderation" ? "active" : null)" asp-area="Admin" asp-controller="Moderation" asp-action="Index">
+                    <i class="bi bi-shield-check"></i><span>Moderation</span>
+                </a>
 
                 <span class="admin-nav-label">System</span>
-                <span class="admin-nav-link disabled"><i class="bi bi-bar-chart"></i><span>Reports</span><small>Soon</small></span>
-                <span class="admin-nav-link disabled"><i class="bi bi-clock-history"></i><span>Audit Logs</span><small>Soon</small></span>
-                <span class="admin-nav-link disabled"><i class="bi bi-gear"></i><span>Settings</span><small>Soon</small></span>
+                <a class="admin-nav-link @(controller == "Reports" ? "active" : null)" asp-area="Admin" asp-controller="Reports" asp-action="Index"><i class="bi bi-bar-chart"></i><span>Reports</span></a>
+                <a class="admin-nav-link @(controller == "AuditLogs" ? "active" : null)" asp-area="Admin" asp-controller="AuditLogs" asp-action="Index"><i class="bi bi-clock-history"></i><span>Audit Logs</span></a>
+                <a class="admin-nav-link @(controller == "Settings" ? "active" : null)" asp-area="Admin" asp-controller="Settings" asp-action="Index"><i class="bi bi-gear"></i><span>Settings</span></a>
             </nav>
 
             <div class="admin-user-card">

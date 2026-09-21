@@ -1,0 +1,66 @@
+@model AdminEventIndexViewModel
+@{
+    ViewData["Title"] = "Events";
+    var campusOffset = TimeSpan.FromHours(6);
+}
+
+<section class="admin-page-heading">
+    <div><span class="admin-eyebrow"><i class="bi bi-calendar-event"></i> Campus engagement</span><h1>Event management</h1><p>Create, publish and monitor the university events available to students.</p></div>
+    <a class="admin-primary-button" asp-action="Create"><i class="bi bi-calendar-plus"></i>Create event</a>
+</section>
+
+<section class="admin-event-stat-grid" aria-label="Event statistics">
+    <div><small>All events</small><strong>@Model.TotalCount</strong></div>
+    <div class="published"><small>Published</small><strong>@Model.PublishedCount</strong></div>
+    <div class="draft"><small>Drafts</small><strong>@Model.DraftCount</strong></div>
+    <div class="upcoming"><small>Active / upcoming</small><strong>@Model.UpcomingCount</strong></div>
+    <div><small>Active registrations</small><strong>@Model.ActiveRegistrationCount</strong></div>
+</section>
+
+<section class="admin-panel admin-directory-panel">
+    <form class="admin-filter-bar admin-event-filters" method="get">
+        <label class="admin-search-box"><i class="bi bi-search"></i><input type="search" name="search" value="@Model.Search" maxlength="100" placeholder="Search title, organizer or venue" /></label>
+        <select asp-for="Type"><option value="">All types</option>@foreach (var type in Enum.GetValues<CampusEventType>()){<option value="@((int)type)">@type</option>}</select>
+        <select asp-for="LocationType"><option value="">All formats</option>@foreach (var location in Enum.GetValues<EventLocationType>()){<option value="@((int)location)">@(location == EventLocationType.OnCampus ? "On Campus" : location.ToString())</option>}</select>
+        <select asp-for="Status"><option value="all">All statuses</option><option value="published">Published</option><option value="draft">Draft</option><option value="upcoming">Upcoming</option><option value="ongoing">Ongoing</option><option value="ended">Ended</option></select>
+        <button class="admin-secondary-button" type="submit"><i class="bi bi-funnel"></i>Filter</button>
+        @if (!string.IsNullOrWhiteSpace(Model.Search) || Model.Type.HasValue || Model.LocationType.HasValue || Model.Status != "all") { <a class="admin-text-button" asp-action="Index">Clear</a> }
+    </form>
+
+    <div class="admin-directory-summary"><span>Showing <strong>@Model.Events.Count</strong> of <strong>@Model.FilteredCount</strong> matching events</span><small>Times are shown in Bangladesh Standard Time.</small></div>
+    @if (Model.Events.Count == 0)
+    {
+        <div class="admin-empty admin-empty-large"><i class="bi bi-calendar2-x"></i><h2>No events found</h2><p>Adjust the filters or create the university's first event.</p><a class="admin-primary-button" asp-action="Create"><i class="bi bi-plus-lg"></i>Create event</a></div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-data-table">
+                <thead><tr><th>Event</th><th>Schedule</th><th>Format</th><th>Registrations</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var item in Model.Events)
+                {
+                    var start = item.StartAt.ToOffset(campusOffset);
+                    <tr>
+                        <td data-label="Event"><div class="admin-event-name"><span><i class="bi bi-calendar-event"></i></span><div><strong>@item.Title</strong><small>@item.Type · Event #@item.Id</small></div></div></td>
+                        <td data-label="Schedule"><span class="admin-event-date"><strong>@start.ToString("dd MMM yyyy")</strong><small>@start.ToString("h:mm tt")</small></span></td>
+                        <td data-label="Format"><span class="admin-event-location"><strong>@item.LocationType</strong><small>@item.Location</small></span></td>
+                        <td data-label="Registrations"><span class="admin-event-registration"><strong>@item.RegistrationCount</strong><small>@(item.Capacity.HasValue ? $"of {item.Capacity}" : "open capacity")</small></span></td>
+                        <td data-label="Status"><span class="admin-status-pill @item.StatusClass"><i></i>@item.DisplayStatus</span></td>
+                        <td class="admin-table-actions"><a asp-action="Details" asp-route-id="@item.Id" title="View event"><i class="bi bi-eye"></i></a><a asp-action="Edit" asp-route-id="@item.Id" title="Edit event"><i class="bi bi-pencil"></i></a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="admin-pagination" aria-label="Event pages">
+            <a class="@(Model.Page == 1 ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-type="@Model.Type" asp-route-locationType="@Model.LocationType" asp-route-status="@Model.Status" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i></a>
+            @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++) { <a class="@(pageNumber == Model.Page ? "active" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-type="@Model.Type" asp-route-locationType="@Model.LocationType" asp-route-status="@Model.Status" asp-route-page="@pageNumber">@pageNumber</a> }
+            <a class="@(Model.Page == Model.TotalPages ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-type="@Model.Type" asp-route-locationType="@Model.LocationType" asp-route-status="@Model.Status" asp-route-page="@(Model.Page + 1)"><i class="bi bi-chevron-right"></i></a>
+        </nav>
+    }
+</section>

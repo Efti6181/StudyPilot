@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
 using StudyPilotApp.Data;
+using StudyPilotApp.Filters;
 using StudyPilotApp.Models;
 using StudyPilotApp.Middleware;
 using StudyPilotApp.Options;
@@ -77,6 +78,14 @@ builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<IAcademicProgramService, AcademicProgramService>();
 builder.Services.AddScoped<IAcademicPeriodService, AcademicPeriodService>();
 builder.Services.AddScoped<ICourseCatalogService, CourseCatalogService>();
+builder.Services.AddScoped<IAdminEventService, AdminEventService>();
+builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
+builder.Services.AddScoped<IContentModerationService, ContentModerationService>();
+builder.Services.AddScoped<IAdminReportsService, AdminReportsService>();
+builder.Services.AddScoped<IAdminAuditService, AdminAuditService>();
+builder.Services.AddScoped<IPlatformSettingsService, PlatformSettingsService>();
+builder.Services.AddScoped<AdminAuditActionFilter>();
+builder.Services.AddScoped<PlatformFeatureGateFilter>();
 builder.Services.AddScoped<IRegistrationAuthorizationService, RegistrationAuthorizationService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IAcademicContextService, AcademicContextService>();
@@ -110,7 +119,11 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // MVC
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.AddService<PlatformFeatureGateFilter>();
+    options.Filters.AddService<AdminAuditActionFilter>();
+});
 
 var app = builder.Build();
 
