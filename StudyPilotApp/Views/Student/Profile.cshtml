@@ -101,17 +101,27 @@
                 <div class="card-head">
                     <div>
                         <h2>Academic information</h2>
-                        <p>Your current department, semester and batch</p>
+                        <p>Choose only from departments and programs configured by an administrator</p>
                     </div>
                 </div>
                 <div class="card-body-ui">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label asp-for="Department" class="form-label"></label>
-                            <input asp-for="Department" class="form-control" placeholder="Computer Science & Engineering" />
-                            <span asp-validation-for="Department" class="text-danger small"></span>
+                            <label asp-for="DepartmentId" class="form-label"></label>
+                            <select asp-for="DepartmentId" asp-items="Model.DepartmentOptions" class="form-select"
+                                    data-programs-url="@Url.Action("Programs", "Student")">
+                                <option value="">Select department</option>
+                            </select>
+                            <span asp-validation-for="DepartmentId" class="text-danger small"></span>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
+                            <label asp-for="AcademicProgramId" class="form-label"></label>
+                            <select asp-for="AcademicProgramId" asp-items="Model.ProgramOptions" class="form-select">
+                                <option value="">Select program</option>
+                            </select>
+                            <span asp-validation-for="AcademicProgramId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
                             <label asp-for="Semester" class="form-label"></label>
                             <select asp-for="Semester" class="form-select">
                                 <option value="">Select</option>
@@ -122,7 +132,7 @@
                             </select>
                             <span asp-validation-for="Semester" class="text-danger small"></span>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <label asp-for="Batch" class="form-label"></label>
                             <input asp-for="Batch" class="form-control" placeholder="41st Batch" />
                             <span asp-validation-for="Batch" class="text-danger small"></span>

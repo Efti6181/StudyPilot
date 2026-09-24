@@ -97,6 +97,7 @@ public sealed class AssessmentService : IAssessmentService
     {
         var query = _dbContext.Assessments
             .Include(item => item.Course)
+            .Include(item => item.FacultyAssessment)
             .Where(item => item.Id == assessmentId && item.ApplicationUserId == userId);
 
         return trackChanges

@@ -14,8 +14,17 @@ public class StudentProfile
 
     public ApplicationUser ApplicationUser { get; set; } = null!;
 
+    public int? DepartmentId { get; set; }
+    public Department? DepartmentRecord { get; set; }
+
+    public int? AcademicProgramId { get; set; }
+    public AcademicProgram? AcademicProgram { get; set; }
+
     [StringLength(100)]
     public string? Department { get; set; }
+
+    [StringLength(180)]
+    public string? Program { get; set; }
 
     [Range(1, 12)]
     public int? Semester { get; set; }

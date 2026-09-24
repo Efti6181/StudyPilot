@@ -5,7 +5,7 @@
 }
 
 <div class="page-heading">
-    <div><h1>Edit Assessment</h1><p>Update the deadline, progress, marks, or notes.</p></div>
+    <div><h1>Edit Assessment</h1><p>@(Model.IsFacultyPublished ? "Update only your private progress, study time, marks, and notes." : "Update the deadline, progress, marks, or notes.")</p></div>
     <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>Back</a>
 </div>
 

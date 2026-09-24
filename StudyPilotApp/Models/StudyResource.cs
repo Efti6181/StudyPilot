@@ -14,10 +14,13 @@ public class StudyResource
     public int? CourseId { get; set; }
     public Course? Course { get; set; }
 
+    public int? FacultyResourceId { get; set; }
+    public FacultyResource? FacultyResource { get; set; }
+
     [Required, StringLength(180)]
     public string Title { get; set; } = string.Empty;
 
-    [StringLength(2000)]
+    [StringLength(3000)]
     public string? Description { get; set; }
 
     public ResourceKind Kind { get; set; }

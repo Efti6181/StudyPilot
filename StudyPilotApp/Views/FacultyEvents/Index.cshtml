@@ -1,0 +1,134 @@
+@model StudyPilotApp.ViewModels.FacultyEventIndexViewModel
+@{
+    ViewData["Title"] = "Campus Events";
+    Layout = "/Views/Shared/_FacultyLayout.cshtml";
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+    var campusOffset = TimeSpan.FromHours(6);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/events.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/faculty-events.css" asp-append-version="true" />
+}
+
+<div class="faculty-heading">
+    <div><span>CAMPUS LIFE</span><h1>Campus Events</h1><p>Discover published workshops, seminars, career sessions and university activities.</p></div>
+</div>
+
+@if (TempData["FacultyInfo"] is string info)
+{
+    <div class="faculty-event-alert info"><i class="bi bi-info-circle-fill"></i>@info</div>
+}
+
+<section class="events-hero mb-4">
+    <div>
+        <span class="events-eyebrow">Connect beyond the classroom</span>
+        <h2>Take part in experiences across the university.</h2>
+        <p>Save useful events, reserve your seat, and open registered online sessions securely.</p>
+    </div>
+    <div class="events-hero-stats">
+        <div><strong>@Model.RegisteredCount</strong><span>Registered</span></div>
+        <div><strong>@Model.SavedCount</strong><span>Saved</span></div>
+    </div>
+</section>
+
+<nav class="event-scope-tabs mb-4" aria-label="Event lists">
+    <a class="@(Model.Scope == "upcoming" ? "active" : null)" asp-action="Index" asp-route-scope="upcoming"><i class="bi bi-calendar2-week"></i> Upcoming</a>
+    <a class="@(Model.Scope == "registered" ? "active" : null)" asp-action="Index" asp-route-scope="registered"><i class="bi bi-check2-circle"></i> My registrations <span>@Model.RegisteredCount</span></a>
+    <a class="@(Model.Scope == "saved" ? "active" : null)" asp-action="Index" asp-route-scope="saved"><i class="bi bi-bookmark"></i> Saved <span>@Model.SavedCount</span></a>
+    <a class="@(Model.Scope == "past" ? "active" : null)" asp-action="Index" asp-route-scope="past"><i class="bi bi-clock-history"></i> Past</a>
+</nav>
+
+<section class="faculty-panel faculty-event-filter-panel mb-4">
+    <form asp-action="Index" method="get" class="event-filter-form">
+        <input type="hidden" name="scope" value="@Model.Scope" />
+        <div class="event-search">
+            <i class="bi bi-search"></i>
+            <input name="search" value="@Model.Search" class="form-control" maxlength="100" placeholder="Search events, organizer or venue…" />
+        </div>
+        <select asp-for="Type" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.CampusEventType>()" class="form-select"><option value="">All event types</option></select>
+        <select asp-for="LocationType" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.EventLocationType>()" class="form-select"><option value="">All locations</option></select>
+        <select name="sort" class="form-select">
+            <option value="soonest" selected="@(Model.Sort == "soonest" ? "selected" : null)">Soonest first</option>
+            <option value="popular" selected="@(Model.Sort == "popular" ? "selected" : null)">Most popular</option>
+            <option value="latest" selected="@(Model.Sort == "latest" ? "selected" : null)">Latest date</option>
+            <option value="newest" selected="@(Model.Sort == "newest" ? "selected" : null)">Recently added</option>
+        </select>
+        <button class="faculty-primary" type="submit">Apply</button>
+        <a asp-action="Index" asp-route-scope="@Model.Scope" class="faculty-secondary event-reset" title="Clear filters" aria-label="Clear filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+    </form>
+</section>
+
+<div class="event-result-bar"><span><strong>@Model.TotalEvents</strong> event@(Model.TotalEvents == 1 ? "" : "s") found</span></div>
+
+@if (Model.Events.Count == 0)
+{
+    <section class="faculty-panel faculty-event-empty">
+        <i class="bi bi-calendar2-x"></i><h2>No events found</h2>
+        <p>Try another category, location, scope, or search term.</p>
+        <a asp-action="Index" class="faculty-primary">Browse upcoming events</a>
+    </section>
+}
+else
+{
+    <div class="event-grid">
+        @foreach (var item in Model.Events)
+        {
+            var localStart = item.StartAt.ToOffset(campusOffset);
+            <article class="event-module-card type-@item.Type.ToString().ToLowerInvariant()">
+                <div class="event-card-banner">
+                    <span class="event-date"><strong>@localStart.Day</strong><small>@localStart.ToString("MMM")</small></span>
+                    <span class="event-type"><i class="bi @item.Icon"></i> @item.Type</span>
+                    <form asp-action="ToggleSaved" asp-route-id="@item.Id" method="post" class="ms-auto">
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                        <button type="submit" class="event-save @(item.IsSaved ? "active" : null)" aria-label="@(item.IsSaved ? "Remove saved event" : "Save event")"><i class="bi @(item.IsSaved ? "bi-bookmark-fill" : "bi-bookmark")"></i></button>
+                    </form>
+                </div>
+                <div class="event-card-body">
+                    <h2><a asp-action="Details" asp-route-id="@item.Id">@item.Title</a></h2>
+                    <p>@item.ShortDescription</p>
+                    <div class="event-facts">
+                        <span><i class="bi bi-clock"></i> @localStart.ToString("ddd, dd MMM · hh:mm tt")</span>
+                        <span><i class="bi bi-geo-alt"></i> @item.LocationLabel</span>
+                        <span><i class="bi bi-building"></i> @item.OrganizerName</span>
+                    </div>
+                    @if (item.Capacity.HasValue)
+                    {
+                        <div class="event-capacity">
+                            <div><span>@item.RegistrationCount registered</span><span>@item.SpotsLeft spots left</span></div>
+                            <div class="progress"><div class="progress-bar" style="width:@item.CapacityPercentage%"></div></div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="event-capacity unlimited"><i class="bi bi-people"></i> Open capacity</div>
+                    }
+                </div>
+                <div class="event-card-footer">
+                    @if (item.IsRegistered)
+                    { <span class="registration-badge"><i class="bi bi-check2-circle"></i> Registered</span> }
+                    else if (item.IsFull)
+                    { <span class="registration-badge closed"><i class="bi bi-person-x"></i> Full</span> }
+                    else if (item.RegistrationClosed)
+                    { <span class="registration-badge closed"><i class="bi bi-lock"></i> Closed</span> }
+                    else
+                    { <span class="registration-badge open"><i class="bi bi-door-open"></i> Registration open</span> }
+                    <a asp-action="Details" asp-route-id="@item.Id" class="faculty-secondary faculty-event-small">View details</a>
+                </div>
+            </article>
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="event-pagination" aria-label="Event pages">
+            <a class="faculty-secondary @(Model.Page <= 1 ? "disabled" : null)" asp-action="Index"
+               asp-route-search="@Model.Search" asp-route-type="@Model.Type" asp-route-locationType="@Model.LocationType"
+               asp-route-scope="@Model.Scope" asp-route-sort="@Model.Sort" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i> Previous</a>
+            <span>Page <strong>@Model.Page</strong> of @Model.TotalPages</span>
+            <a class="faculty-secondary @(Model.Page >= Model.TotalPages ? "disabled" : null)" asp-action="Index"
+               asp-route-search="@Model.Search" asp-route-type="@Model.Type" asp-route-locationType="@Model.LocationType"
+               asp-route-scope="@Model.Scope" asp-route-sort="@Model.Sort" asp-route-page="@(Model.Page + 1)">Next <i class="bi bi-chevron-right"></i></a>
+        </nav>
+    }
+}

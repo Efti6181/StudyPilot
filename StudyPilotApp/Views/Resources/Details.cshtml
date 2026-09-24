@@ -10,7 +10,7 @@
     <div><h1>Resource Details</h1><p>Review and access this saved learning material.</p></div>
     <div class="page-actions">
         <a asp-action="Index" class="btn btn-ghost"><i class="bi bi-arrow-left me-2"></i>Resources</a>
-        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary"><i class="bi bi-pencil me-2"></i>Edit</a>
+        @if(!item.IsFacultyPublished){<a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary"><i class="bi bi-pencil me-2"></i>Edit</a>}
     </div>
 </div>
 
@@ -22,7 +22,7 @@
 <section class="resource-detail-hero mb-4">
     <div class="resource-detail-icon"><i class="bi @item.Icon"></i></div>
     <div class="resource-detail-main">
-        <div class="resource-badges"><span>@item.CategoryLabel</span><span class="kind">@item.Kind</span>@if (item.IsFavorite) { <span class="favorite"><i class="bi bi-star-fill"></i> Favorite</span> }</div>
+        <div class="resource-badges"><span>@item.CategoryLabel</span><span class="kind">@item.Kind</span>@if(item.IsFacultyPublished){<span class="kind"><i class="bi bi-person-badge"></i> Faculty</span>}@if (item.IsFavorite) { <span class="favorite"><i class="bi bi-star-fill"></i> Favorite</span> }</div>
         <h2>@item.Title</h2>
         <p>@(string.IsNullOrWhiteSpace(item.Description) ? "No description added." : item.Description)</p>
     </div>
@@ -79,5 +79,5 @@
         <input type="hidden" name="returnUrl" value="@Url.Action("Details", new { id = item.Id })" />
         <button type="submit" class="btn btn-ghost"><i class="bi @(item.IsFavorite ? "bi-star-fill" : "bi-star") me-2"></i>@(item.IsFavorite ? "Remove Favorite" : "Add Favorite")</button>
     </form>
-    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger"><i class="bi bi-trash3 me-2"></i>Delete Resource</a>
+    @if(!item.IsFacultyPublished){<a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger"><i class="bi bi-trash3 me-2"></i>Delete Resource</a>}
 </div>

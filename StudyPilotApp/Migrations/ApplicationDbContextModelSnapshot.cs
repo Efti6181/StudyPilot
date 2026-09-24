@@ -751,8 +751,15 @@ namespace StudyPilotApp.Migrations
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<int?>("FacultyAssessmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Instructions")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
 
                     b.Property<int>("Difficulty")
                         .HasColumnType("integer");
@@ -803,6 +810,10 @@ namespace StudyPilotApp.Migrations
                     b.HasIndex("ApplicationUserId", "Status");
 
                     b.HasIndex("CourseId", "ApplicationUserId");
+
+                    b.HasIndex("FacultyAssessmentId", "CourseId")
+                        .IsUnique()
+                        .HasFilter("\"FacultyAssessmentId\" IS NOT NULL");
 
                     b.ToTable("Assessments");
                 });
@@ -1232,6 +1243,9 @@ namespace StudyPilotApp.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("CatalogCourseId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Color")
                         .HasColumnType("integer");
 
@@ -1256,6 +1270,9 @@ namespace StudyPilotApp.Migrations
                     b.Property<decimal>("CreditHours")
                         .HasPrecision(4, 1)
                         .HasColumnType("numeric(4,1)");
+
+                    b.Property<int?>("FacultyCourseAssignmentId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
@@ -1286,6 +1303,14 @@ namespace StudyPilotApp.Migrations
                     b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("ApplicationUserId", "Status");
+
+                    b.HasIndex("CatalogCourseId");
+
+                    b.HasIndex("FacultyCourseAssignmentId");
+
+                    b.HasIndex("ApplicationUserId", "FacultyCourseAssignmentId")
+                        .IsUnique()
+                        .HasFilter("\"FacultyCourseAssignmentId\" IS NOT NULL");
 
                     b.HasIndex("ApplicationUserId", "CourseCode", "Semester", "AcademicTerm", "AcademicYear")
                         .IsUnique();
@@ -1430,6 +1455,189 @@ namespace StudyPilotApp.Migrations
                     b.ToTable("EventRegistrations");
                 });
 
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyAnnouncement", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("integer");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<DateTimeOffset?>("ArchivedAt").HasColumnType("timestamp with time zone");
+                    b.Property<string>("Content").IsRequired().HasMaxLength(5000).HasColumnType("character varying(5000)");
+                    b.Property<DateTimeOffset>("CreatedAt").ValueGeneratedOnAdd().HasColumnType("timestamp with time zone").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    b.Property<DateTimeOffset?>("ExpiresAt").HasColumnType("timestamp with time zone");
+                    b.Property<int>("FacultyCourseAssignmentId").HasColumnType("integer");
+                    b.Property<int>("Priority").HasColumnType("integer");
+                    b.Property<DateTimeOffset?>("PublishedAt").HasColumnType("timestamp with time zone");
+                    b.Property<int>("Status").HasColumnType("integer");
+                    b.Property<string>("Summary").IsRequired().HasMaxLength(320).HasColumnType("character varying(320)");
+                    b.Property<string>("Title").IsRequired().HasMaxLength(180).HasColumnType("character varying(180)");
+                    b.Property<DateTimeOffset?>("UpdatedAt").HasColumnType("timestamp with time zone");
+                    b.HasKey("Id");
+                    b.HasIndex("FacultyCourseAssignmentId", "Status", "CreatedAt");
+                    b.ToTable("FacultyAnnouncements");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyAnnouncementRecipient", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("integer");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<string>("ApplicationUserId").IsRequired().HasColumnType("text");
+                    b.Property<int>("CourseId").HasColumnType("integer");
+                    b.Property<DateTimeOffset>("DeliveredAt").ValueGeneratedOnAdd().HasColumnType("timestamp with time zone").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    b.Property<int>("FacultyAnnouncementId").HasColumnType("integer");
+                    b.Property<bool>("IsRead").HasColumnType("boolean");
+                    b.Property<DateTimeOffset?>("ReadAt").HasColumnType("timestamp with time zone");
+                    b.HasKey("Id");
+                    b.HasIndex("CourseId", "ApplicationUserId");
+                    b.HasIndex("ApplicationUserId", "IsRead", "DeliveredAt");
+                    b.HasIndex("FacultyAnnouncementId", "CourseId").IsUnique();
+                    b.ToTable("FacultyAnnouncementRecipients");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyCourseAssignment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicPeriodId").HasColumnType("integer");
+                    b.Property<DateTimeOffset>("AssignedAt").ValueGeneratedOnAdd().HasColumnType("timestamp with time zone").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    b.Property<int>("CatalogCourseId").HasColumnType("integer");
+                    b.Property<string>("CourseOverview").HasMaxLength(1500).HasColumnType("character varying(1500)");
+                    b.Property<int>("FacultyProfileId").HasColumnType("integer");
+                    b.Property<bool>("IsActive").ValueGeneratedOnAdd().HasColumnType("boolean").HasDefaultValue(true);
+                    b.Property<string>("Section").IsRequired().HasMaxLength(30).HasColumnType("character varying(30)");
+                    b.Property<DateTimeOffset?>("UpdatedAt").HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+                    b.HasIndex("AcademicPeriodId");
+                    b.HasIndex("CatalogCourseId", "AcademicPeriodId");
+                    b.HasIndex("FacultyProfileId", "IsActive");
+                    b.HasIndex("FacultyProfileId", "CatalogCourseId", "AcademicPeriodId", "Section").IsUnique();
+                    b.ToTable("FacultyCourseAssignments");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyAssessment", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("integer");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<DateOnly>("AssignedDate").HasColumnType("date");
+                    b.Property<string>("AttachmentContentType").HasMaxLength(100).HasColumnType("character varying(100)");
+                    b.Property<byte[]>("AttachmentData").HasMaxLength(5242880).HasColumnType("bytea");
+                    b.Property<string>("AttachmentFileName").HasMaxLength(255).HasColumnType("character varying(255)");
+                    b.Property<DateTimeOffset?>("ClosedAt").HasColumnType("timestamp with time zone");
+                    b.Property<DateTimeOffset>("CreatedAt").ValueGeneratedOnAdd().HasColumnType("timestamp with time zone").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    b.Property<string>("Description").HasMaxLength(4000).HasColumnType("character varying(4000)");
+                    b.Property<int>("Difficulty").HasColumnType("integer");
+                    b.Property<DateTime>("DueDate").HasColumnType("timestamp without time zone");
+                    b.Property<int>("FacultyCourseAssignmentId").HasColumnType("integer");
+                    b.Property<string>("Instructions").HasMaxLength(4000).HasColumnType("character varying(4000)");
+                    b.Property<DateTimeOffset?>("PublishedAt").HasColumnType("timestamp with time zone");
+                    b.Property<int>("Status").HasColumnType("integer");
+                    b.Property<string>("Title").IsRequired().HasMaxLength(160).HasColumnType("character varying(160)");
+                    b.Property<decimal?>("TotalMarks").HasPrecision(10, 2).HasColumnType("numeric(10,2)");
+                    b.Property<int>("Type").HasColumnType("integer");
+                    b.Property<DateTimeOffset?>("UpdatedAt").HasColumnType("timestamp with time zone");
+                    b.Property<decimal?>("WeightPercentage").HasPrecision(5, 2).HasColumnType("numeric(5,2)");
+                    b.HasKey("Id");
+                    b.HasIndex("FacultyCourseAssignmentId", "Status", "DueDate");
+                    b.ToTable("FacultyAssessments");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyResource", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("integer");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<DateTimeOffset?>("ArchivedAt").HasColumnType("timestamp with time zone");
+                    b.Property<int>("Category").HasColumnType("integer");
+                    b.Property<string>("ContentType").HasMaxLength(150).HasColumnType("character varying(150)");
+                    b.Property<DateTimeOffset>("CreatedAt").ValueGeneratedOnAdd().HasColumnType("timestamp with time zone").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    b.Property<string>("Description").HasMaxLength(3000).HasColumnType("character varying(3000)");
+                    b.Property<string>("ExternalUrl").HasMaxLength(2048).HasColumnType("character varying(2048)");
+                    b.Property<int>("FacultyCourseAssignmentId").HasColumnType("integer");
+                    b.Property<long?>("FileSizeBytes").HasColumnType("bigint");
+                    b.Property<int>("Kind").HasColumnType("integer");
+                    b.Property<string>("OriginalFileName").HasMaxLength(260).HasColumnType("character varying(260)");
+                    b.Property<DateTimeOffset?>("PublishedAt").HasColumnType("timestamp with time zone");
+                    b.Property<int>("Status").HasColumnType("integer");
+                    b.Property<string>("StoredFileName").HasMaxLength(120).HasColumnType("character varying(120)");
+                    b.Property<string>("Tags").HasMaxLength(500).HasColumnType("character varying(500)");
+                    b.Property<string>("Title").IsRequired().HasMaxLength(180).HasColumnType("character varying(180)");
+                    b.Property<DateTimeOffset?>("UpdatedAt").HasColumnType("timestamp with time zone");
+                    b.HasKey("Id");
+                    b.HasIndex("FacultyCourseAssignmentId", "Status", "CreatedAt");
+                    b.ToTable("FacultyResources");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyAnnouncement", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.FacultyCourseAssignment", "FacultyCourseAssignment")
+                        .WithMany("Announcements")
+                        .HasForeignKey("FacultyCourseAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                    b.Navigation("FacultyCourseAssignment");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyAnnouncementRecipient", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                    b.HasOne("StudyPilotApp.Models.Course", "Course")
+                        .WithMany("FacultyAnnouncementRecipients")
+                        .HasForeignKey("CourseId", "ApplicationUserId")
+                        .HasPrincipalKey("Id", "ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                    b.HasOne("StudyPilotApp.Models.FacultyAnnouncement", "FacultyAnnouncement")
+                        .WithMany("Recipients")
+                        .HasForeignKey("FacultyAnnouncementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                    b.Navigation("ApplicationUser");
+                    b.Navigation("Course");
+                    b.Navigation("FacultyAnnouncement");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyCourseAssignment", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.AcademicPeriod", "AcademicPeriod")
+                        .WithMany("FacultyCourseAssignments")
+                        .HasForeignKey("AcademicPeriodId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.HasOne("StudyPilotApp.Models.CatalogCourse", "CatalogCourse")
+                        .WithMany("FacultyAssignments")
+                        .HasForeignKey("CatalogCourseId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.HasOne("StudyPilotApp.Models.FacultyProfile", "FacultyProfile")
+                        .WithMany("CourseAssignments")
+                        .HasForeignKey("FacultyProfileId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.Navigation("AcademicPeriod");
+                    b.Navigation("CatalogCourse");
+                    b.Navigation("FacultyProfile");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyAssessment", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.FacultyCourseAssignment", "FacultyCourseAssignment")
+                        .WithMany("Assessments")
+                        .HasForeignKey("FacultyCourseAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                    b.Navigation("FacultyCourseAssignment");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyResource", b =>
+                {
+                    b.HasOne("StudyPilotApp.Models.FacultyCourseAssignment", "FacultyCourseAssignment")
+                        .WithMany("Resources")
+                        .HasForeignKey("FacultyCourseAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                    b.Navigation("FacultyCourseAssignment");
+                });
+
             modelBuilder.Entity("StudyPilotApp.Models.FacultyProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -1447,15 +1655,29 @@ namespace StudyPilotApp.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<string>("Bio").HasMaxLength(1000).HasColumnType("character varying(1000)");
+                    b.Property<int?>("DepartmentId").HasColumnType("integer");
+                    b.Property<string>("Designation").HasMaxLength(100).HasColumnType("character varying(100)");
+
                     b.Property<string>("FacultyId")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("OfficeHours").HasMaxLength(250).HasColumnType("character varying(250)");
+                    b.Property<string>("OfficeLocation").HasMaxLength(150).HasColumnType("character varying(150)");
+                    b.Property<string>("PhoneNumber").HasMaxLength(20).HasColumnType("character varying(20)");
+                    b.Property<string>("ProfileImageContentType").HasMaxLength(50).HasColumnType("character varying(50)");
+                    b.Property<byte[]>("ProfileImageData").HasMaxLength(2097152).HasColumnType("bytea");
+                    b.Property<string>("TeachingInterests").HasMaxLength(1000).HasColumnType("character varying(1000)");
+                    b.Property<DateTimeOffset?>("UpdatedAt").HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
+
+                    b.HasIndex("DepartmentId");
 
                     b.HasIndex("FacultyId")
                         .IsUnique();
@@ -1713,6 +1935,9 @@ namespace StudyPilotApp.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("AcademicProgramId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Batch")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
@@ -1741,6 +1966,9 @@ namespace StudyPilotApp.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Gender")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
@@ -1761,6 +1989,10 @@ namespace StudyPilotApp.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("Program")
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)");
+
                     b.Property<byte[]>("ProfileImageData")
                         .HasMaxLength(2097152)
                         .HasColumnType("bytea");
@@ -1780,6 +2012,10 @@ namespace StudyPilotApp.Migrations
 
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
+
+                    b.HasIndex("AcademicProgramId");
+
+                    b.HasIndex("DepartmentId");
 
                     b.HasIndex("StudentId")
                         .IsUnique();
@@ -1976,8 +2212,8 @@ namespace StudyPilotApp.Migrations
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasMaxLength(3000)
+                        .HasColumnType("character varying(3000)");
 
                     b.Property<string>("ExternalUrl")
                         .HasMaxLength(2048)
@@ -1985,6 +2221,9 @@ namespace StudyPilotApp.Migrations
 
                     b.Property<long?>("FileSizeBytes")
                         .HasColumnType("bigint");
+
+                    b.Property<int?>("FacultyResourceId")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsFavorite")
                         .HasColumnType("boolean");
@@ -2023,6 +2262,10 @@ namespace StudyPilotApp.Migrations
                     b.HasIndex("ApplicationUserId", "IsFavorite");
 
                     b.HasIndex("CourseId", "ApplicationUserId");
+
+                    b.HasIndex("FacultyResourceId", "CourseId")
+                        .IsUnique()
+                        .HasFilter("\"FacultyResourceId\" IS NOT NULL");
 
                     b.ToTable("StudyResources");
                 });
@@ -2237,6 +2480,11 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("Department");
                 });
 
+            modelBuilder.Entity("StudyPilotApp.Models.AcademicPeriod", b =>
+                {
+                    b.Navigation("FacultyCourseAssignments");
+                });
+
             modelBuilder.Entity("StudyPilotApp.Models.Assessment", b =>
                 {
                     b.HasOne("StudyPilotApp.Models.Course", "Course")
@@ -2246,7 +2494,14 @@ namespace StudyPilotApp.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("StudyPilotApp.Models.FacultyAssessment", "FacultyAssessment")
+                        .WithMany("StudentAssessments")
+                        .HasForeignKey("FacultyAssessmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Course");
+
+                    b.Navigation("FacultyAssessment");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.CampusEvent", b =>
@@ -2365,7 +2620,28 @@ namespace StudyPilotApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("StudyPilotApp.Models.CatalogCourse", "CatalogCourse")
+                        .WithMany("StudentCourses")
+                        .HasForeignKey("CatalogCourseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("StudyPilotApp.Models.FacultyCourseAssignment", "FacultyCourseAssignment")
+                        .WithMany("StudentCourses")
+                        .HasForeignKey("FacultyCourseAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("ApplicationUser");
+
+                    b.Navigation("CatalogCourse");
+
+                    b.Navigation("FacultyCourseAssignment");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.CatalogCourse", b =>
+                {
+                    b.Navigation("FacultyAssignments");
+
+                    b.Navigation("StudentCourses");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.CourseGrade", b =>
@@ -2428,7 +2704,14 @@ namespace StudyPilotApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("StudyPilotApp.Models.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("ApplicationUser");
+
+                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.GradingScaleEntry", b =>
@@ -2491,7 +2774,21 @@ namespace StudyPilotApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("StudyPilotApp.Models.AcademicProgram", "AcademicProgram")
+                        .WithMany("StudentProfiles")
+                        .HasForeignKey("AcademicProgramId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("StudyPilotApp.Models.Department", "DepartmentRecord")
+                        .WithMany("StudentProfiles")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("ApplicationUser");
+
+                    b.Navigation("AcademicProgram");
+
+                    b.Navigation("DepartmentRecord");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.SmartStudyPlan", b =>
@@ -2541,9 +2838,16 @@ namespace StudyPilotApp.Migrations
                         .HasPrincipalKey("Id", "ApplicationUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("StudyPilotApp.Models.FacultyResource", "FacultyResource")
+                        .WithMany("StudentResources")
+                        .HasForeignKey("FacultyResourceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("ApplicationUser");
 
                     b.Navigation("Course");
+
+                    b.Navigation("FacultyResource");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.UniversityMember", b =>
@@ -2587,6 +2891,8 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("AuthorizedMembers");
 
                     b.Navigation("CatalogCourses");
+
+                    b.Navigation("StudentProfiles");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.CampusEvent", b =>
@@ -2614,6 +2920,8 @@ namespace StudyPilotApp.Migrations
 
                     b.Navigation("CourseGrades");
 
+                    b.Navigation("FacultyAnnouncementRecipients");
+
                     b.Navigation("PriorityPreference");
 
                     b.Navigation("Resources");
@@ -2626,6 +2934,39 @@ namespace StudyPilotApp.Migrations
                     b.Navigation("CatalogCourses");
 
                     b.Navigation("Programs");
+
+                    b.Navigation("StudentProfiles");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyProfile", b =>
+                {
+                    b.Navigation("CourseAssignments");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyCourseAssignment", b =>
+                {
+                    b.Navigation("Announcements");
+
+                    b.Navigation("Assessments");
+
+                    b.Navigation("Resources");
+
+                    b.Navigation("StudentCourses");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyAssessment", b =>
+                {
+                    b.Navigation("StudentAssessments");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyAnnouncement", b =>
+                {
+                    b.Navigation("Recipients");
+                });
+
+            modelBuilder.Entity("StudyPilotApp.Models.FacultyResource", b =>
+                {
+                    b.Navigation("StudentResources");
                 });
 
             modelBuilder.Entity("StudyPilotApp.Models.SemesterResult", b =>

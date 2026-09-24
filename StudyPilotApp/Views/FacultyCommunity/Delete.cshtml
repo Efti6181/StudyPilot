@@ -1,0 +1,5 @@
+@model FacultyCommunityDeleteViewModel
+@{ ViewData["Title"] = "Delete Community Post"; Layout = "/Views/Shared/_FacultyLayout.cshtml"; }
+@section Styles { <link rel="stylesheet" href="~/css/faculty-community.css" asp-append-version="true" /> }
+<section class="faculty-heading"><div><a class="faculty-back" asp-action="Details" asp-route-id="@Model.Post.Id"><i class="bi bi-arrow-left"></i>Discussion</a><h1>Delete Community Post</h1><p>This removes the discussion, comments, and likes.</p></div></section>
+<section class="faculty-panel faculty-community-delete-panel"><span><i class="bi bi-trash3"></i></span><h2>Delete “@Model.Post.Title”?</h2><p>This action cannot be undone.</p><form asp-action="Delete" asp-route-id="@Model.Post.Id" method="post"><a class="faculty-secondary" asp-action="Details" asp-route-id="@Model.Post.Id">Keep post</a><button class="faculty-community-delete" type="submit"><i class="bi bi-trash3"></i>Delete permanently</button></form></section>

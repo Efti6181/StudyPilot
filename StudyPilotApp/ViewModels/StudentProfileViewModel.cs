@@ -1,13 +1,25 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
 namespace StudyPilotApp.ViewModels;
 
 public class StudentProfileViewModel : StudentShellViewModel
 {
-    [Required(ErrorMessage = "Please enter your department.")]
-    [StringLength(100)]
+    [Required(ErrorMessage = "Please select your department.")]
+    [Display(Name = "Department")]
+    public int? DepartmentId { get; set; }
+
+    [Required(ErrorMessage = "Please select your academic program.")]
+    [Display(Name = "Program")]
+    public int? AcademicProgramId { get; set; }
+
+    public IReadOnlyList<SelectListItem> DepartmentOptions { get; set; } = [];
+    public IReadOnlyList<SelectListItem> ProgramOptions { get; set; } = [];
+
     public string Department { get; set; } = string.Empty;
+
+    public string Program { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Please select your semester.")]
     [Range(1, 12, ErrorMessage = "Please select a valid semester.")]

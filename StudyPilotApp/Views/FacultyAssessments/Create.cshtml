@@ -1,0 +1,5 @@
+@model FacultyAssessmentFormViewModel
+@{ViewData["Title"]="Create Assessment";Layout="/Views/Shared/_FacultyLayout.cshtml";}
+<section class="faculty-heading"><div><a class="faculty-back" asp-action="Index"><i class="bi bi-arrow-left"></i>Assessments</a><h1>Create assessment draft</h1><p>Students receive it only after you review and publish it.</p></div></section>
+<form class="faculty-panel faculty-assessment-form" asp-action="Create" method="post" enctype="multipart/form-data" novalidate><partial name="_Form" model="Model"/><footer><a class="faculty-secondary" asp-action="Index">Cancel</a><button class="faculty-primary" type="submit">Save draft</button></footer></form>
+@section Scripts{<partial name="_ValidationScriptsPartial"/>}

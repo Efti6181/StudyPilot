@@ -106,7 +106,7 @@ public sealed class AcademicAIController : Controller
 
         await _conversationService.AddExchangeAsync(conversation, input.Prompt, result);
         if (result.IsFallback)
-            TempData["AIInfo"] = "The external AI provider was unavailable, so StudyPilot used its deterministic fallback.";
+            TempData["AIInfo"] = BuildProviderMessage(result.ErrorCode);
 
         return RedirectToAction(nameof(Index), new { conversationId = conversation.Id });
     }
@@ -210,6 +210,23 @@ public sealed class AcademicAIController : Controller
             ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
         return title[..Math.Min(title.Length, 80)];
     }
+
+    private static string BuildProviderMessage(string? errorCode) => errorCode switch
+    {
+        "not_configured" => "Gemini is not configured. Verify AcademicAI user secrets and restart StudyPilot.",
+        "api_key_rejected" => "Gemini rejected the API key. Create a new private key in Google AI Studio, update user secrets, and restart StudyPilot.",
+        "model_unavailable" => "The configured Gemini model is unavailable to this API project. StudyPilot also tried its compatible fallback models.",
+        "quota_exceeded" => "The Gemini API quota or rate limit was reached. Wait for the quota window to reset or review the project quota in Google AI Studio.",
+        "timeout" => "Gemini did not respond before the configured timeout. StudyPilot used its deterministic fallback.",
+        "network_error" => "StudyPilot could not reach the Gemini API. Check the internet connection, firewall, proxy, and system time.",
+        "request_rejected" => "Gemini rejected the request configuration. Check the configured model and application logs.",
+        "invalid_response" => "Gemini returned an unreadable response. Check the application logs and try again.",
+        "provider_busy" => "Gemini is temporarily busy. Wait briefly and try again.",
+        "output_limit" => "Gemini used its response limit before producing usable text. StudyPilot increased the chat allowance; retry this request.",
+        "safety_block" => "Gemini blocked this response for safety or recitation reasons. Rephrase the request and avoid asking for copied answers or restricted content.",
+        "empty_response" => "Gemini returned no usable text, so StudyPilot used its deterministic fallback.",
+        _ => "The external AI provider was unavailable, so StudyPilot used its deterministic fallback."
+    };
 
     private static string CreateInitials(string value)
     {

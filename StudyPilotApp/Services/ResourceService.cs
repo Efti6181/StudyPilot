@@ -14,7 +14,7 @@ public sealed class ResourceService : IResourceService
     {
         ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx",
         ".txt", ".md", ".zip", ".png", ".jpg", ".jpeg", ".gif", ".webp",
-        ".cs", ".java", ".py", ".js", ".html", ".css"
+        ".cs", ".java", ".py", ".js", ".html", ".css", ".csv", ".json", ".xml"
     };
 
     private readonly ApplicationDbContext _dbContext;
@@ -89,6 +89,7 @@ public sealed class ResourceService : IResourceService
     {
         var query = _dbContext.StudyResources
             .Include(item => item.Course)
+            .Include(item => item.FacultyResource)
             .Where(item => item.Id == resourceId && item.ApplicationUserId == userId);
 
         return trackChanges

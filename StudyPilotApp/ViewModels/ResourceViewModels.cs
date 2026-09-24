@@ -39,6 +39,8 @@ public sealed class ResourceCardViewModel
     public string? CourseName { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
+    public int? FacultyResourceId { get; set; }
+    public bool IsFacultyPublished => FacultyResourceId.HasValue;
 
     public string CategoryLabel => Category switch
     {
@@ -82,6 +84,7 @@ public sealed class ResourceCardViewModel
 public sealed class ResourceFormViewModel : StudentShellViewModel
 {
     public int? Id { get; set; }
+    public bool IsFacultyPublished { get; set; }
 
     [Required(ErrorMessage = "Please enter a resource title.")]
     [StringLength(180, MinimumLength = 2)]

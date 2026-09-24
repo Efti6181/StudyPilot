@@ -8,7 +8,7 @@
 @section Styles { <link rel="stylesheet" href="~/css/community.css" asp-append-version="true" /> }
 
 <div class="page-heading">
-    <div><h1>Student Community</h1><p>Learn together, ask questions and share useful academic experience.</p></div>
+    <div><h1>StudyPilot Community</h1><p>Learn together with students and verified Faculty members.</p></div>
     <a asp-action="Create" class="btn btn-primary"><i class="bi bi-pencil-square me-2"></i>Create Post</a>
 </div>
 
@@ -19,9 +19,9 @@
 
 <section class="community-hero mb-4">
     <div>
-        <span>StudyPilot Student Network</span>
+        <span>StudyPilot Academic Network</span>
         <h2>Someone else may have the answer you need.</h2>
-        <p>Keep discussions respectful, specific and helpful to the student community.</p>
+        <p>Keep discussions respectful, specific and helpful to the university community.</p>
     </div>
     <div class="community-hero-icon"><i class="bi bi-people-fill"></i></div>
 </section>
@@ -78,7 +78,7 @@ else
                 <div class="post-author-row">
                     <span class="community-avatar">@post.AuthorInitials</span>
                     <div>
-                        <strong>@post.AuthorName</strong>
+                        <strong>@post.AuthorName @if (post.IsFacultyAuthor) { <span class="community-role-badge"><i class="bi bi-patch-check-fill"></i> Faculty</span> }</strong>
                         <small>@post.CreatedAt.ToString("dd MMM yyyy · hh:mm tt") @if (post.UpdatedAt.HasValue) { <span>· Edited</span> }</small>
                     </div>
                     <span class="community-category category-@post.Category.ToString().ToLowerInvariant()">@post.CategoryLabel</span>

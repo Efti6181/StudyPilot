@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using StudyPilotApp.Areas.Admin.ViewModels;
+using StudyPilotApp.Data;
 using StudyPilotApp.Models;
 using StudyPilotApp.Services;
 
@@ -15,13 +17,16 @@ public sealed class CourseCatalogController : Controller
     private const int PageSize = 10;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ICourseCatalogService _catalogService;
+    private readonly ApplicationDbContext _dbContext;
 
     public CourseCatalogController(
         UserManager<ApplicationUser> userManager,
-        ICourseCatalogService catalogService)
+        ICourseCatalogService catalogService,
+        ApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _catalogService = catalogService;
+        _dbContext = dbContext;
     }
 
     [HttpGet]
@@ -85,6 +90,7 @@ public sealed class CourseCatalogController : Controller
         var item = await _catalogService.GetAsync(id, cancellationToken);
         if (item is null) return NotFound();
         var model = ToDetails(item);
+        await PopulateFacultyAssignmentsAsync(model, cancellationToken);
         PopulateShell(model, admin);
         return View(model);
     }
@@ -190,6 +196,67 @@ public sealed class CourseCatalogController : Controller
         return RedirectToAction(nameof(Details), new { id });
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AssignFaculty(
+        int id, int facultyProfileId, int academicPeriodId, string section,
+        CancellationToken cancellationToken)
+    {
+        section = (section ?? string.Empty).Trim().ToUpperInvariant();
+        if (section.Length is < 1 or > 30 || section.Any(character =>
+                !char.IsLetterOrDigit(character) && character != '-' && character != ' '))
+        {
+            TempData["AdminError"] = "Enter a valid section using letters, numbers, spaces, or hyphens.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+        var courseExists = await _dbContext.CatalogCourses.AnyAsync(item => item.Id == id && item.IsActive, cancellationToken);
+        var facultyExists = await _dbContext.FacultyProfiles.AnyAsync(item => item.Id == facultyProfileId && item.ApplicationUser.IsActive, cancellationToken);
+        var periodExists = await _dbContext.AcademicPeriods.AnyAsync(item => item.Id == academicPeriodId && item.IsActive, cancellationToken);
+        if (!courseExists || !facultyExists || !periodExists)
+        {
+            TempData["AdminError"] = "Select a valid active course, faculty member, and academic term.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+        var existing = await _dbContext.FacultyCourseAssignments.SingleOrDefaultAsync(item =>
+            item.FacultyProfileId == facultyProfileId && item.CatalogCourseId == id &&
+            item.AcademicPeriodId == academicPeriodId && item.Section == section, cancellationToken);
+        if (existing is not null)
+        {
+            if (existing.IsActive)
+            {
+                TempData["AdminError"] = "This active faculty assignment already exists.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            existing.IsActive = true;
+            existing.UpdatedAt = DateTimeOffset.UtcNow;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            TempData["AdminSuccess"] = "The existing faculty assignment was reactivated.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+        _dbContext.FacultyCourseAssignments.Add(new FacultyCourseAssignment
+        {
+            FacultyProfileId = facultyProfileId, CatalogCourseId = id,
+            AcademicPeriodId = academicPeriodId, Section = section
+        });
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        TempData["AdminSuccess"] = "Faculty assigned to the course successfully.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SetFacultyAssignmentStatus(int id, int assignmentId, bool isActive, CancellationToken cancellationToken)
+    {
+        var assignment = await _dbContext.FacultyCourseAssignments
+            .SingleOrDefaultAsync(item => item.Id == assignmentId && item.CatalogCourseId == id, cancellationToken);
+        if (assignment is null) return NotFound();
+        assignment.IsActive = isActive;
+        assignment.UpdatedAt = DateTimeOffset.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        TempData["AdminSuccess"] = isActive ? "Faculty assignment activated." : "Faculty assignment deactivated. Existing Student records are preserved.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
     [HttpGet]
     public async Task<IActionResult> Programs(int departmentId, CancellationToken cancellationToken)
     {
@@ -211,6 +278,51 @@ public sealed class CourseCatalogController : Controller
         model.ProgramOptions = programs.Select(item => new SelectListItem(
             $"{item.Code} — {item.Name}{(item.IsActive ? string.Empty : " (Inactive)")}",
             item.Id.ToString(), item.Id == model.ProgramId)).ToList();
+    }
+
+    private async Task PopulateFacultyAssignmentsAsync(CourseCatalogDetailsViewModel model, CancellationToken cancellationToken)
+    {
+        var assignmentRows = await _dbContext.FacultyCourseAssignments.AsNoTracking()
+            .Where(item => item.CatalogCourseId == model.Id)
+            .OrderByDescending(item => item.AcademicPeriod.IsCurrent)
+            .ThenBy(item => item.Section)
+            .Select(item => new
+            {
+                item.Id,
+                FacultyName = item.FacultyProfile.ApplicationUser.FullName,
+                item.FacultyProfile.FacultyId,
+                Department = item.FacultyProfile.Department == null ? "Not assigned" : item.FacultyProfile.Department.Code,
+                item.AcademicPeriod.Term,
+                item.AcademicPeriod.AcademicYear,
+                item.Section,
+                item.IsActive
+            }).ToListAsync(cancellationToken);
+        model.FacultyAssignments = assignmentRows.Select(item => new FacultyCourseAssignmentAdminViewModel
+        {
+            Id = item.Id,
+            FacultyName = item.FacultyName,
+            FacultyId = item.FacultyId,
+            Department = item.Department,
+            Period = $"{item.Term} {item.AcademicYear}",
+            Section = item.Section,
+            IsActive = item.IsActive
+        }).ToList();
+        var facultyOptions = await _dbContext.FacultyProfiles.AsNoTracking()
+            .Where(item => item.ApplicationUser.IsActive)
+            .OrderBy(item => item.ApplicationUser.FullName)
+            .Select(item => new { item.Id, item.FacultyId, item.ApplicationUser.FullName })
+            .ToListAsync(cancellationToken);
+        model.FacultyOptions = facultyOptions.Select(item => new SelectListItem(
+            $"{item.FacultyId} — {item.FullName}", item.Id.ToString())).ToList();
+
+        var periodOptions = await _dbContext.AcademicPeriods.AsNoTracking()
+            .Where(item => item.IsActive)
+            .OrderByDescending(item => item.IsCurrent).ThenByDescending(item => item.AcademicYear)
+            .Select(item => new { item.Id, item.Term, item.AcademicYear, item.IsCurrent })
+            .ToListAsync(cancellationToken);
+        model.AcademicPeriodOptions = periodOptions.Select(item => new SelectListItem(
+            $"{item.Term} {item.AcademicYear}{(item.IsCurrent ? " (Current)" : string.Empty)}",
+            item.Id.ToString())).ToList();
     }
 
     private void ValidateEnums(CourseCatalogFormViewModel model)

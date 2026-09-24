@@ -63,6 +63,20 @@ public sealed class CourseCatalogDetailsViewModel : AdminShellViewModel
     public bool IsActive { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
+    public IReadOnlyList<FacultyCourseAssignmentAdminViewModel> FacultyAssignments { get; set; } = [];
+    public IReadOnlyList<SelectListItem> FacultyOptions { get; set; } = [];
+    public IReadOnlyList<SelectListItem> AcademicPeriodOptions { get; set; } = [];
+}
+
+public sealed class FacultyCourseAssignmentAdminViewModel
+{
+    public int Id { get; set; }
+    public string FacultyName { get; set; } = string.Empty;
+    public string FacultyId { get; set; } = string.Empty;
+    public string Department { get; set; } = string.Empty;
+    public string Period { get; set; } = string.Empty;
+    public string Section { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
 }
 
 public sealed class CourseCatalogFormViewModel : AdminShellViewModel
@@ -96,6 +110,7 @@ public sealed class CourseCatalogFormViewModel : AdminShellViewModel
     [Display(Name = "Course type")]
     public CourseType? CourseType { get; set; }
 
+    [Required(ErrorMessage = "Select the semester students should receive from the catalog.")]
     [Range(1, 12)]
     [Display(Name = "Recommended semester")]
     public int? RecommendedSemester { get; set; }

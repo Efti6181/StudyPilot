@@ -59,9 +59,10 @@ public sealed class CommunityController : Controller
                 user.Id, search, category, sort, myPostsOnly, page, PageSize);
         }
 
+        var facultyIds = await GetFacultyUserIdsAsync(result.Items.Select(post => post.ApplicationUserId));
         var model = new CommunityIndexViewModel
         {
-            Posts = result.Items.Select(post => ToCard(post, user.Id)).ToList(),
+            Posts = result.Items.Select(post => ToCard(post, user.Id, facultyIds)).ToList(),
             Search = search,
             Category = category,
             Sort = sort,
@@ -82,7 +83,9 @@ public sealed class CommunityController : Controller
         var post = await _communityService.GetPostAsync(id);
         if (post is null) return NotFound();
 
-        var model = ToDetails(post, user.Id);
+        var facultyIds = await GetFacultyUserIdsAsync(
+            post.Comments.Select(comment => comment.ApplicationUserId).Append(post.ApplicationUserId));
+        var model = ToDetails(post, user.Id, facultyIds);
         if (!await PopulateShellAsync(model, user)) return MissingStudentProfile();
         return View(model);
     }
@@ -176,7 +179,10 @@ public sealed class CommunityController : Controller
         var post = await _communityService.GetPostAsync(id);
         if (post is null || post.ApplicationUserId != user.Id) return NotFound();
 
-        var model = new CommunityDeleteViewModel { Post = ToCard(post, user.Id) };
+        var model = new CommunityDeleteViewModel
+        {
+            Post = ToCard(post, user.Id, new HashSet<string>(StringComparer.Ordinal))
+        };
         if (!await PopulateShellAsync(model, user)) return MissingStudentProfile();
         return View(model);
     }
@@ -226,7 +232,7 @@ public sealed class CommunityController : Controller
                 "New comment on your post",
                 $"{DisplayName(user)} commented on “{post.Title}”.",
                 NotificationType.Community,
-                $"/Community/Details/{postId}");
+                await DetailsUrlForUserAsync(post.ApplicationUserId, postId));
         }
         return RedirectToAction(nameof(Details), new { id = postId });
     }
@@ -307,7 +313,7 @@ public sealed class CommunityController : Controller
                 "Someone liked your post",
                 $"{DisplayName(user)} liked “{post.Title}”.",
                 NotificationType.Community,
-                $"/Community/Details/{id}");
+                await DetailsUrlForUserAsync(post.ApplicationUserId, id));
         }
 
         if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl)) return LocalRedirect(returnUrl);
@@ -334,9 +340,12 @@ public sealed class CommunityController : Controller
         }
     }
 
-    private static CommunityDetailsViewModel ToDetails(CommunityPost post, string userId) => new()
+    private static CommunityDetailsViewModel ToDetails(
+        CommunityPost post,
+        string userId,
+        IReadOnlySet<string> facultyIds) => new()
     {
-        Post = ToCard(post, userId),
+        Post = ToCard(post, userId, facultyIds),
         Comments = post.Comments
             .OrderBy(comment => comment.CreatedAt)
             .Select(comment => new CommunityCommentViewModel
@@ -349,11 +358,15 @@ public sealed class CommunityController : Controller
                 UpdatedAt = comment.UpdatedAt,
                 LikeCount = comment.Likes.Count,
                 IsLikedByCurrentUser = comment.Likes.Any(like => like.ApplicationUserId == userId),
-                IsOwnedByCurrentUser = comment.ApplicationUserId == userId
+                IsOwnedByCurrentUser = comment.ApplicationUserId == userId,
+                IsFacultyAuthor = facultyIds.Contains(comment.ApplicationUserId)
             }).ToList()
     };
 
-    private static CommunityPostCardViewModel ToCard(CommunityPost post, string userId)
+    private static CommunityPostCardViewModel ToCard(
+        CommunityPost post,
+        string userId,
+        IReadOnlySet<string> facultyIds)
     {
         var author = DisplayName(post.ApplicationUser);
         return new CommunityPostCardViewModel
@@ -369,8 +382,29 @@ public sealed class CommunityController : Controller
             LikeCount = post.Likes.Count,
             CommentCount = post.Comments.Count,
             IsLikedByCurrentUser = post.Likes.Any(like => like.ApplicationUserId == userId),
-            IsOwnedByCurrentUser = post.ApplicationUserId == userId
+            IsOwnedByCurrentUser = post.ApplicationUserId == userId,
+            IsFacultyAuthor = facultyIds.Contains(post.ApplicationUserId)
         };
+    }
+
+    private async Task<HashSet<string>> GetFacultyUserIdsAsync(IEnumerable<string> userIds)
+    {
+        var distinctIds = userIds.Distinct(StringComparer.Ordinal).ToList();
+        if (distinctIds.Count == 0) return new HashSet<string>(StringComparer.Ordinal);
+        var facultyIds = await _dbContext.FacultyProfiles.AsNoTracking()
+            .Where(profile => distinctIds.Contains(profile.ApplicationUserId))
+            .Select(profile => profile.ApplicationUserId)
+            .ToListAsync();
+        return facultyIds.ToHashSet(StringComparer.Ordinal);
+    }
+
+    private async Task<string> DetailsUrlForUserAsync(string userId, int postId)
+    {
+        var isFaculty = await _dbContext.FacultyProfiles.AsNoTracking()
+            .AnyAsync(profile => profile.ApplicationUserId == userId);
+        return isFaculty
+            ? $"/FacultyCommunity/Details/{postId}"
+            : $"/Community/Details/{postId}";
     }
 
     private async Task<bool> PopulateShellAsync(StudentShellViewModel model, ApplicationUser user)

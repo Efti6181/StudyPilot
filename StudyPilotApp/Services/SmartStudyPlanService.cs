@@ -216,6 +216,7 @@ public sealed class SmartStudyPlanService : ISmartStudyPlanService
             string careerGoal,
             CancellationToken cancellationToken)
     {
+        var failureCode = _aiProvider.IsConfigured ? "provider_error" : "not_configured";
         if (_aiProvider.IsConfigured)
         {
             var providerResult = await _aiProvider.GenerateAsync(
@@ -225,16 +226,34 @@ public sealed class SmartStudyPlanService : ISmartStudyPlanService
             if (providerResult.Success && TryParseAnalysis(providerResult.Text, courses, out var parsed))
                 return (parsed, true, providerResult.Provider);
 
+            failureCode = providerResult.Success
+                ? "invalid_response"
+                : providerResult.ErrorCode ?? "provider_error";
+
             _logger.LogWarning(
                 "Smart study plan used deterministic course analysis because AI analysis failed with {ErrorCode}.",
-                providerResult.ErrorCode ?? "invalid_response");
+                failureCode);
         }
 
         return (
             courses.ToDictionary(course => course.Id, course => BuildFallbackAnalysis(course, careerGoal)),
             false,
-            "Deterministic analysis");
+            BuildFallbackProviderLabel(failureCode));
     }
+
+    private static string BuildFallbackProviderLabel(string? errorCode) => errorCode switch
+    {
+        "not_configured" => "Deterministic analysis · Gemini not configured",
+        "api_key_rejected" => "Deterministic analysis · API key rejected",
+        "model_unavailable" => "Deterministic analysis · model unavailable",
+        "quota_exceeded" => "Deterministic analysis · quota reached",
+        "timeout" => "Deterministic analysis · provider timeout",
+        "network_error" => "Deterministic analysis · network unavailable",
+        "request_rejected" => "Deterministic analysis · request rejected",
+        "invalid_response" => "Deterministic analysis · invalid AI response",
+        "provider_busy" => "Deterministic analysis · provider busy",
+        _ => "Deterministic analysis · provider unavailable"
+    };
 
     private static string BuildAnalysisSystemInstruction() => """
         You analyze university courses for StudyPilot. Return JSON only, with no markdown.

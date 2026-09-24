@@ -134,7 +134,81 @@ public sealed class CourseService : ICourseService
         await _dbContext.Courses.AddAsync(course);
     }
 
-    public Task SaveChangesAsync() => _dbContext.SaveChangesAsync();
+    public async Task SaveChangesAsync()
+    {
+        var addedCourses = _dbContext.ChangeTracker.Entries<Course>()
+            .Where(entry => entry.State == EntityState.Added)
+            .Select(entry => entry.Entity)
+            .ToList();
+
+        await _dbContext.SaveChangesAsync();
+        foreach (var course in addedCourses)
+        {
+            if (!course.FacultyCourseAssignmentId.HasValue) continue;
+            var assignmentId = course.FacultyCourseAssignmentId.Value;
+            var published = await _dbContext.FacultyAssessments.AsNoTracking()
+                .Where(item => item.Status == FacultyAssessmentStatus.Published &&
+                    item.FacultyCourseAssignmentId == assignmentId)
+                .ToListAsync();
+
+            foreach (var source in published)
+            {
+                var copy = new Assessment
+                {
+                    ApplicationUserId = course.ApplicationUserId,
+                    CourseId = course.Id,
+                    FacultyAssessmentId = source.Id,
+                    Title = source.Title,
+                    Type = source.Type,
+                    Description = source.Description,
+                    Instructions = source.Instructions,
+                    AssignedDate = source.AssignedDate,
+                    DueDate = source.DueDate,
+                    TotalMarks = source.TotalMarks,
+                    WeightPercentage = source.WeightPercentage,
+                    Difficulty = source.Difficulty,
+                    Status = AssessmentStatus.NotStarted
+                };
+                _dbContext.Assessments.Add(copy);
+                await _dbContext.SaveChangesAsync();
+                _dbContext.AppNotifications.Add(new AppNotification
+                {
+                    ApplicationUserId = course.ApplicationUserId,
+                    Title = "New assessment published",
+                    Message = $"{course.CourseCode}: {source.Title} is due {source.DueDate:dd MMM yyyy, h:mm tt}.",
+                    Type = NotificationType.Assessment,
+                    RelatedUrl = $"/Assessments/Details/{copy.Id}"
+                });
+            }
+
+            var publishedResources = await _dbContext.FacultyResources.AsNoTracking()
+                .Where(item => item.Status == FacultyResourceStatus.Published &&
+                    item.FacultyCourseAssignmentId == assignmentId)
+                .ToListAsync();
+            foreach (var source in publishedResources)
+            {
+                var copy = new StudyResource { ApplicationUserId = course.ApplicationUserId, CourseId = course.Id, FacultyResourceId = source.Id, Title = source.Title, Description = source.Description, Kind = source.Kind, Category = source.Category, Tags = source.Tags, ExternalUrl = source.ExternalUrl, OriginalFileName = source.OriginalFileName, StoredFileName = source.StoredFileName, ContentType = source.ContentType, FileSizeBytes = source.FileSizeBytes };
+                _dbContext.StudyResources.Add(copy);
+                await _dbContext.SaveChangesAsync();
+                _dbContext.AppNotifications.Add(new AppNotification { ApplicationUserId = course.ApplicationUserId, Title = "New learning resource", Message = $"{course.CourseCode}: {source.Title} is now available.", Type = NotificationType.Academic, RelatedUrl = $"/Resources/Details/{copy.Id}" });
+            }
+
+            var publishedAnnouncements = await _dbContext.FacultyAnnouncements.AsNoTracking()
+                .Where(item => item.Status == FacultyAnnouncementStatus.Published &&
+                    (!item.ExpiresAt.HasValue || item.ExpiresAt >= DateTimeOffset.UtcNow) &&
+                    item.FacultyCourseAssignmentId == assignmentId)
+                .ToListAsync();
+            foreach (var source in publishedAnnouncements)
+            {
+                var recipient = new FacultyAnnouncementRecipient { FacultyAnnouncementId = source.Id, CourseId = course.Id, ApplicationUserId = course.ApplicationUserId };
+                _dbContext.FacultyAnnouncementRecipients.Add(recipient);
+                await _dbContext.SaveChangesAsync();
+                var title = source.Priority == AnnouncementPriority.Urgent ? $"Urgent: {source.Title}" : source.Title;
+                _dbContext.AppNotifications.Add(new AppNotification { ApplicationUserId = course.ApplicationUserId, Title = title[..Math.Min(title.Length, 160)], Message = $"{course.CourseCode}: {source.Summary}", Type = NotificationType.Academic, RelatedUrl = $"/CourseAnnouncements/Details/{recipient.Id}" });
+            }
+        }
+        if (addedCourses.Count > 0) await _dbContext.SaveChangesAsync();
+    }
 
     public void Remove(Course course)
     {

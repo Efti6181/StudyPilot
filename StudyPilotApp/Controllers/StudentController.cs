@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using StudyPilotApp.Data;
 using StudyPilotApp.Models;
@@ -152,7 +153,9 @@ public class StudentController : Controller
             return Problem("A Student profile is not linked to this account. Please contact an administrator.");
         }
 
-        return View(BuildProfileViewModel(user, profile));
+        var model = BuildProfileViewModel(user, profile);
+        await PopulateAcademicOptionsAsync(model);
+        return View(model);
     }
 
     [HttpPost]
@@ -174,6 +177,33 @@ public class StudentController : Controller
 
         ValidateSelections(model);
 
+        Department? selectedDepartment = null;
+        AcademicProgram? selectedProgram = null;
+        if (model.DepartmentId.HasValue)
+        {
+            selectedDepartment = await _dbContext.Departments
+                .AsNoTracking()
+                .SingleOrDefaultAsync(item => item.Id == model.DepartmentId && item.IsActive);
+            if (selectedDepartment is null)
+            {
+                ModelState.AddModelError(nameof(model.DepartmentId), "Select an active department created by an administrator.");
+            }
+        }
+
+        if (model.AcademicProgramId.HasValue)
+        {
+            selectedProgram = await _dbContext.AcademicPrograms
+                .AsNoTracking()
+                .SingleOrDefaultAsync(item =>
+                    item.Id == model.AcademicProgramId &&
+                    item.IsActive &&
+                    item.DepartmentId == model.DepartmentId.Value);
+            if (selectedProgram is null)
+            {
+                ModelState.AddModelError(nameof(model.AcademicProgramId), "Select an active program in the selected department.");
+            }
+        }
+
         byte[]? uploadedImage = null;
         string? uploadedImageContentType = null;
 
@@ -185,11 +215,15 @@ public class StudentController : Controller
         if (!ModelState.IsValid)
         {
             PopulateFixedFields(model, user, profile);
+            await PopulateAcademicOptionsAsync(model);
             model.CompletionPercentage = CalculateCompletion(model, profile.ProfileImageData is not null);
             return View(model);
         }
 
-        profile.Department = model.Department.Trim();
+        profile.DepartmentId = selectedDepartment!.Id;
+        profile.AcademicProgramId = selectedProgram!.Id;
+        profile.Department = selectedDepartment.Name;
+        profile.Program = selectedProgram.Name;
         profile.Semester = model.Semester;
         profile.Batch = model.Batch.Trim();
         profile.PhoneNumber = NormalizeOptional(model.PhoneNumber);
@@ -247,6 +281,25 @@ public class StudentController : Controller
         return File(image.ProfileImageData, image.ProfileImageContentType);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Programs(int departmentId)
+    {
+        var userId = _userManager.GetUserId(User);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Challenge();
+        }
+
+        var programs = await _dbContext.AcademicPrograms
+            .AsNoTracking()
+            .Where(item => item.DepartmentId == departmentId && item.IsActive)
+            .OrderBy(item => item.Name)
+            .Select(item => new { id = item.Id, label = item.Code + " — " + item.Name })
+            .ToListAsync();
+
+        return Json(programs);
+    }
+
     private Task<StudentProfile?> FindProfileAsync(string userId) =>
         _dbContext.StudentProfiles.SingleOrDefaultAsync(profile => profile.ApplicationUserId == userId);
 
@@ -282,7 +335,10 @@ public class StudentController : Controller
             SemesterLabel = shell.SemesterLabel,
             HasProfileImage = shell.HasProfileImage,
             ProfileImageVersion = shell.ProfileImageVersion,
+            DepartmentId = profile.DepartmentId,
+            AcademicProgramId = profile.AcademicProgramId,
             Department = profile.Department ?? string.Empty,
+            Program = profile.Program ?? string.Empty,
             Semester = profile.Semester,
             Batch = profile.Batch ?? string.Empty,
             PhoneNumber = profile.PhoneNumber,
@@ -336,6 +392,28 @@ public class StudentController : Controller
         {
             ModelState.AddModelError(nameof(model.BloodGroup), "Please select a valid blood group.");
         }
+    }
+
+    private async Task PopulateAcademicOptionsAsync(StudentProfileViewModel model)
+    {
+        model.DepartmentOptions = await _dbContext.Departments
+            .AsNoTracking()
+            .Where(item => item.IsActive)
+            .OrderBy(item => item.Name)
+            .Select(item => new SelectListItem(item.Code + " — " + item.Name, item.Id.ToString()))
+            .ToListAsync();
+
+        model.ProgramOptions = model.DepartmentId.HasValue
+            ? await _dbContext.AcademicPrograms
+                .AsNoTracking()
+                .Where(item => item.IsActive && item.DepartmentId == model.DepartmentId.Value)
+                .OrderBy(item => item.Name)
+                .Select(item => new SelectListItem(
+                    item.Code + " — " + item.Name,
+                    item.Id.ToString(),
+                    item.Id == model.AcademicProgramId))
+                .ToListAsync()
+            : [];
     }
 
     private async Task<(byte[]? Data, string? ContentType)> ValidateAndReadImageAsync(IFormFile image)
@@ -401,7 +479,8 @@ public class StudentController : Controller
     private static int CalculateCompletion(StudentProfileViewModel model, bool hasImage)
     {
         var completed = 0;
-        completed += !string.IsNullOrWhiteSpace(model.Department) ? 1 : 0;
+        completed += model.DepartmentId.HasValue ? 1 : 0;
+        completed += model.AcademicProgramId.HasValue ? 1 : 0;
         completed += model.Semester.HasValue ? 1 : 0;
         completed += !string.IsNullOrWhiteSpace(model.Batch) ? 1 : 0;
         completed += !string.IsNullOrWhiteSpace(model.PhoneNumber) ? 1 : 0;
@@ -410,7 +489,7 @@ public class StudentController : Controller
         completed += !string.IsNullOrWhiteSpace(model.Gender) ? 1 : 0;
         completed += !string.IsNullOrWhiteSpace(model.Bio) ? 1 : 0;
         completed += hasImage ? 1 : 0;
-        return (int)Math.Round(completed / 9d * 100);
+        return (int)Math.Round(completed / 10d * 100);
     }
 
     private static string? NormalizeOptional(string? value) =>

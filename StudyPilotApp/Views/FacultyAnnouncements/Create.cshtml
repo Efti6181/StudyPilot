@@ -1,0 +1,5 @@
+@model FacultyAnnouncementFormViewModel
+@{ ViewData["Title"] = "Create Announcement"; Layout = "/Views/Shared/_FacultyLayout.cshtml"; }
+<section class="faculty-heading"><div><a class="faculty-back" asp-action="Index"><i class="bi bi-arrow-left"></i>Announcements</a><h1>Create course announcement</h1><p>Save the message privately, review it, then publish it to matching students.</p></div></section>
+<form asp-action="Create" method="post" class="faculty-panel faculty-assessment-form">@Html.AntiForgeryToken()<header><div><h2>Announcement details</h2><p>Students are not notified while this remains a draft.</p></div></header><partial name="_Form" model="Model" /><footer><a class="faculty-secondary" asp-action="Index">Cancel</a><button class="faculty-primary" type="submit"><i class="bi bi-check2"></i>Save draft</button></footer></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

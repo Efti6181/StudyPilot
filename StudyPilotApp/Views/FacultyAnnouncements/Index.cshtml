@@ -1,0 +1,26 @@
+@model FacultyAnnouncementIndexViewModel
+@{ ViewData["Title"] = "Announcements"; Layout = "/Views/Shared/_FacultyLayout.cshtml"; }
+<section class="faculty-heading"><div><span>COURSE COMMUNICATION</span><h1>Announcement Management</h1><p>Send clear course updates only to the students who need them.</p></div><a class="faculty-primary" asp-action="Create" asp-route-assignmentId="@Model.AssignmentId"><i class="bi bi-plus-lg"></i>Create announcement</a></section>
+<section class="faculty-panel">
+    <form method="get" class="faculty-filters">
+        <label><i class="bi bi-search"></i><input name="search" value="@Model.Search" placeholder="Search title, summary, or course" /></label>
+        <select asp-for="AssignmentId"><option value="">All courses</option>@foreach(var course in Model.Courses){<option value="@course.AssignmentId">@course.Label</option>}</select>
+        <select asp-for="Priority" asp-items="Html.GetEnumSelectList<AnnouncementPriority>()"><option value="">All priorities</option></select>
+        <select asp-for="Status" asp-items="Html.GetEnumSelectList<FacultyAnnouncementStatus>()"><option value="">All statuses</option></select>
+        <button class="faculty-secondary" type="submit">Filter</button>
+    </form>
+    @if(Model.Items.Count == 0){<div class="faculty-empty"><i class="bi bi-megaphone"></i><h3>No announcements found</h3><p>Create a private draft for one of your active course assignments.</p></div>}
+    else
+    {
+        <div class="faculty-announcement-list">
+        @foreach(var item in Model.Items)
+        {
+            <a asp-action="Details" asp-route-id="@item.Id">
+                <span class="faculty-announcement-icon priority-@item.Priority.ToString().ToLowerInvariant()"><i class="bi bi-megaphone"></i></span>
+                <div><span class="faculty-status @item.Status.ToString().ToLowerInvariant()">@item.Status</span><em>@item.Priority</em><h2>@item.Title</h2><p>@item.CourseCode · @item.Term @item.AcademicYear · Section @item.Section</p><small>@item.Summary</small></div>
+                <aside><strong>@item.ReadCount / @item.RecipientCount</strong><small>read</small></aside><i class="bi bi-chevron-right"></i>
+            </a>
+        }
+        </div>
+    }
+</section>

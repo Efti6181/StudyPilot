@@ -1,0 +1,6 @@
+@model FacultyCommunityCommentEditViewModel
+@{ ViewData["Title"] = "Edit Comment"; Layout = "/Views/Shared/_FacultyLayout.cshtml"; }
+@section Styles { <link rel="stylesheet" href="~/css/faculty-community.css" asp-append-version="true" /> }
+<section class="faculty-heading"><div><a class="faculty-back" asp-action="Details" asp-route-id="@Model.PostId"><i class="bi bi-arrow-left"></i>Discussion</a><h1>Edit Comment</h1><p>Correct or improve your reply.</p></div></section>
+<form class="faculty-panel faculty-community-form faculty-community-comment-edit" asp-action="EditComment" asp-route-id="@Model.Id" method="post"><input asp-for="Id" type="hidden" /><input asp-for="PostId" type="hidden" /><div asp-validation-summary="ModelOnly" class="faculty-community-validation"></div><div class="faculty-form-grid"><label class="full"><span>Comment</span><textarea asp-for="Content" rows="8"></textarea><small><span asp-validation-for="Content" class="text-danger"></span></small></label></div><footer><a class="faculty-secondary" asp-action="Details" asp-route-id="@Model.PostId">Cancel</a><button class="faculty-primary" type="submit">Save comment</button></footer></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

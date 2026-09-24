@@ -1,0 +1,10 @@
+@model FacultyAnnouncementFormViewModel
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="faculty-form-grid">
+    <label class="full"><span>Course and section</span><select asp-for="AssignmentId" disabled="@(Model.CurrentStatus == FacultyAnnouncementStatus.Published)"><option value="">Select an assigned course</option>@foreach(var course in Model.Courses){<option value="@course.AssignmentId">@course.Label</option>}</select>@if(Model.CurrentStatus == FacultyAnnouncementStatus.Published){<input asp-for="AssignmentId" type="hidden" /><small>The target course cannot change after publication.</small>}<span asp-validation-for="AssignmentId" class="text-danger"></span></label>
+    <label class="full"><span>Title</span><input asp-for="Title" placeholder="Example: Lab schedule changed" /><span asp-validation-for="Title" class="text-danger"></span></label>
+    <label class="full"><span>Short summary</span><textarea asp-for="Summary" rows="3" placeholder="A concise message shown in notifications and announcement lists."></textarea><span asp-validation-for="Summary" class="text-danger"></span></label>
+    <label><span>Priority</span><select asp-for="Priority" asp-items="Html.GetEnumSelectList<AnnouncementPriority>()"></select><span asp-validation-for="Priority" class="text-danger"></span></label>
+    <label><span>Expiry (optional)</span><input asp-for="ExpiresAt" asp-format="{0:yyyy-MM-ddTHH:mm}" type="datetime-local" /><small>Bangladesh time (UTC+6). Leave blank to keep it available.</small><span asp-validation-for="ExpiresAt" class="text-danger"></span></label>
+    <label class="full"><span>Full announcement</span><textarea asp-for="Content" rows="10" placeholder="Write the complete course update and any required student action."></textarea><span asp-validation-for="Content" class="text-danger"></span></label>
+</div>

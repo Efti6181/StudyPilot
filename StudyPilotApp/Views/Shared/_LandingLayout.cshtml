@@ -1,0 +1,125 @@
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var dashboardController = User.IsInRole("Admin")
+        ? "Admin"
+        : User.IsInRole("Faculty")
+            ? "Faculty"
+            : "Student";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="StudyPilot brings courses, assessments, study planning, academic progress and campus collaboration into one secure university workspace." />
+    <meta name="theme-color" content="#0f172a" />
+    <title>@ViewData["Title"] - StudyPilot</title>
+    <script>
+        (() => {
+            try {
+                const saved = localStorage.getItem('studypilot-landing-theme');
+                const theme = saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.dataset.theme = theme;
+            } catch { }
+        })();
+    </script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/studypilot.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+</head>
+<body class="landing-page">
+    <a class="landing-skip-link" href="#main-content">Skip to main content</a>
+
+    <header class="landing-nav" data-landing-nav>
+        <nav class="navbar navbar-expand-lg" aria-label="Primary navigation">
+            <div class="container">
+                <a class="brand" asp-controller="Home" asp-action="Index" aria-label="StudyPilot home">
+                    <span class="brand-mark"><i class="bi bi-mortarboard-fill"></i></span>
+                    <span class="brand-copy">StudyPilot<small>Academic success</small></span>
+                </a>
+
+                <button class="navbar-toggler landing-menu-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#landingNavigation" aria-controls="landingNavigation"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <div class="collapse navbar-collapse" id="landingNavigation">
+                    <ul class="navbar-nav landing-nav-links mx-auto">
+                        <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#roles">Workspaces</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#how-it-works">How it works</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#security">Security</a></li>
+                    </ul>
+
+                    <div class="landing-nav-actions">
+                        <button class="landing-theme-toggle" type="button" data-landing-theme
+                                aria-label="Switch color theme" title="Switch color theme">
+                            <i class="bi bi-moon-stars"></i>
+                        </button>
+                        @if (isAuthenticated)
+                        {
+                            <a class="btn btn-primary" asp-controller="@dashboardController" asp-action="Index">
+                                Open dashboard <i class="bi bi-arrow-right"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="btn btn-ghost" asp-controller="Account" asp-action="Login">Sign in</a>
+                            <a class="btn btn-primary" asp-controller="Account" asp-action="Register">
+                                Get started <i class="bi bi-arrow-right"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">@RenderBody()</main>
+
+    <footer class="landing-footer">
+        <div class="container">
+            <div class="landing-footer-grid">
+                <div>
+                    <a class="brand landing-footer-brand" asp-controller="Home" asp-action="Index">
+                        <span class="brand-mark"><i class="bi bi-mortarboard-fill"></i></span>
+                        <span class="brand-copy">StudyPilot<small>Academic success</small></span>
+                    </a>
+                    <p>A focused academic workspace for students, faculty and university administrators.</p>
+                </div>
+                <div class="footer-links">
+                    <strong>Platform</strong>
+                    <a href="#features">Features</a>
+                    <a href="#roles">Workspaces</a>
+                    <a href="#how-it-works">How it works</a>
+                </div>
+                <div class="footer-links">
+                    <strong>Access</strong>
+                    @if (isAuthenticated)
+                    {
+                        <a asp-controller="@dashboardController" asp-action="Index">Dashboard</a>
+                        <form asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit">Sign out</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login">Sign in</a>
+                        <a asp-controller="Account" asp-action="Register">Create account</a>
+                    }
+                </div>
+            </div>
+            <div class="landing-footer-bottom">
+                <span>© @DateTime.UtcNow.Year StudyPilot. Built for better academic decisions.</span>
+                <span><i class="bi bi-shield-check"></i> Role-protected university access</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/landing.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

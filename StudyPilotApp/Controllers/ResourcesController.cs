@@ -158,6 +158,7 @@ public sealed class ResourcesController : Controller
         if (user is null) return Challenge();
         var resource = await _resourceService.GetOwnedResourceAsync(user.Id, id);
         if (resource is null) return NotFound();
+        if (resource.FacultyResourceId.HasValue) return BadRequest("Faculty-published resources cannot be edited by students.");
 
         var model = ToForm(resource);
         await PopulateCourseOptionsAsync(model, user.Id);
@@ -175,6 +176,7 @@ public sealed class ResourcesController : Controller
         if (user is null) return Challenge();
         var resource = await _resourceService.GetOwnedResourceAsync(user.Id, id, trackChanges: true);
         if (resource is null) return NotFound();
+        if (resource.FacultyResourceId.HasValue) return BadRequest("Faculty-published resources cannot be edited by students.");
 
         model.ExistingFileName = resource.OriginalFileName;
         model.ExistingFileSize = resource.FileSizeBytes.HasValue
@@ -274,6 +276,7 @@ public sealed class ResourcesController : Controller
         if (user is null) return Challenge();
         var resource = await _resourceService.GetOwnedResourceAsync(user.Id, id);
         if (resource is null) return NotFound();
+        if (resource.FacultyResourceId.HasValue) return BadRequest("Faculty-published resources cannot be deleted by students.");
         var model = new ResourceDeleteViewModel { Resource = ToCard(resource) };
         if (!await PopulateShellAsync(model, user)) return MissingStudentProfile();
         return View(model);
@@ -287,6 +290,7 @@ public sealed class ResourcesController : Controller
         if (user is null) return Challenge();
         var resource = await _resourceService.GetOwnedResourceAsync(user.Id, id, trackChanges: true);
         if (resource is null) return NotFound();
+        if (resource.FacultyResourceId.HasValue) return BadRequest("Faculty-published resources cannot be deleted by students.");
 
         var title = resource.Title;
         var storedName = resource.StoredFileName;
@@ -392,12 +396,14 @@ public sealed class ResourcesController : Controller
         CourseCode = resource.Course?.CourseCode,
         CourseName = resource.Course?.CourseName,
         CreatedAt = resource.CreatedAt,
-        UpdatedAt = resource.UpdatedAt
+        UpdatedAt = resource.UpdatedAt,
+        FacultyResourceId = resource.FacultyResourceId
     };
 
     private static ResourceFormViewModel ToForm(StudyResource resource) => new()
     {
         Id = resource.Id,
+        IsFacultyPublished = resource.FacultyResourceId.HasValue,
         Title = resource.Title,
         Description = resource.Description,
         CourseId = resource.CourseId,

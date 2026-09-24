@@ -1,0 +1,6 @@
+@model FacultyCommunityPostFormViewModel
+@{ ViewData["Title"] = "Edit Community Post"; Layout = "/Views/Shared/_FacultyLayout.cshtml"; }
+@section Styles { <link rel="stylesheet" href="~/css/faculty-community.css" asp-append-version="true" /> }
+<section class="faculty-heading"><div><a class="faculty-back" asp-action="Details" asp-route-id="@Model.Id"><i class="bi bi-arrow-left"></i>Discussion</a><h1>Edit Community Post</h1><p>Update your title, category, or discussion content.</p></div></section>
+<form class="faculty-panel faculty-community-form" asp-action="Edit" asp-route-id="@Model.Id" method="post"><input asp-for="Id" type="hidden" /><header><i class="bi bi-pencil"></i><div><h2>Edit discussion</h2><p>Only you can modify this Faculty post.</p></div></header><div class="faculty-form-grid"><partial name="_PostForm" model="Model" /></div><footer><a class="faculty-secondary" asp-action="Details" asp-route-id="@Model.Id">Cancel</a><button class="faculty-primary" type="submit"><i class="bi bi-check2"></i>Save changes</button></footer></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

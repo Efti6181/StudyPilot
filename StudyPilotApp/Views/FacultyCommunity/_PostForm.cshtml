@@ -1,0 +1,5 @@
+@model FacultyCommunityPostFormViewModel
+<div asp-validation-summary="ModelOnly" class="faculty-community-validation"></div>
+<label><span>Title</span><input asp-for="Title" placeholder="What would you like to discuss?" /><small><span asp-validation-for="Title" class="text-danger"></span></small></label>
+<label><span>Category</span><select asp-for="Category" asp-items="Html.GetEnumSelectList<CommunityCategory>()"><option value="">Select category</option></select><small><span asp-validation-for="Category" class="text-danger"></span></small></label>
+<label class="full"><span>Post content</span><textarea asp-for="Content" rows="12" placeholder="Share enough context for students and Faculty to respond clearly..."></textarea><small><span asp-validation-for="Content" class="text-danger"></span><em>Maximum 8,000 characters</em></small></label>

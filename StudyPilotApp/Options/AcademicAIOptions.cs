@@ -14,6 +14,9 @@ public sealed class AcademicAIOptions
     [StringLength(100)]
     public string Model { get; set; } = "gemini-3.8-flash";
 
+    [StringLength(100)]
+    public string FallbackModel { get; set; } = "gemini-3.5-flash-lite";
+
     [Range(5, 60)]
     public int TimeoutSeconds { get; set; } = 25;
 

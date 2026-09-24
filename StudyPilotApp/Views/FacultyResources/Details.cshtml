@@ -1,0 +1,25 @@
+@model FacultyResourceDetailsViewModel
+@{ ViewData["Title"] = Model.Resource.Title; Layout = "/Views/Shared/_FacultyLayout.cshtml"; var item = Model.Resource; var course = item.FacultyCourseAssignment; }
+<section class="faculty-heading">
+    <div><a class="faculty-back" asp-action="Index"><i class="bi bi-arrow-left"></i>Resources</a><h1>@item.Title</h1><p>@course.CatalogCourse.Code · @course.AcademicPeriod.Term @course.AcademicPeriod.AcademicYear · Section @course.Section</p></div>
+    <div class="faculty-heading-actions">
+        @if (item.Status != FacultyResourceStatus.Archived){<a class="faculty-secondary" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i>Edit</a>}
+        @if (item.Status == FacultyResourceStatus.Draft){<form asp-action="Publish" asp-route-id="@item.Id" method="post">@Html.AntiForgeryToken()<button class="faculty-primary" type="submit"><i class="bi bi-send"></i>Publish</button></form>}
+        @if (item.Status == FacultyResourceStatus.Published){<form asp-action="Archive" asp-route-id="@item.Id" method="post">@Html.AntiForgeryToken()<button class="faculty-secondary" type="submit"><i class="bi bi-archive"></i>Archive</button></form>}
+    </div>
+</section>
+<div class="faculty-resource-detail-grid">
+    <section class="faculty-panel faculty-assessment-detail">
+        <div class="faculty-resource-title"><span class="faculty-resource-icon"><i class="bi @(item.Kind == ResourceKind.File ? "bi-file-earmark-arrow-down" : "bi-link-45deg")"></i></span><div><span class="faculty-status @item.Status.ToString().ToLowerInvariant()">@item.Status</span><em>@item.Category · @item.Kind</em></div></div>
+        <h2>Description</h2><p>@(string.IsNullOrWhiteSpace(item.Description) ? "No description was provided." : item.Description)</p>
+        @if (!string.IsNullOrWhiteSpace(item.Tags)){<h2>Tags</h2><div class="faculty-tags">@foreach (var tag in item.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)){<em>@tag</em>}</div>}
+        <h2>Learning material</h2>
+        @if (item.Kind == ResourceKind.File){<a class="faculty-primary" asp-action="Download" asp-route-id="@item.Id"><i class="bi bi-download"></i>Download @item.OriginalFileName</a>}
+        else{<a class="faculty-primary" asp-action="OpenLink" asp-route-id="@item.Id" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right"></i>Open learning link</a>}
+    </section>
+    <aside class="faculty-panel faculty-resource-meta">
+        <h2>Distribution</h2><strong>@Model.StudentCount</strong><p>student course copies</p>
+        <dl><div><dt>Created</dt><dd>@item.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</dd></div><div><dt>Published</dt><dd>@(item.PublishedAt?.ToLocalTime().ToString("dd MMM yyyy, h:mm tt") ?? "Not published")</dd></div>@if(item.FileSizeBytes.HasValue){<div><dt>File size</dt><dd>@ResourceCardViewModel.FormatBytes(item.FileSizeBytes.Value)</dd></div>}</dl>
+        @if (item.Status == FacultyResourceStatus.Draft){<form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Delete this resource draft?');">@Html.AntiForgeryToken()<button class="faculty-danger" type="submit"><i class="bi bi-trash"></i>Delete draft</button></form>}
+    </aside>
+</div>

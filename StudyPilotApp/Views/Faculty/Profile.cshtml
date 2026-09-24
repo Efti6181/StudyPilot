@@ -1,0 +1,17 @@
+@model FacultyProfileViewModel
+@{ ViewData["Title"] = "Faculty Profile"; Layout = "/Views/Shared/_FacultyLayout.cshtml"; var imageUrl = Model.HasProfileImage ? Url.Action("ProfileImage", "Faculty", new { v=Model.ProfileImageVersion }) : null; }
+<section class="faculty-heading"><div><span>ACCOUNT</span><h1>Faculty Profile</h1><p>Maintain your teaching contact information and academic interests.</p></div></section>
+<div class="faculty-profile-grid">
+    <aside class="faculty-panel faculty-profile-card"><div class="faculty-profile-photo">@if(Model.HasProfileImage){<img src="@imageUrl" alt="@Model.FullName" />}else{@Model.Initials}</div><h2>@Model.FullName</h2><p>@Model.DesignationLabel</p><span>@Model.DepartmentLabel</span><dl><div><dt>Faculty ID</dt><dd>@Model.FacultyId</dd></div><div><dt>Email</dt><dd>@Model.Email</dd></div></dl><div class="faculty-completion"><span><strong>Profile completion</strong><em>@Model.CompletionPercentage%</em></span><div><i style="width:@Model.CompletionPercentage%"></i></div></div><small>Institutional identity, role, Faculty ID, email, and department are protected.</small></aside>
+    <form class="faculty-panel faculty-profile-form" asp-action="Profile" method="post" enctype="multipart/form-data" novalidate><div asp-validation-summary="ModelOnly" class="text-danger"></div><header><h2>Professional information</h2><p>These details help students understand when and how to contact you.</p></header><div class="faculty-form-grid">
+        <label><span>Designation</span><input asp-for="Designation" placeholder="Lecturer, Assistant Professor…" /><small asp-validation-for="Designation"></small></label>
+        <label><span>Phone number</span><input asp-for="PhoneNumber" placeholder="+880…" /><small asp-validation-for="PhoneNumber"></small></label>
+        <label><span>Office location</span><input asp-for="OfficeLocation" placeholder="Room 305, CSE Building" /><small asp-validation-for="OfficeLocation"></small></label>
+        <label><span>Office hours</span><input asp-for="OfficeHours" placeholder="Sun–Tue, 2:00–4:00 PM" /><small asp-validation-for="OfficeHours"></small></label>
+        <label class="full"><span>Short bio</span><textarea asp-for="Bio" rows="4" placeholder="Brief professional introduction"></textarea><small asp-validation-for="Bio"></small></label>
+        <label class="full"><span>Research and teaching interests</span><textarea asp-for="TeachingInterests" rows="4" placeholder="Algorithms, AI, networking…"></textarea><small asp-validation-for="TeachingInterests"></small></label>
+        <label class="full"><span>Profile picture</span><input asp-for="ProfileImage" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" /><small>JPG, PNG or WebP; maximum 2 MB.</small><small asp-validation-for="ProfileImage"></small></label>
+        @if(Model.HasProfileImage){<label class="faculty-check full"><input asp-for="RemoveProfileImage" />Remove current profile picture</label>}
+    </div><footer><button class="faculty-primary" type="submit"><i class="bi bi-check2-circle"></i>Save profile</button></footer></form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

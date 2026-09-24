@@ -19,7 +19,8 @@ public interface IAcademicAIService
 public sealed record AcademicAIResult(
     string Text,
     bool IsFallback,
-    string Provider);
+    string Provider,
+    string? ErrorCode = null);
 
 public sealed record AcademicAIHistoryMessage(
     AcademicAIMessageRole Role,
@@ -76,7 +77,8 @@ public interface IAITextProvider
     Task<AIProviderResult> GenerateAsync(
         string systemInstruction,
         string prompt,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        int? maxOutputTokens = null);
 }
 
 public sealed record AIProviderResult(bool Success, string? Text, string Provider, string? ErrorCode = null);

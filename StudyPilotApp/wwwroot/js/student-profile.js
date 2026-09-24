@@ -12,6 +12,8 @@
         const removeImage = document.getElementById("RemoveProfileImage");
         const bio = document.getElementById("Bio");
         const bioCount = document.getElementById("bioCount");
+        const department = document.getElementById("DepartmentId");
+        const program = document.getElementById("AcademicProgramId");
 
         const updateBioCount = () => {
             if (bio && bioCount) bioCount.textContent = bio.value.length.toString();
@@ -19,6 +21,33 @@
 
         bio?.addEventListener("input", updateBioCount);
         updateBioCount();
+
+        department?.addEventListener("change", async () => {
+            if (!program) return;
+            program.innerHTML = '<option value="">Loading programs...</option>';
+            program.disabled = true;
+
+            if (!department.value) {
+                program.innerHTML = '<option value="">Select program</option>';
+                program.disabled = false;
+                return;
+            }
+
+            try {
+                const baseUrl = department.dataset.programsUrl || "/Student/Programs";
+                const response = await fetch(`${baseUrl}?departmentId=${encodeURIComponent(department.value)}`, {
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                });
+                if (!response.ok) throw new Error("Unable to load programs.");
+                const rows = await response.json();
+                program.innerHTML = '<option value="">Select program</option>';
+                rows.forEach(row => program.add(new Option(row.label, row.id)));
+            } catch {
+                program.innerHTML = '<option value="">Programs unavailable</option>';
+            } finally {
+                program.disabled = false;
+            }
+        });
 
         imageInput?.addEventListener("change", () => {
             const file = imageInput.files?.[0];

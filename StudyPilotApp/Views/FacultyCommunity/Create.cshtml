@@ -1,0 +1,6 @@
+@model FacultyCommunityPostFormViewModel
+@{ ViewData["Title"] = "Create Community Post"; Layout = "/Views/Shared/_FacultyLayout.cshtml"; }
+@section Styles { <link rel="stylesheet" href="~/css/faculty-community.css" asp-append-version="true" /> }
+<section class="faculty-heading"><div><a class="faculty-back" asp-action="Index"><i class="bi bi-arrow-left"></i>Community</a><h1>Create Community Post</h1><p>Share verified guidance, an announcement, or an academic discussion.</p></div></section>
+<form class="faculty-panel faculty-community-form" asp-action="Create" method="post"><header><i class="bi bi-pencil-square"></i><div><h2>New discussion</h2><p>Your post will display a verified Faculty badge.</p></div></header><div class="faculty-form-grid"><partial name="_PostForm" model="Model" /></div><footer><a class="faculty-secondary" asp-action="Index">Cancel</a><button class="faculty-primary" type="submit"><i class="bi bi-send"></i>Publish post</button></footer></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

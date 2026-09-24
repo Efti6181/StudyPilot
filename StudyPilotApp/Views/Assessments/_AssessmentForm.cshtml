@@ -11,6 +11,14 @@
     </div>
 }
 
+@if (Model.IsFacultyPublished)
+{
+    <div class="alert alert-info rounded-4"><i class="bi bi-shield-lock me-2"></i>This assessment was published by Faculty. Course, title, type, deadline, description, instructions, marks, weight, and difficulty are read-only.</div>
+    <input asp-for="CourseId" type="hidden" /><input asp-for="Title" type="hidden" /><input asp-for="Type" type="hidden" /><input asp-for="Difficulty" type="hidden" /><input asp-for="AssignedDate" type="hidden" /><input asp-for="DueDate" type="hidden" /><input asp-for="TotalMarks" type="hidden" /><input asp-for="WeightPercentage" type="hidden" />
+    <div class="row g-3"><div class="col-md-4"><label asp-for="Status" class="form-label"></label><select asp-for="Status" asp-items="Html.GetEnumSelectList<StudyPilotApp.Models.AssessmentStatus>()" class="form-select"></select></div><div class="col-md-4"><label asp-for="ObtainedMarks" class="form-label"></label><input asp-for="ObtainedMarks" class="form-control" min="0" step="0.01" /></div><div class="col-md-4"><label asp-for="EstimatedStudyHours" class="form-label"></label><input asp-for="EstimatedStudyHours" class="form-control" min="0" step="0.25" /></div><div class="col-12"><label asp-for="Notes" class="form-label"></label><textarea asp-for="Notes" class="form-control" rows="4" maxlength="2000"></textarea></div></div>
+}
+else
+{
 <div class="row g-3">
     <div class="col-md-7">
         <label asp-for="Title" class="form-label"></label>
@@ -86,3 +94,4 @@
         <span asp-validation-for="Notes" class="text-danger small"></span>
     </div>
 </div>
+}

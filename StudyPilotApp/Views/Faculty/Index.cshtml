@@ -1,12 +1,21 @@
-@{ ViewData["Title"] = "Faculty Dashboard"; }
-<div class="container py-5">
-    <div class="p-5 bg-white border rounded-4 shadow-sm">
-        <span class="badge text-bg-success mb-3">Faculty</span>
-        <h1 class="display-6 fw-bold">Faculty Dashboard</h1>
-        <p class="text-muted">Welcome to your protected StudyPilot faculty workspace.</p>
-        <p>Signed in as <strong>@User.Identity?.Name</strong></p>
-        <form asp-controller="Account" asp-action="Logout" method="post">
-            <button type="submit" class="btn btn-outline-danger">Logout</button>
-        </form>
-    </div>
+@model FacultyDashboardViewModel
+@{ ViewData["Title"] = "Faculty Dashboard"; Layout = "/Views/Shared/_FacultyLayout.cshtml"; var offset = TimeSpan.FromHours(6); }
+<section class="faculty-heading"><div><span>FACULTY DASHBOARD</span><h1>@Model.Greeting, @Model.FullName</h1><p>Manage your teaching workspace and keep up with academic activity.</p></div><a class="faculty-primary" asp-action="Courses"><i class="bi bi-journal-bookmark"></i>View my courses</a></section>
+<section class="faculty-kpis">
+    <article><i class="bi bi-journals"></i><div><small>Assigned courses</small><strong>@Model.AssignedCourses</strong><em>@Model.ActiveCourses currently active</em></div></article>
+    <article><i class="bi bi-award"></i><div><small>Teaching credits</small><strong>@Model.AssignedCredits.ToString("0.#")</strong><em>Across active assignments</em></div></article>
+    <article><i class="bi bi-calendar-event"></i><div><small>Upcoming events</small><strong>@Model.UpcomingEvents</strong><em>Published campus events</em></div></article>
+    <article><i class="bi bi-megaphone"></i><div><small>Announcements</small><strong>@Model.ActiveAnnouncements</strong><em>Active for faculty</em></div></article>
+    <article><i class="bi bi-chat-square-text"></i><div><small>Community activity</small><strong>@Model.RecentCommunityPosts</strong><em>Posts in the last 30 days</em></div></article>
+    <article><i class="bi bi-clipboard2-check"></i><div><small>Upcoming assessments</small><strong>@Model.UpcomingAssessments</strong><em>Published and still open</em></div></article>
+    <article><i class="bi bi-send-check"></i><div><small>Recently published</small><strong>@Model.RecentlyPublishedAssessments</strong><em>During the last 30 days</em></div></article>
+    <article><i class="bi bi-collection"></i><div><small>Published resources</small><strong>@Model.PublishedResources</strong><em>Available to matching students</em></div></article>
+    <article><i class="bi bi-megaphone"></i><div><small>Course announcements</small><strong>@Model.PublishedCourseAnnouncements</strong><em>Published and currently active</em></div></article>
+</section>
+<section class="faculty-quick-actions"><a asp-action="Courses"><i class="bi bi-journal-bookmark"></i><span><strong>My Courses</strong><small>Open assigned courses</small></span></a><a asp-controller="FacultyAssessments" asp-action="Create"><i class="bi bi-clipboard-plus"></i><span><strong>Create Assessment</strong><small>Prepare and publish coursework</small></span></a><a asp-controller="FacultyResources" asp-action="Create"><i class="bi bi-cloud-arrow-up"></i><span><strong>Upload Resource</strong><small>Share a file or learning link</small></span></a><a asp-controller="FacultyAnnouncements" asp-action="Create"><i class="bi bi-megaphone"></i><span><strong>Post Announcement</strong><small>Notify a course securely</small></span></a></section>
+<div class="faculty-dashboard-grid">
+    <section class="faculty-panel faculty-span-2"><header><div><h2>My active courses</h2><p>Your most recent teaching assignments</p></div><a asp-action="Courses">View all</a></header>@if(Model.Courses.Count==0){<div class="faculty-empty"><i class="bi bi-journal-x"></i><h3>No courses assigned</h3><p>Ask an administrator to assign a catalog course and academic term.</p></div>}else{<div class="faculty-course-list">@foreach(var course in Model.Courses){<a asp-action="Course" asp-route-id="@course.AssignmentId"><span>@course.Code</span><div><strong>@course.Name</strong><small>@course.Term @course.AcademicYear · Section @course.Section</small></div><em>@course.CreditHours.ToString("0.#") credits</em><i class="bi bi-chevron-right"></i></a>}</div>}</section>
+    <section class="faculty-panel"><header><div><h2>Upcoming events</h2><p>Campus schedule</p></div></header>@if(Model.Events.Count==0){<div class="faculty-empty compact"><p>No upcoming events.</p></div>}else{<div class="faculty-feed">@foreach(var item in Model.Events){<article><i class="bi bi-calendar3"></i><div><strong>@item.Title</strong><small>@item.StartAt.ToOffset(offset).ToString("dd MMM, h:mm tt") · @item.Location</small></div></article>}</div>}</section>
+    <section class="faculty-panel"><header><div><h2>Announcements</h2><p>Recent institutional notices</p></div></header>@if(Model.Announcements.Count==0){<div class="faculty-empty compact"><p>No active announcements.</p></div>}else{<div class="faculty-feed">@foreach(var item in Model.Announcements){<article><i class="bi bi-megaphone"></i><div><strong>@item.Title</strong><small>@item.Priority · @item.PublishedAt.ToOffset(offset).ToString("dd MMM yyyy")</small></div></article>}</div>}</section>
+    <section class="faculty-panel faculty-span-2"><header><div><h2>Community activity</h2><p>Recent academic discussions</p></div></header>@if(Model.CommunityItems.Count==0){<div class="faculty-empty compact"><p>No recent discussions.</p></div>}else{<div class="faculty-feed two-columns">@foreach(var item in Model.CommunityItems){<article><i class="bi bi-chat-left-text"></i><div><strong>@item.Title</strong><small>@item.Category · @item.AuthorName</small></div></article>}</div>}</section>
 </div>

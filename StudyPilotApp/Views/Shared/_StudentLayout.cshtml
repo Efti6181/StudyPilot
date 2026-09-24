@@ -84,6 +84,9 @@
                 }
 
                 <div class="sidebar-label">Campus</div>
+                <a class="sidebar-link @(currentController == "CourseAnnouncements" ? "active" : null)" asp-controller="CourseAnnouncements" asp-action="Index">
+                    <i class="bi bi-megaphone"></i><span>Announcements</span>
+                </a>
                 @if (platformSettings.EventsEnabled)
                 {
                     <a class="sidebar-link @(currentController == "Events" ? "active" : null)" asp-controller="Events" asp-action="Index">

@@ -44,8 +44,10 @@
 
                     <div class="sp-field">
                         <label asp-for="Email"></label>
-                        <input asp-for="Email" class="form-control" placeholder="Enter your registered email" autocomplete="email" />
+                        <input asp-for="Email" class="form-control" placeholder="Enter your registered email" autocomplete="email"
+                               data-email-availability data-availability-url="@Url.Action("CheckEmailAvailability", "Account")" />
                         <span asp-validation-for="Email"></span>
+                        <small class="sp-availability" data-email-availability-message aria-live="polite"></small>
                     </div>
 
                     <div class="sp-field">
@@ -73,7 +75,7 @@
                         <div class="sp-field">
                             <label asp-for="Password"></label>
                             <div class="sp-password-wrap">
-                                <input asp-for="Password" class="form-control" placeholder="Create password" autocomplete="new-password" />
+                                <input asp-for="Password" class="form-control" placeholder="Create password" autocomplete="new-password" data-password-strength />
                                 <button class="sp-password-toggle" type="button" data-password-toggle>Show</button>
                             </div>
                             <span asp-validation-for="Password"></span>
@@ -88,7 +90,10 @@
                         </div>
                     </div>
 
-                    <p class="sp-password-note">At least 8 characters, including uppercase, lowercase and a number.</p>
+                    <div class="sp-password-strength" data-password-strength-panel aria-live="polite">
+                        <div><span data-password-strength-bar></span></div>
+                        <p><span data-password-strength-label>Password strength</span><small>Use at least 8 characters with uppercase, lowercase and a number.</small></p>
+                    </div>
                     <button type="submit" class="sp-primary-button">Create Account <span>→</span></button>
                 </form>
 

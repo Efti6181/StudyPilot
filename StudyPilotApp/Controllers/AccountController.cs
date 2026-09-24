@@ -1,7 +1,10 @@
 using System.Data;
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using StudyPilotApp.Data;
 using StudyPilotApp.Models;
@@ -19,6 +22,7 @@ public class AccountController : Controller
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ApplicationDbContext _dbContext;
     private readonly IPlatformSettingsService _settingsService;
+    private readonly IAccountEmailService _emailService;
     private readonly ILogger<AccountController> _logger;
 
     public AccountController(
@@ -26,12 +30,14 @@ public class AccountController : Controller
         SignInManager<ApplicationUser> signInManager,
         ApplicationDbContext dbContext,
         IPlatformSettingsService settingsService,
+        IAccountEmailService emailService,
         ILogger<AccountController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _dbContext = dbContext;
         _settingsService = settingsService;
+        _emailService = emailService;
         _logger = logger;
     }
 
@@ -153,7 +159,8 @@ public class AccountController : Controller
                 _dbContext.FacultyProfiles.Add(new FacultyProfile
                 {
                     FacultyId = universityId,
-                    ApplicationUserId = user.Id
+                    ApplicationUserId = user.Id,
+                    DepartmentId = member.DepartmentId
                 });
             }
 
@@ -176,6 +183,150 @@ public class AccountController : Controller
             return View(model);
         }
     }
+
+    [HttpGet]
+    [AllowAnonymous]
+    [EnableRateLimiting("account-recovery")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> CheckEmailAvailability(
+        string? email,
+        CancellationToken cancellationToken)
+    {
+        email = email?.Trim();
+        if (string.IsNullOrWhiteSpace(email) ||
+            !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email))
+        {
+            return Json(new
+            {
+                isAvailable = false,
+                isValid = false,
+                message = "Enter a valid email address."
+            });
+        }
+
+        var normalizedEmail = _userManager.NormalizeEmail(email);
+        var exists = await _dbContext.Users.AsNoTracking()
+            .AnyAsync(item => item.NormalizedEmail == normalizedEmail, cancellationToken);
+
+        return Json(new
+        {
+            isAvailable = !exists,
+            isValid = true,
+            message = exists
+                ? "An account already uses this email."
+                : "Email is available for registration."
+        });
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ForgotPassword() => View(new ForgotPasswordViewModel());
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    [EnableRateLimiting("account-recovery")]
+    public async Task<IActionResult> ForgotPassword(
+        ForgotPasswordViewModel model,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var user = await _userManager.FindByEmailAsync(model.Email.Trim());
+        if (user is not null && user.IsActive)
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+            var callbackUrl = Url.Action(
+                nameof(ResetPassword),
+                "Account",
+                new { email = user.Email, token = encodedToken },
+                Request.Scheme);
+
+            if (!string.IsNullOrWhiteSpace(callbackUrl))
+            {
+                var delivered = await _emailService.SendPasswordResetAsync(
+                    user.Email!,
+                    user.FullName,
+                    callbackUrl,
+                    cancellationToken);
+
+                if (!delivered)
+                {
+                    _logger.LogWarning(
+                        "A password reset email could not be delivered for user {UserId}. SMTP configured: {Configured}.",
+                        user.Id,
+                        _emailService.IsConfigured);
+                }
+            }
+        }
+
+        // Always show the same response so visitors cannot discover registered emails.
+        return RedirectToAction(nameof(ForgotPasswordConfirmation));
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ForgotPasswordConfirmation() => View();
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPassword(string? email, string? token)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
+            return RedirectToAction(nameof(ForgotPassword));
+
+        return View(new ResetPasswordViewModel
+        {
+            Email = email,
+            Token = token
+        });
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    [EnableRateLimiting("account-recovery")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        string decodedToken;
+        try
+        {
+            decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Token));
+        }
+        catch (FormatException)
+        {
+            ModelState.AddModelError(string.Empty, "This password reset link is invalid or has expired.");
+            return View(model);
+        }
+
+        var user = await _userManager.FindByEmailAsync(model.Email.Trim());
+        if (user is null || !user.IsActive)
+            return RedirectToAction(nameof(ResetPasswordConfirmation));
+
+        var result = await _userManager.ResetPasswordAsync(user, decodedToken, model.Password);
+        if (result.Succeeded)
+        {
+            await _userManager.UpdateSecurityStampAsync(user);
+            return RedirectToAction(nameof(ResetPasswordConfirmation));
+        }
+
+        foreach (var error in result.Errors)
+        {
+            if (error.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase))
+                ModelState.AddModelError(nameof(model.Password), error.Description);
+            else
+                ModelState.AddModelError(string.Empty, "This password reset link is invalid or has expired.");
+        }
+
+        return View(model);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPasswordConfirmation() => View();
 
     [HttpGet]
     [AllowAnonymous]

@@ -46,6 +46,11 @@ builder.Services
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromHours(2);
+});
+
 // Authentication cookie settings
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -72,6 +77,10 @@ builder.Services.AddScoped<ICommunityService, CommunityService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
+builder.Services.AddScoped<IFacultyPortalService, FacultyPortalService>();
+builder.Services.AddScoped<IFacultyAssessmentService, FacultyAssessmentService>();
+builder.Services.AddScoped<IFacultyResourceService, FacultyResourceService>();
+builder.Services.AddScoped<IFacultyAnnouncementService, FacultyAnnouncementService>();
 builder.Services.AddScoped<ISmartStudyPlanService, SmartStudyPlanService>();
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
@@ -91,9 +100,13 @@ builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IAcademicContextService, AcademicContextService>();
 builder.Services.AddScoped<IAcademicAIConversationService, AcademicAIConversationService>();
 builder.Services.AddScoped<IAcademicAIService, AcademicAIService>();
+builder.Services.AddScoped<IFacultyAIService, FacultyAIService>();
+builder.Services.AddScoped<IAccountEmailService, SmtpAccountEmailService>();
 
 builder.Services.Configure<AcademicAIOptions>(
     builder.Configuration.GetSection(AcademicAIOptions.SectionName));
+builder.Services.Configure<EmailOptions>(
+    builder.Configuration.GetSection(EmailOptions.SectionName));
 builder.Services.AddHttpClient<IAITextProvider, GeminiAITextProvider>((services, client) =>
 {
     var configuration = services.GetRequiredService<Microsoft.Extensions.Options.IOptions<AcademicAIOptions>>().Value;
@@ -113,6 +126,16 @@ builder.Services.AddRateLimiter(options =>
             {
                 PermitLimit = 12,
                 Window = TimeSpan.FromMinutes(5),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("account-recovery", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 8,
+                Window = TimeSpan.FromMinutes(15),
                 QueueLimit = 0,
                 AutoReplenishment = true
             }));

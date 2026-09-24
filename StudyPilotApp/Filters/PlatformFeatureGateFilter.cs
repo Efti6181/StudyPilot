@@ -42,6 +42,18 @@ public sealed class PlatformFeatureGateFilter : IAsyncActionFilter
             }
         }
 
+        if (context.HttpContext.User.IsInRole("Faculty") && controller == "FacultyAI")
+        {
+            var settings = await _settingsService.GetAsync(context.HttpContext.RequestAborted);
+            if (!settings.AcademicAiEnabled)
+            {
+                _tempDataFactory.GetTempData(context.HttpContext)["FacultyError"] =
+                    "Faculty AI is temporarily unavailable. Please contact the StudyPilot administrator.";
+                context.Result = new RedirectToActionResult("Index", "Faculty", null);
+                return;
+            }
+        }
+
         await next();
     }
 }

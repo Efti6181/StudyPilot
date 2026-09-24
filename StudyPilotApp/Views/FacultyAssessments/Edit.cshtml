@@ -1,0 +1,5 @@
+@model FacultyAssessmentFormViewModel
+@{ViewData["Title"]="Edit Assessment";Layout="/Views/Shared/_FacultyLayout.cshtml";}
+<section class="faculty-heading"><div><a class="faculty-back" asp-action="Details" asp-route-id="@Model.Id"><i class="bi bi-arrow-left"></i>Assessment</a><h1>Edit assessment</h1><p>@(Model.CurrentStatus==FacultyAssessmentStatus.Published?"Changes synchronize to linked student copies.":"Review the draft before publishing.")</p></div></section>
+<form class="faculty-panel faculty-assessment-form" asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" novalidate><input asp-for="Id" type="hidden"/><partial name="_Form" model="Model"/><footer><a class="faculty-secondary" asp-action="Details" asp-route-id="@Model.Id">Cancel</a><button class="faculty-primary" type="submit">Save changes</button></footer></form>
+@section Scripts{<partial name="_ValidationScriptsPartial"/>}

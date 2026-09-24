@@ -23,11 +23,17 @@
         <section class="assessment-hero @(item.IsOverdue ? "is-overdue" : null)">
             <div>
                 <span class="assessment-status @item.StatusCss">@item.StatusLabel</span>
+                @if(item.IsFacultyPublished){<span class="badge text-bg-primary ms-2">Faculty published</span>}
                 <h2>@item.Title</h2>
                 <a asp-controller="Courses" asp-action="Details" asp-route-id="@item.CourseId">@item.CourseCode — @item.CourseName</a>
             </div>
             <div class="assessment-deadline"><span>Due</span><strong>@item.DueDate.ToString("dd MMM")</strong><small>@item.DueDate.ToString("yyyy · h:mm tt")</small></div>
         </section>
+
+        @if(item.IsFacultyPublished && !string.IsNullOrWhiteSpace(item.Instructions))
+        {
+            <section class="card-ui mt-4"><div class="card-head"><div><h2>Faculty instructions</h2><p>Official instructions for this assessment</p></div></div><div class="card-body-ui"><p class="assessment-copy">@item.Instructions</p></div></section>
+        }
 
         <section class="card-ui mt-4">
             <div class="card-head"><div><h2>Description</h2><p>Requirements and task context</p></div></div>
@@ -61,8 +67,15 @@
             </form>
         }
 
+        @if(item.HasFacultyAttachment)
+        {
+            <a asp-action="FacultyAttachment" asp-route-id="@item.Id" class="btn btn-outline-primary w-100 mt-3"><i class="bi bi-paperclip me-2"></i>Download attachment</a>
+        }
+        @if(!item.IsFacultyPublished)
+        {
         <section class="card-ui danger-zone mt-3">
             <div class="card-body-ui"><a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger w-100"><i class="bi bi-trash3 me-2"></i>Delete Assessment</a></div>
         </section>
+        }
     </div>
 </div>

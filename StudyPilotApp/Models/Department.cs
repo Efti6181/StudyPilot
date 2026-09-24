@@ -28,4 +28,5 @@ public sealed class Department
     public ICollection<AcademicProgram> Programs { get; set; } = [];
     public ICollection<CatalogCourse> CatalogCourses { get; set; } = [];
     public ICollection<UniversityMember> AuthorizedMembers { get; set; } = [];
+    public ICollection<StudentProfile> StudentProfiles { get; set; } = [];
 }

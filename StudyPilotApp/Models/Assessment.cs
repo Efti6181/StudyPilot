@@ -13,13 +13,19 @@ public class Assessment
     public int CourseId { get; set; }
     public Course Course { get; set; } = null!;
 
+    public int? FacultyAssessmentId { get; set; }
+    public FacultyAssessment? FacultyAssessment { get; set; }
+
     [Required, StringLength(160)]
     public string Title { get; set; } = string.Empty;
 
     public AssessmentType Type { get; set; }
 
-    [StringLength(2000)]
+    [StringLength(4000)]
     public string? Description { get; set; }
+
+    [StringLength(4000)]
+    public string? Instructions { get; set; }
 
     public DateOnly AssignedDate { get; set; }
     public DateTime DueDate { get; set; }

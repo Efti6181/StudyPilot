@@ -11,6 +11,12 @@ public class Course
 
     public ApplicationUser ApplicationUser { get; set; } = null!;
 
+    public int? CatalogCourseId { get; set; }
+    public CatalogCourse? CatalogCourse { get; set; }
+
+    public int? FacultyCourseAssignmentId { get; set; }
+    public FacultyCourseAssignment? FacultyCourseAssignment { get; set; }
+
     [Required, StringLength(20)]
     public string CourseCode { get; set; } = string.Empty;
 
@@ -52,4 +58,5 @@ public class Course
     public ICollection<CourseGrade> CourseGrades { get; set; } = [];
     public CoursePriorityPreference? PriorityPreference { get; set; }
     public ICollection<StudyResource> Resources { get; set; } = [];
+    public ICollection<FacultyAnnouncementRecipient> FacultyAnnouncementRecipients { get; set; } = [];
 }

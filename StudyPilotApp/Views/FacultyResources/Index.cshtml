@@ -1,0 +1,32 @@
+@model FacultyResourceIndexViewModel
+@{ ViewData["Title"] = "Resources"; Layout = "/Views/Shared/_FacultyLayout.cshtml"; }
+<section class="faculty-heading">
+    <div><span>LEARNING MATERIALS</span><h1>Resource Management</h1><p>Upload course files or share trusted links with matching students.</p></div>
+    <a class="faculty-primary" asp-action="Create" asp-route-assignmentId="@Model.AssignmentId"><i class="bi bi-plus-lg"></i>Add resource</a>
+</section>
+<section class="faculty-panel">
+    <form method="get" class="faculty-filters">
+        <label><i class="bi bi-search"></i><input name="search" value="@Model.Search" placeholder="Search title, tag, or course" /></label>
+        <select asp-for="AssignmentId"><option value="">All courses</option>@foreach (var course in Model.Courses){<option value="@course.AssignmentId">@course.Label</option>}</select>
+        <select asp-for="Category" asp-items="Html.GetEnumSelectList<ResourceCategory>()"><option value="">All categories</option></select>
+        <select asp-for="Status" asp-items="Html.GetEnumSelectList<FacultyResourceStatus>()"><option value="">All statuses</option></select>
+        <button class="faculty-secondary" type="submit">Filter</button>
+    </form>
+    @if (Model.Items.Count == 0)
+    {
+        <div class="faculty-empty"><i class="bi bi-folder2-open"></i><h3>No resources found</h3><p>Create a file or link draft for one of your assigned courses.</p></div>
+    }
+    else
+    {
+        <div class="faculty-resource-list">
+        @foreach (var item in Model.Items)
+        {
+            <a asp-action="Details" asp-route-id="@item.Id">
+                <span class="faculty-resource-icon"><i class="bi @(item.Kind == ResourceKind.File ? "bi-file-earmark-arrow-down" : "bi-link-45deg")"></i></span>
+                <div><span class="faculty-status @item.Status.ToString().ToLowerInvariant()">@item.Status</span><em>@item.Category</em><h2>@item.Title</h2><p>@item.CourseCode · @item.Term @item.AcademicYear · Section @item.Section</p></div>
+                <aside><strong>@item.StudentCount</strong><small>student copies</small></aside><i class="bi bi-chevron-right"></i>
+            </a>
+        }
+        </div>
+    }
+</section>

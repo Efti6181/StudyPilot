@@ -95,6 +95,18 @@ public sealed class AssessmentsController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> FacultyAttachment(int id)
+    {
+        var userId = _userManager.GetUserId(User);
+        if (userId is null) return Challenge();
+        var file = await _dbContext.Assessments.AsNoTracking()
+            .Where(item => item.Id == id && item.ApplicationUserId == userId && item.FacultyAssessmentId != null)
+            .Select(item => new { item.FacultyAssessment!.AttachmentData, item.FacultyAssessment.AttachmentContentType, item.FacultyAssessment.AttachmentFileName })
+            .SingleOrDefaultAsync();
+        return file?.AttachmentData is null ? NotFound() : File(file.AttachmentData, file.AttachmentContentType!, file.AttachmentFileName);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Create(int? courseId)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -171,6 +183,19 @@ public sealed class AssessmentsController : Controller
         var assessment = await _assessmentService.GetOwnedAssessmentAsync(user.Id, id, trackChanges: true);
         if (assessment is null) return NotFound();
 
+        if (assessment.FacultyAssessmentId.HasValue)
+        {
+            var personalStatus = model.Status;
+            var personalMarks = model.ObtainedMarks;
+            var personalHours = model.EstimatedStudyHours;
+            var personalNotes = model.Notes;
+            model = ToForm(assessment);
+            model.Status = personalStatus;
+            model.ObtainedMarks = personalMarks;
+            model.EstimatedStudyHours = personalHours;
+            model.Notes = personalNotes;
+        }
+
         await ValidateFormAsync(model, user.Id);
         if (!ModelState.IsValid)
         {
@@ -179,7 +204,17 @@ public sealed class AssessmentsController : Controller
             return View(model);
         }
 
-        ApplyForm(assessment, model);
+        if (assessment.FacultyAssessmentId.HasValue)
+        {
+            assessment.Status = model.Status!.Value;
+            assessment.ObtainedMarks = model.ObtainedMarks;
+            assessment.EstimatedStudyHours = model.EstimatedStudyHours;
+            assessment.Notes = NormalizeOptional(model.Notes);
+        }
+        else
+        {
+            ApplyForm(assessment, model);
+        }
         assessment.UpdatedAt = DateTimeOffset.UtcNow;
         await _assessmentService.SaveChangesAsync();
 
@@ -213,6 +248,7 @@ public sealed class AssessmentsController : Controller
 
         var assessment = await _assessmentService.GetOwnedAssessmentAsync(user.Id, id);
         if (assessment is null) return NotFound();
+        if (assessment.FacultyAssessmentId.HasValue) return BadRequest("Faculty-published assessments cannot be deleted by students.");
 
         var model = new AssessmentDeleteViewModel { Assessment = ToCard(assessment) };
         if (!await PopulateShellAsync(model, user)) return MissingStudentProfile();
@@ -228,6 +264,7 @@ public sealed class AssessmentsController : Controller
 
         var assessment = await _assessmentService.GetOwnedAssessmentAsync(user.Id, id, trackChanges: true);
         if (assessment is null) return NotFound();
+        if (assessment.FacultyAssessmentId.HasValue) return BadRequest("Faculty-published assessments cannot be deleted by students.");
 
         var title = assessment.Title;
         _assessmentService.Remove(assessment);
@@ -338,6 +375,7 @@ public sealed class AssessmentsController : Controller
     private static AssessmentFormViewModel ToForm(Assessment item) => new()
     {
         Id = item.Id,
+        IsFacultyPublished = item.FacultyAssessmentId.HasValue,
         CourseId = item.CourseId,
         Title = item.Title,
         Type = item.Type,
@@ -362,6 +400,9 @@ public sealed class AssessmentsController : Controller
         Title = item.Title,
         Type = item.Type,
         Description = item.Description,
+        Instructions = item.Instructions,
+        FacultyAssessmentId = item.FacultyAssessmentId,
+        HasFacultyAttachment = item.FacultyAssessment?.AttachmentData is not null,
         AssignedDate = item.AssignedDate,
         DueDate = item.DueDate,
         TotalMarks = item.TotalMarks,

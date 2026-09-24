@@ -52,7 +52,10 @@
                     </div>
 
                     <div class="sp-field">
-                        <div class="sp-label-row"><label asp-for="Password"></label></div>
+                        <div class="sp-label-row">
+                            <label asp-for="Password"></label>
+                            <a asp-action="ForgotPassword">Forgot password?</a>
+                        </div>
                         <div class="sp-password-wrap">
                             <input asp-for="Password" class="form-control" placeholder="Enter your password" autocomplete="current-password" />
                             <button class="sp-password-toggle" type="button" data-password-toggle>Show</button>

@@ -1,0 +1,74 @@
+@model FacultyCommunityIndexViewModel
+@{
+    ViewData["Title"] = "Community";
+    Layout = "/Views/Shared/_FacultyLayout.cshtml";
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+    var campusOffset = TimeSpan.FromHours(6);
+}
+@section Styles { <link rel="stylesheet" href="~/css/faculty-community.css" asp-append-version="true" /> }
+
+<section class="faculty-heading">
+    <div><span>ACADEMIC NETWORK</span><h1>StudyPilot Community</h1><p>Guide students, share academic insight, and join useful university discussions.</p></div>
+    <a class="faculty-primary" asp-action="Create"><i class="bi bi-pencil-square"></i>Create post</a>
+</section>
+
+<section class="faculty-community-hero">
+    <div><span>FACULTY + STUDENT NETWORK</span><h2>Turn questions into learning conversations.</h2><p>Your Faculty badge helps students recognize verified academic guidance.</p></div>
+    <i class="bi bi-people-fill"></i>
+</section>
+
+<section class="faculty-panel faculty-community-filters">
+    <form method="get">
+        <label class="faculty-community-search"><i class="bi bi-search"></i><input name="search" value="@Model.Search" placeholder="Search posts, content, or authors" /></label>
+        <select asp-for="Category" asp-items="Html.GetEnumSelectList<CommunityCategory>()"><option value="">All categories</option></select>
+        <select name="sort">
+            <option value="newest" selected="@(Model.Sort == "newest" ? "selected" : null)">Newest</option>
+            <option value="popular" selected="@(Model.Sort == "popular" ? "selected" : null)">Most liked</option>
+            <option value="discussed" selected="@(Model.Sort == "discussed" ? "selected" : null)">Most discussed</option>
+            <option value="oldest" selected="@(Model.Sort == "oldest" ? "selected" : null)">Oldest</option>
+        </select>
+        <label class="faculty-community-mine"><input asp-for="MyPostsOnly" type="checkbox" /><span>My posts</span></label>
+        <button class="faculty-secondary" type="submit">Apply filters</button>
+        <a class="faculty-community-reset" asp-action="Index" title="Clear filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+    </form>
+</section>
+
+<div class="faculty-community-result"><span><strong>@Model.TotalPosts</strong> post@(Model.TotalPosts == 1 ? "" : "s")</span>@if(Model.Category.HasValue || !string.IsNullOrWhiteSpace(Model.Search) || Model.MyPostsOnly){<em><i class="bi bi-funnel"></i> Filtered</em>}</div>
+
+@if (Model.Posts.Count == 0)
+{
+    <section class="faculty-panel faculty-empty"><i class="bi bi-chat-square-dots"></i><h3>No community posts found</h3><p>Create the first discussion or change the current filters.</p><a class="faculty-primary" asp-action="Create">Create post</a></section>
+}
+else
+{
+    <div class="faculty-community-feed">
+    @foreach (var post in Model.Posts)
+    {
+        var created = post.CreatedAt.ToOffset(campusOffset);
+        <article class="faculty-community-card">
+            <header>
+                <span class="faculty-community-avatar">@post.AuthorInitials</span>
+                <div><strong>@post.AuthorName @if(post.IsFacultyAuthor){<span class="faculty-verified"><i class="bi bi-patch-check-fill"></i>Faculty</span>}</strong><small>@created.ToString("dd MMM yyyy · hh:mm tt") @if(post.UpdatedAt.HasValue){<span>· Edited</span>}</small></div>
+                <span class="faculty-community-category category-@post.Category.ToString().ToLowerInvariant()">@post.CategoryLabel</span>
+            </header>
+            <div class="faculty-community-copy"><h2><a asp-action="Details" asp-route-id="@post.Id">@post.Title</a></h2><p>@post.Preview</p></div>
+            <footer>
+                <div>
+                    <form asp-action="TogglePostLike" asp-route-id="@post.Id" method="post"><input type="hidden" name="returnUrl" value="@returnUrl" /><button class="faculty-community-action @(post.IsLikedByCurrentUser ? "active" : null)" type="submit"><i class="bi @(post.IsLikedByCurrentUser ? "bi-heart-fill" : "bi-heart")"></i>@post.LikeCount</button></form>
+                    <a class="faculty-community-action" asp-action="Details" asp-route-id="@post.Id"><i class="bi bi-chat"></i>@post.CommentCount</a>
+                </div>
+                <div>@if(post.IsOwnedByCurrentUser){<a class="faculty-community-icon" asp-action="Edit" asp-route-id="@post.Id" title="Edit"><i class="bi bi-pencil"></i></a>}<a class="faculty-secondary" asp-action="Details" asp-route-id="@post.Id">Read discussion</a></div>
+            </footer>
+        </article>
+    }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="faculty-community-pagination">
+            <a class="faculty-secondary @(Model.Page <= 1 ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-category="@Model.Category" asp-route-sort="@Model.Sort" asp-route-myPostsOnly="@Model.MyPostsOnly" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i>Previous</a>
+            <span>Page <strong>@Model.Page</strong> of @Model.TotalPages</span>
+            <a class="faculty-secondary @(Model.Page >= Model.TotalPages ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-category="@Model.Category" asp-route-sort="@Model.Sort" asp-route-myPostsOnly="@Model.MyPostsOnly" asp-route-page="@(Model.Page + 1)">Next<i class="bi bi-chevron-right"></i></a>
+        </nav>
+    }
+}

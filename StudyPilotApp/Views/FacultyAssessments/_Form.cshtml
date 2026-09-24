@@ -1,0 +1,15 @@
+@model FacultyAssessmentFormViewModel
+<div asp-validation-summary="ModelOnly" class="faculty-alert error"></div>
+<div class="faculty-form-grid">
+<label class="full"><span>Course and section</span>@if(Model.CurrentStatus==FacultyAssessmentStatus.Published){<input asp-for="FacultyCourseAssignmentId" type="hidden"/><select asp-for="FacultyCourseAssignmentId" disabled><option value="">Select assigned course</option>@foreach(var course in Model.Courses){<option value="@course.AssignmentId">@course.Label</option>}</select><small>Course assignment is locked after publication.</small>}else{<select asp-for="FacultyCourseAssignmentId"><option value="">Select assigned course</option>@foreach(var course in Model.Courses){<option value="@course.AssignmentId">@course.Label</option>}</select>}<small asp-validation-for="FacultyCourseAssignmentId"></small></label>
+<label class="full"><span>Title</span><input asp-for="Title" placeholder="e.g. Data Communication Assignment" /><small asp-validation-for="Title"></small></label>
+<label><span>Type</span><select asp-for="Type" asp-items="Html.GetEnumSelectList<AssessmentType>()"><option value="">Select type</option></select><small asp-validation-for="Type"></small></label>
+<label><span>Estimated difficulty</span><select asp-for="Difficulty" asp-items="Html.GetEnumSelectList<AssessmentDifficulty>()"></select><small asp-validation-for="Difficulty"></small></label>
+<label><span>Assigned date</span><input asp-for="AssignedDate" type="date" /><small asp-validation-for="AssignedDate"></small></label>
+<label><span>Due date and time</span><input asp-for="DueDate" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" /><small asp-validation-for="DueDate"></small></label>
+<label><span>Total marks</span><input asp-for="TotalMarks" min="0" step="0.01" /></label><label><span>Weight / importance (%)</span><input asp-for="WeightPercentage" min="0" max="100" step="0.01" /></label>
+<label class="full"><span>Description</span><textarea asp-for="Description" rows="4" maxlength="4000"></textarea><small asp-validation-for="Description"></small></label>
+<label class="full"><span>Instructions</span><textarea asp-for="Instructions" rows="5" maxlength="4000" placeholder="Submission rules, required format, topics, and expectations"></textarea><small asp-validation-for="Instructions"></small></label>
+<label class="full"><span>Attachment</span><input asp-for="Attachment" type="file" accept=".pdf,.docx,.pptx,.zip,.png,.jpg,.jpeg" /><small>PDF, DOCX, PPTX, ZIP, PNG or JPG; maximum 5 MB.</small><small asp-validation-for="Attachment"></small></label>
+@if(Model.HasAttachment){<label class="faculty-check full"><input asp-for="RemoveAttachment" />Remove current attachment (@Model.AttachmentFileName)</label>}
+</div>

@@ -211,6 +211,31 @@ html, body { min-height: 100%; }
 .sp-password-wrap { position: relative; }
 .sp-password-wrap .form-control { padding-right: 68px; }
 
+.sp-label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sp-label-row a { margin-bottom: 7px; color: var(--sp-primary); font-size: .76rem; font-weight: 750; text-decoration: none; }
+.sp-label-row a:hover { color: var(--sp-primary-dark); text-decoration: underline; }
+.sp-availability { display: block; min-height: 18px; margin-top: 5px; font-size: .72rem; font-weight: 700; }
+.sp-availability.checking, .sp-availability.invalid { color: var(--sp-muted); }
+.sp-availability.available { color: #15803d; }
+.sp-availability.unavailable { color: var(--sp-danger); }
+.sp-password-strength { margin: -5px 0 18px; }
+.sp-password-strength > div { height: 6px; overflow: hidden; background: #e2e8f0; border-radius: 99px; }
+.sp-password-strength > div span { display: block; width: 0; height: 100%; background: #ef4444; border-radius: inherit; transition: width .25s ease, background-color .25s ease; }
+.sp-password-strength[data-score="3"] > div span { background: #f59e0b; }
+.sp-password-strength[data-score="4"] > div span { background: #22c55e; }
+.sp-password-strength[data-score="5"] > div span { background: linear-gradient(90deg,#22c55e,#14b8a6); }
+.sp-password-strength p { display: flex; justify-content: space-between; gap: 12px; margin: 6px 0 0; color: var(--sp-muted); font-size: .68rem; }
+.sp-password-strength p > span { flex: 0 0 auto; color: #334155; font-weight: 800; }
+.sp-recovery-shell { width: min(1040px,100%); min-height: 650px; }
+.sp-auth-message-card { width: min(520px,100%); padding: 46px; text-align: center; background: #fff; border: 1px solid var(--sp-line); border-radius: 27px; box-shadow: 0 30px 90px rgba(15,23,42,.14); }
+.sp-message-brand { display: inline-flex; align-items: center; gap: 9px; margin-bottom: 34px; color: var(--sp-ink); text-decoration: none; }
+.sp-message-icon { display: grid; place-items: center; width: 74px; height: 74px; margin: 0 auto 22px; color: #2563eb; background: #dbeafe; border-radius: 22px; font-size: 1.65rem; font-weight: 900; }
+.sp-message-icon.success { color: #15803d; background: #dcfce7; }
+.sp-auth-message-card h1 { margin: 2px 0 12px; font-size: 2rem; letter-spacing: -.04em; }
+.sp-auth-message-card > p { margin: 0 0 20px; color: var(--sp-muted); line-height: 1.7; }
+.sp-security-note { margin-bottom: 24px; padding: 12px; color: #475569; background: #f8fafc; border: 1px solid var(--sp-line); border-radius: 11px; font-size: .76rem; }
+.sp-auth-message-card .sp-primary-button { display: flex; text-decoration: none; }
+
 .sp-password-toggle {
     position: absolute;
     top: 50%;

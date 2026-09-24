@@ -92,6 +92,7 @@ else
                     <div class="resource-badges">
                         <span>@item.CategoryLabel</span>
                         <span class="kind">@item.Kind</span>
+                        @if (item.IsFacultyPublished){<span class="kind"><i class="bi bi-person-badge"></i> Faculty</span>}
                     </div>
                     <h2><a asp-action="Details" asp-route-id="@item.Id">@item.Title</a></h2>
                     <p>@(string.IsNullOrWhiteSpace(item.Description) ? "No description added." : item.Description)</p>
@@ -115,7 +116,7 @@ else
                     }
                     <div class="d-flex gap-1">
                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-icon btn-ghost btn-sm" title="Details"><i class="bi bi-eye"></i></a>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-icon btn-ghost btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>
+                        @if (!item.IsFacultyPublished){<a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-icon btn-ghost btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>}
                     </div>
                 </div>
             </article>

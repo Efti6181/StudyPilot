@@ -1,0 +1,45 @@
+@model StudyPilotApp.ViewModels.FacultyShellViewModel
+@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var imageUrl = Model.HasProfileImage ? Url.Action("ProfileImage", "Faculty", new { v = Model.ProfileImageVersion }) : null;
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - StudyPilot Faculty</title>
+    <script>try{document.documentElement.dataset.theme=localStorage.getItem('studypilot-faculty-theme')||'light'}catch{}</script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/faculty.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+<div class="faculty-shell">
+    <aside class="faculty-sidebar" id="facultySidebar">
+        <a class="faculty-brand" asp-controller="Faculty" asp-action="Index"><span><i class="bi bi-mortarboard-fill"></i></span><strong>StudyPilot<small>Faculty Portal</small></strong></a>
+        <nav>
+            <small>DASHBOARD</small><a class="@(controller == "Faculty" && action == "Index" ? "active" : null)" asp-controller="Faculty" asp-action="Index"><i class="bi bi-grid-1x2"></i>Overview</a>
+            <small>ACADEMICS</small><a class="@(action is "Courses" or "Course" or "EditCourseOverview" ? "active" : null)" asp-controller="Faculty" asp-action="Courses"><i class="bi bi-journal-bookmark"></i>My Courses</a><a class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "FacultyAssessments" ? "active" : null)" asp-controller="FacultyAssessments" asp-action="Index"><i class="bi bi-clipboard2-check"></i>Assessments</a>
+            <small>LEARNING</small><a class="@(controller == "FacultyResources" ? "active" : null)" asp-controller="FacultyResources" asp-action="Index"><i class="bi bi-collection"></i>Resources</a>
+            <small>COMMUNICATION</small><a class="@(controller == "FacultyAnnouncements" ? "active" : null)" asp-controller="FacultyAnnouncements" asp-action="Index"><i class="bi bi-megaphone"></i>Announcements</a><a class="@(controller == "FacultyCommunity" ? "active" : null)" asp-controller="FacultyCommunity" asp-action="Index"><i class="bi bi-people"></i>Community</a>
+            <small>CAMPUS &amp; AI</small><a class="@(controller == "FacultyEvents" ? "active" : null)" asp-controller="FacultyEvents" asp-action="Index"><i class="bi bi-calendar-event"></i>Events</a><a class="@(controller == "FacultyAI" ? "active" : null)" asp-controller="FacultyAI" asp-action="Index"><i class="bi bi-stars"></i>Faculty AI</a>
+            <small>ACCOUNT</small><a class="@(controller == "Faculty" && action == "Profile" ? "active" : null)" asp-controller="Faculty" asp-action="Profile"><i class="bi bi-person"></i>Profile</a>
+        </nav>
+        <div class="faculty-user"><span class="faculty-avatar">@if(Model.HasProfileImage){<img src="@imageUrl" alt="@Model.FullName" />}else{@Model.Initials}</span><div><strong>@Model.FullName</strong><small>@Model.DesignationLabel</small></div><form asp-controller="Account" asp-action="Logout" method="post"><button title="Logout"><i class="bi bi-box-arrow-right"></i></button></form></div>
+    </aside>
+    <div class="faculty-backdrop" id="facultyBackdrop"></div>
+    <div class="faculty-main">
+        <header class="faculty-topbar"><button id="facultyMenu" class="faculty-icon-button" type="button"><i class="bi bi-list"></i></button><div><strong>Faculty Workspace</strong><small>@Model.DepartmentLabel</small></div><button id="facultyTheme" class="faculty-icon-button faculty-theme-button" type="button" title="Toggle dark mode"><i class="bi bi-moon-stars"></i></button><span class="faculty-id"><i class="bi bi-shield-check"></i>@Model.FacultyId</span><a class="faculty-top-profile" asp-controller="Faculty" asp-action="Profile"><span class="faculty-avatar">@if(Model.HasProfileImage){<img src="@imageUrl" alt="@Model.FullName" />}else{@Model.Initials}</span></a></header>
+        <main class="faculty-content">
+            @if(TempData["FacultySuccess"] is string success){<div class="faculty-alert success"><i class="bi bi-check-circle-fill"></i>@success</div>}
+            @if(TempData["FacultyError"] is string error){<div class="faculty-alert error"><i class="bi bi-exclamation-triangle-fill"></i>@error</div>}
+            @RenderBody()
+        </main>
+    </div>
+</div>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script>(()=>{const key='studypilot-faculty-theme',root=document.documentElement,button=document.getElementById('facultyTheme');const apply=theme=>{root.dataset.theme=theme;const icon=button?.querySelector('i');if(icon)icon.className=theme==='dark'?'bi bi-sun':'bi bi-moon-stars'};apply(localStorage.getItem(key)||'light');button?.addEventListener('click',()=>{const next=root.dataset.theme==='dark'?'light':'dark';localStorage.setItem(key,next);apply(next)});document.getElementById('facultyMenu')?.addEventListener('click',()=>document.body.classList.toggle('faculty-menu-open'));document.getElementById('facultyBackdrop')?.addEventListener('click',()=>document.body.classList.remove('faculty-menu-open'));})();</script>
+@await RenderSectionAsync("Scripts", required: false)
+</body></html>

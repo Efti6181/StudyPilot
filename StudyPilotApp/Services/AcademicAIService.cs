@@ -35,7 +35,8 @@ public sealed class AcademicAIService : IAcademicAIService
         var providerResult = await _provider.GenerateAsync(
             BuildSystemInstruction(mode),
             BuildProviderPrompt(mode, prompt, context, history),
-            cancellationToken);
+            cancellationToken,
+            maxOutputTokens: 4096);
 
         if (providerResult.Success && !string.IsNullOrWhiteSpace(providerResult.Text))
         {
@@ -48,7 +49,8 @@ public sealed class AcademicAIService : IAcademicAIService
         return new AcademicAIResult(
             BuildFallback(mode, context),
             true,
-            "Deterministic fallback");
+            "Deterministic fallback",
+            providerResult.ErrorCode);
     }
 
     private static string BuildSystemInstruction(AcademicAIMode mode) => $$"""

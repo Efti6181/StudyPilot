@@ -123,3 +123,5 @@ button.post-action, .comment-like { cursor: pointer; }
   .community-pagination span { font-size: .8rem; }
   .community-pagination .btn { padding-inline: .7rem; }
 }
+.community-role-badge{display:inline-flex;align-items:center;gap:3px;margin-left:5px;padding:2px 6px;color:#1d4ed8;background:#dbeafe;border-radius:99px;font-size:.62rem;font-weight:800;vertical-align:middle}.community-role-badge i{font-size:.68rem}
+[data-theme="dark"] .community-role-badge{color:#93c5fd;background:rgba(37,99,235,.2)}

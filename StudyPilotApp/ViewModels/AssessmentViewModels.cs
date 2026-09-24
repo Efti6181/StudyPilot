@@ -30,6 +30,10 @@ public sealed class AssessmentCardViewModel
     public string Title { get; set; } = string.Empty;
     public AssessmentType Type { get; set; }
     public string? Description { get; set; }
+    public string? Instructions { get; set; }
+    public int? FacultyAssessmentId { get; set; }
+    public bool IsFacultyPublished => FacultyAssessmentId.HasValue;
+    public bool HasFacultyAttachment { get; set; }
     public DateOnly AssignedDate { get; set; }
     public DateTime DueDate { get; set; }
     public decimal? TotalMarks { get; set; }
@@ -61,6 +65,7 @@ public sealed class AssessmentCardViewModel
 public sealed class AssessmentFormViewModel : StudentShellViewModel
 {
     public int? Id { get; set; }
+    public bool IsFacultyPublished { get; set; }
 
     [Required(ErrorMessage = "Please select a course.")]
     [Display(Name = "Course")]

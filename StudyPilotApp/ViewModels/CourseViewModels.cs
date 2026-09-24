@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using StudyPilotApp.Models;
 
 namespace StudyPilotApp.ViewModels;
@@ -42,38 +43,43 @@ public sealed class CourseFormViewModel : StudentShellViewModel
 {
     public int? Id { get; set; }
 
-    [Required(ErrorMessage = "Please enter the course code.")]
-    [StringLength(20, MinimumLength = 2)]
+    [Required(ErrorMessage = "Select a course from the Admin-managed catalog.")]
+    [Display(Name = "Catalog course")]
+    public int? CatalogCourseId { get; set; }
+
+    [Required(ErrorMessage = "Select your assigned instructor.")]
+    [Display(Name = "Instructor")]
+    public int? FacultyCourseAssignmentId { get; set; }
+
+    public bool IsCatalogLocked { get; set; }
+    public IReadOnlyList<CatalogCourseSelectionOption> CatalogOptions { get; set; } = [];
+    public IReadOnlyList<SelectListItem> InstructorOptions { get; set; } = [];
+
+    [StringLength(20)]
     [Display(Name = "Course Code")]
     public string CourseCode { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Please enter the course name.")]
-    [StringLength(150, MinimumLength = 2)]
+    [StringLength(150)]
     [Display(Name = "Course Name")]
     public string CourseName { get; set; } = string.Empty;
 
-    [Required]
-    [Range(typeof(decimal), "0.5", "9.0", ErrorMessage = "Credit hours must be between 0.5 and 9.0.")]
+    [Range(typeof(decimal), "0.5", "9.0")]
     [Display(Name = "Credit Hours")]
     public decimal? CreditHours { get; set; }
 
     [StringLength(150)]
     public string? Instructor { get; set; }
 
-    [Required]
-    [Range(1, 12, ErrorMessage = "Please select a valid semester.")]
+    [Range(1, 12)]
     public int? Semester { get; set; }
 
-    [Required(ErrorMessage = "Please select an academic term.")]
     [Display(Name = "Academic Term")]
     public AcademicTerm? AcademicTerm { get; set; }
 
-    [Required]
-    [Range(2000, 2100, ErrorMessage = "Please enter a valid academic year.")]
+    [Range(2000, 2100)]
     [Display(Name = "Academic Year")]
     public int? AcademicYear { get; set; }
 
-    [Required(ErrorMessage = "Please select a course type.")]
     [Display(Name = "Course Type")]
     public CourseType? CourseType { get; set; }
 
@@ -95,6 +101,16 @@ public sealed class CourseFormViewModel : StudentShellViewModel
     [Display(Name = "Current Progress")]
     public int? ProgressPercentage { get; set; }
 }
+
+public sealed record CatalogCourseSelectionOption(
+    int Id,
+    string Label,
+    string Code,
+    string Name,
+    decimal CreditHours,
+    CourseType CourseType,
+    int Semester,
+    string? Description);
 
 public sealed class CourseDetailsViewModel : StudentShellViewModel
 {

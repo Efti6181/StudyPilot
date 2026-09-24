@@ -36,4 +36,5 @@ public sealed class AcademicProgram
 
     public ICollection<UniversityMember> AuthorizedMembers { get; set; } = [];
     public ICollection<CatalogCourse> CatalogCourses { get; set; } = [];
+    public ICollection<StudentProfile> StudentProfiles { get; set; } = [];
 }

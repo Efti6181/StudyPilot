@@ -1,0 +1,15 @@
+@model FacultyResourceFormViewModel
+<div asp-validation-summary="ModelOnly" class="text-danger full"></div>
+<div class="faculty-form-grid">
+    <label class="full"><span>Course and section</span><select asp-for="AssignmentId"><option value="">Select an assigned course</option>@foreach (var course in Model.Courses){<option value="@course.AssignmentId">@course.Label</option>}</select><span asp-validation-for="AssignmentId" class="text-danger"></span></label>
+    <label class="full"><span>Title</span><input asp-for="Title" placeholder="Example: Week 4 lecture notes" /><span asp-validation-for="Title" class="text-danger"></span></label>
+    <label><span>Resource source</span><select asp-for="Kind" id="resourceKind" asp-items="Html.GetEnumSelectList<ResourceKind>()"></select><span asp-validation-for="Kind" class="text-danger"></span></label>
+    <label><span>Category</span><select asp-for="Category" asp-items="Html.GetEnumSelectList<ResourceCategory>()"></select><span asp-validation-for="Category" class="text-danger"></span></label>
+    <label class="full"><span>Description</span><textarea asp-for="Description" rows="5" placeholder="Explain how students should use this material."></textarea><span asp-validation-for="Description" class="text-danger"></span></label>
+    <label class="full"><span>Tags</span><input asp-for="Tags" placeholder="lecture, week-4, algorithms" /><small>Separate keywords with commas to make resources easier to find.</small><span asp-validation-for="Tags" class="text-danger"></span></label>
+    <label class="full faculty-source-field" data-source="file"><span>@(Model.Id.HasValue ? "Replace file (optional)" : "Upload file")</span><input asp-for="Upload" type="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.zip,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.md,.cs,.html,.css,.js,.json,.xml" />@if (!string.IsNullOrWhiteSpace(Model.ExistingFileName)){<small>Current file: @Model.ExistingFileName. Leave blank to keep it.</small>}else{<small>Maximum 20 MB. The server verifies both extension and file signature.</small>}<span asp-validation-for="Upload" class="text-danger"></span></label>
+    <label class="full faculty-source-field" data-source="link"><span>External URL</span><input asp-for="ExternalUrl" type="url" placeholder="https://example.edu/learning-material" /><small>Only HTTP and HTTPS links are accepted.</small><span asp-validation-for="ExternalUrl" class="text-danger"></span></label>
+</div>
+<script>
+(()=>{const select=document.getElementById('resourceKind');if(!select)return;const sync=()=>document.querySelectorAll('.faculty-source-field').forEach(x=>x.hidden=x.dataset.source!==(select.value==='1'?'file':'link'));select.addEventListener('change',sync);sync();})();
+</script>

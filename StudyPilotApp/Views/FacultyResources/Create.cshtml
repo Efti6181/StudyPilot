@@ -1,0 +1,10 @@
+@model FacultyResourceFormViewModel
+@{ ViewData["Title"] = "Add Resource"; Layout = "/Views/Shared/_FacultyLayout.cshtml"; }
+<section class="faculty-heading"><div><a class="faculty-back" asp-action="Index"><i class="bi bi-arrow-left"></i>Resources</a><h1>Add learning resource</h1><p>Save a secure draft before publishing it to students.</p></div></section>
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="faculty-panel faculty-assessment-form">
+    @Html.AntiForgeryToken()
+    <header><div><h2>Resource details</h2><p>Drafts remain private until you publish them.</p></div></header>
+    <partial name="_Form" model="Model" />
+    <footer><a class="faculty-secondary" asp-action="Index">Cancel</a><button class="faculty-primary" type="submit"><i class="bi bi-check2"></i>Save draft</button></footer>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

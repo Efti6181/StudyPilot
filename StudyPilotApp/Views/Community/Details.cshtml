@@ -25,7 +25,7 @@
     <div class="post-author-row">
         <span class="community-avatar">@Model.Post.AuthorInitials</span>
         <div>
-            <strong>@Model.Post.AuthorName</strong>
+            <strong>@Model.Post.AuthorName @if (Model.Post.IsFacultyAuthor) { <span class="community-role-badge"><i class="bi bi-patch-check-fill"></i> Faculty</span> }</strong>
             <small>@Model.Post.CreatedAt.ToString("dd MMM yyyy · hh:mm tt") @if (Model.Post.UpdatedAt.HasValue) { <span>· Edited</span> }</small>
         </div>
         <span class="community-category category-@Model.Post.Category.ToString().ToLowerInvariant()">@Model.Post.CategoryLabel</span>
@@ -87,7 +87,7 @@
                     <span class="community-avatar small-avatar">@comment.AuthorInitials</span>
                     <div class="comment-main">
                         <div class="comment-meta">
-                            <div><strong>@comment.AuthorName</strong><small>@comment.CreatedAt.ToString("dd MMM yyyy · hh:mm tt") @if (comment.UpdatedAt.HasValue) { <span>· Edited</span> }</small></div>
+                            <div><strong>@comment.AuthorName @if (comment.IsFacultyAuthor) { <span class="community-role-badge"><i class="bi bi-patch-check-fill"></i> Faculty</span> }</strong><small>@comment.CreatedAt.ToString("dd MMM yyyy · hh:mm tt") @if (comment.UpdatedAt.HasValue) { <span>· Edited</span> }</small></div>
                             @if (comment.IsOwnedByCurrentUser)
                             {
                                 <div class="comment-owner-actions">

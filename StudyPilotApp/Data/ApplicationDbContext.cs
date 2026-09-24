@@ -22,6 +22,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<FacultyProfile> FacultyProfiles => Set<FacultyProfile>();
+    public DbSet<FacultyCourseAssignment> FacultyCourseAssignments => Set<FacultyCourseAssignment>();
+    public DbSet<FacultyAssessment> FacultyAssessments => Set<FacultyAssessment>();
+    public DbSet<FacultyResource> FacultyResources => Set<FacultyResource>();
+    public DbSet<FacultyAnnouncement> FacultyAnnouncements => Set<FacultyAnnouncement>();
+    public DbSet<FacultyAnnouncementRecipient> FacultyAnnouncementRecipients => Set<FacultyAnnouncementRecipient>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<Assessment> Assessments => Set<Assessment>();
     public DbSet<SemesterResult> SemesterResults => Set<SemesterResult>();
@@ -208,24 +213,118 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         {
             entity.HasIndex(x => x.StudentId).IsUnique();
             entity.HasIndex(x => x.ApplicationUserId).IsUnique();
+            entity.HasIndex(x => x.DepartmentId);
+            entity.HasIndex(x => x.AcademicProgramId);
             entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.HasOne(x => x.ApplicationUser)
                 .WithOne()
                 .HasForeignKey<StudentProfile>(x => x.ApplicationUserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.DepartmentRecord)
+                .WithMany(x => x.StudentProfiles)
+                .HasForeignKey(x => x.DepartmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.AcademicProgram)
+                .WithMany(x => x.StudentProfiles)
+                .HasForeignKey(x => x.AcademicProgramId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<FacultyProfile>(entity =>
         {
             entity.HasIndex(x => x.FacultyId).IsUnique();
             entity.HasIndex(x => x.ApplicationUserId).IsUnique();
+            entity.HasIndex(x => x.DepartmentId);
             entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.HasOne(x => x.ApplicationUser)
                 .WithOne()
                 .HasForeignKey<FacultyProfile>(x => x.ApplicationUserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.Department)
+                .WithMany()
+                .HasForeignKey(x => x.DepartmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<FacultyCourseAssignment>(entity =>
+        {
+            entity.HasIndex(x => new { x.FacultyProfileId, x.CatalogCourseId, x.AcademicPeriodId, x.Section }).IsUnique();
+            entity.HasIndex(x => new { x.FacultyProfileId, x.IsActive });
+            entity.HasIndex(x => new { x.CatalogCourseId, x.AcademicPeriodId });
+            entity.Property(x => x.IsActive).HasDefaultValue(true);
+            entity.Property(x => x.AssignedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(x => x.FacultyProfile)
+                .WithMany(x => x.CourseAssignments)
+                .HasForeignKey(x => x.FacultyProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.CatalogCourse)
+                .WithMany(x => x.FacultyAssignments)
+                .HasForeignKey(x => x.CatalogCourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.AcademicPeriod)
+                .WithMany(x => x.FacultyCourseAssignments)
+                .HasForeignKey(x => x.AcademicPeriodId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<FacultyAssessment>(entity =>
+        {
+            entity.HasIndex(x => new { x.FacultyCourseAssignmentId, x.Status, x.DueDate });
+            entity.Property(x => x.TotalMarks).HasPrecision(10, 2);
+            entity.Property(x => x.WeightPercentage).HasPrecision(5, 2);
+            entity.Property(x => x.AssignedDate).HasColumnType("date");
+            entity.Property(x => x.DueDate).HasColumnType("timestamp without time zone");
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(x => x.FacultyCourseAssignment)
+                .WithMany(x => x.Assessments)
+                .HasForeignKey(x => x.FacultyCourseAssignmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<FacultyResource>(entity =>
+        {
+            entity.HasIndex(x => new { x.FacultyCourseAssignmentId, x.Status, x.CreatedAt });
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(x => x.FacultyCourseAssignment).WithMany(x => x.Resources)
+                .HasForeignKey(x => x.FacultyCourseAssignmentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<FacultyAnnouncement>(entity =>
+        {
+            entity.HasIndex(x => new { x.FacultyCourseAssignmentId, x.Status, x.CreatedAt });
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(x => x.FacultyCourseAssignment)
+                .WithMany(x => x.Announcements)
+                .HasForeignKey(x => x.FacultyCourseAssignmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<FacultyAnnouncementRecipient>(entity =>
+        {
+            entity.HasIndex(x => new { x.FacultyAnnouncementId, x.CourseId }).IsUnique();
+            entity.HasIndex(x => new { x.ApplicationUserId, x.IsRead, x.DeliveredAt });
+            entity.Property(x => x.DeliveredAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(x => x.FacultyAnnouncement)
+                .WithMany(x => x.Recipients)
+                .HasForeignKey(x => x.FacultyAnnouncementId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.Course)
+                .WithMany(x => x.FacultyAnnouncementRecipients)
+                .HasForeignKey(x => new { x.CourseId, x.ApplicationUserId })
+                .HasPrincipalKey(x => new { x.Id, x.ApplicationUserId })
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<Course>(entity =>
@@ -233,6 +332,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasAlternateKey(x => new { x.Id, x.ApplicationUserId });
             entity.HasIndex(x => x.ApplicationUserId);
             entity.HasIndex(x => new { x.ApplicationUserId, x.Status });
+            entity.HasIndex(x => x.CatalogCourseId);
+            entity.HasIndex(x => x.FacultyCourseAssignmentId);
+            entity.HasIndex(x => new { x.ApplicationUserId, x.FacultyCourseAssignmentId })
+                .IsUnique()
+                .HasFilter("\"FacultyCourseAssignmentId\" IS NOT NULL");
             entity.HasIndex(x => new
             {
                 x.ApplicationUserId,
@@ -249,6 +353,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany()
                 .HasForeignKey(x => x.ApplicationUserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.CatalogCourse)
+                .WithMany(x => x.StudentCourses)
+                .HasForeignKey(x => x.CatalogCourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.FacultyCourseAssignment)
+                .WithMany(x => x.StudentCourses)
+                .HasForeignKey(x => x.FacultyCourseAssignmentId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<Assessment>(entity =>
@@ -256,6 +370,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(x => x.ApplicationUserId);
             entity.HasIndex(x => new { x.ApplicationUserId, x.DueDate });
             entity.HasIndex(x => new { x.ApplicationUserId, x.Status });
+            entity.HasIndex(x => new { x.FacultyAssessmentId, x.CourseId })
+                .IsUnique()
+                .HasFilter("\"FacultyAssessmentId\" IS NOT NULL");
 
             entity.Property(x => x.DueDate).HasColumnType("timestamp without time zone");
             entity.Property(x => x.TotalMarks).HasPrecision(10, 2);
@@ -268,6 +385,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany(x => x.Assessments)
                 .HasForeignKey(x => new { x.CourseId, x.ApplicationUserId })
                 .HasPrincipalKey(x => new { x.Id, x.ApplicationUserId })
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.FacultyAssessment)
+                .WithMany(x => x.StudentAssessments)
+                .HasForeignKey(x => x.FacultyAssessmentId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -376,6 +498,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(x => new { x.ApplicationUserId, x.Category });
             entity.HasIndex(x => new { x.ApplicationUserId, x.IsFavorite });
             entity.HasIndex(x => new { x.ApplicationUserId, x.CreatedAt });
+            entity.HasIndex(x => new { x.FacultyResourceId, x.CourseId })
+                .IsUnique().HasFilter("\"FacultyResourceId\" IS NOT NULL");
             entity.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.HasOne(x => x.ApplicationUser)
@@ -388,6 +512,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .HasForeignKey(x => new { x.CourseId, x.ApplicationUserId })
                 .HasPrincipalKey(x => new { x.Id, x.ApplicationUserId })
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.FacultyResource).WithMany(x => x.StudentResources)
+                .HasForeignKey(x => x.FacultyResourceId).OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<CommunityPost>(entity =>

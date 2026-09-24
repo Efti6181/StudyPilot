@@ -1,3 +1,4 @@
+@using System.Globalization
 @model StudyPilotApp.ViewModels.CourseFormViewModel
 
 @if (Model.Id.HasValue)
@@ -10,84 +11,113 @@
 <section class="card-ui mb-3">
     <div class="card-head">
         <div>
-            <h2>Course identity</h2>
-            <p>The code, title and instructor shown throughout StudyPilot</p>
+            <h2>Admin-approved course and instructor</h2>
+            <p>Course facts come from the Course Catalog. Choose an instructor assigned by an administrator.</p>
         </div>
+        <span class="mini-badge success"><i class="bi bi-shield-lock"></i> Verified catalog data</span>
     </div>
     <div class="card-body-ui">
+        @if (Model.CatalogOptions.Count == 0 && !Model.IsCatalogLocked)
+        {
+            <div class="alert alert-warning rounded-4 mb-3">
+                No eligible course is available. First select your Admin-managed Department and Program in
+                <a asp-controller="Student" asp-action="Profile" class="alert-link">My Profile</a>, then ask an administrator to assign Faculty to the course.
+            </div>
+        }
+
         <div class="row g-3">
-            <div class="col-md-4">
+            <div class="col-lg-6">
+                <label asp-for="CatalogCourseId" class="form-label"></label>
+                @if (Model.IsCatalogLocked)
+                {
+                    <input asp-for="CatalogCourseId" type="hidden" />
+                    <select class="form-select" disabled aria-label="Catalog course is locked">
+                        <option>@Model.CourseCode — @Model.CourseName</option>
+                    </select>
+                }
+                else
+                {
+                    <select asp-for="CatalogCourseId" class="form-select"
+                            data-instructors-url="@Url.Action("Instructors", "Courses")">
+                        <option value="">Select course</option>
+                        @foreach (var course in Model.CatalogOptions)
+                        {
+                            <option value="@course.Id"
+                                    data-code="@course.Code"
+                                    data-name="@course.Name"
+                                    data-credit="@course.CreditHours.ToString(CultureInfo.InvariantCulture)"
+                                    data-type="@course.CourseType"
+                                    data-semester="@course.Semester"
+                                    data-description="@course.Description">@course.Label</option>
+                        }
+                    </select>
+                }
+                <span asp-validation-for="CatalogCourseId" class="text-danger small"></span>
+            </div>
+            <div class="col-lg-6">
+                <label asp-for="FacultyCourseAssignmentId" class="form-label"></label>
+                @if (Model.IsCatalogLocked)
+                {
+                    <input asp-for="FacultyCourseAssignmentId" type="hidden" />
+                    <select class="form-select" disabled aria-label="Instructor is locked">
+                        <option>@Model.Instructor · @Model.AcademicTerm @Model.AcademicYear</option>
+                    </select>
+                }
+                else
+                {
+                    <select asp-for="FacultyCourseAssignmentId" asp-items="Model.InstructorOptions" class="form-select">
+                        <option value="">Select instructor</option>
+                    </select>
+                }
+                <span asp-validation-for="FacultyCourseAssignmentId" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-md-6 col-xl-3">
                 <label asp-for="CourseCode" class="form-label"></label>
-                <input asp-for="CourseCode" class="form-control text-uppercase" placeholder="CSE 3205" autocomplete="off" />
-                <span asp-validation-for="CourseCode" class="text-danger small"></span>
+                <input asp-for="CourseCode" class="form-control" readonly />
             </div>
-            <div class="col-md-8">
+            <div class="col-md-6 col-xl-5">
                 <label asp-for="CourseName" class="form-label"></label>
-                <input asp-for="CourseName" class="form-control" placeholder="Computer Networks" autocomplete="off" />
-                <span asp-validation-for="CourseName" class="text-danger small"></span>
+                <input asp-for="CourseName" class="form-control" readonly />
             </div>
-            <div class="col-md-8">
-                <label asp-for="Instructor" class="form-label"></label>
-                <input asp-for="Instructor" class="form-control" placeholder="Instructor name (optional)" autocomplete="off" />
-                <span asp-validation-for="Instructor" class="text-danger small"></span>
+            <div class="col-6 col-xl-2">
+                <label asp-for="CreditHours" class="form-label"></label>
+                <input asp-for="CreditHours" class="form-control" readonly />
+            </div>
+            <div class="col-6 col-xl-2">
+                <label asp-for="CourseType" class="form-label"></label>
+                <input id="CourseTypeDisplay" class="form-control" value="@Model.CourseType" readonly />
+                <input asp-for="CourseType" type="hidden" />
             </div>
             <div class="col-md-4">
-                <label asp-for="CourseType" class="form-label"></label>
-                <select asp-for="CourseType" asp-items="Html.GetEnumSelectList<CourseType>()" class="form-select">
-                    <option value="">Select type</option>
-                </select>
-                <span asp-validation-for="CourseType" class="text-danger small"></span>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="card-ui mb-3">
-    <div class="card-head">
-        <div>
-            <h2>Academic placement</h2>
-            <p>Where this course belongs in your academic timeline</p>
-        </div>
-    </div>
-    <div class="card-body-ui">
-        <div class="row g-3">
-            <div class="col-sm-6 col-xl-3">
-                <label asp-for="CreditHours" class="form-label"></label>
-                <input asp-for="CreditHours" class="form-control" type="number" min="0.5" max="9" step="0.5" placeholder="3.0" />
-                <span asp-validation-for="CreditHours" class="text-danger small"></span>
-            </div>
-            <div class="col-sm-6 col-xl-3">
                 <label asp-for="Semester" class="form-label"></label>
-                <select asp-for="Semester" class="form-select">
-                    <option value="">Select semester</option>
-                    @for (var semester = 1; semester <= 12; semester++)
-                    {
-                        <option value="@semester">Semester @semester</option>
-                    }
-                </select>
-                <span asp-validation-for="Semester" class="text-danger small"></span>
+                <input asp-for="Semester" class="form-control" readonly />
             </div>
-            <div class="col-sm-6 col-xl-3">
+            <div class="col-md-4">
                 <label asp-for="AcademicTerm" class="form-label"></label>
-                <select asp-for="AcademicTerm" asp-items="Html.GetEnumSelectList<AcademicTerm>()" class="form-select">
-                    <option value="">Select term</option>
-                </select>
-                <span asp-validation-for="AcademicTerm" class="text-danger small"></span>
+                <input id="AcademicTermDisplay" class="form-control" value="@Model.AcademicTerm" readonly />
+                <input asp-for="AcademicTerm" type="hidden" />
             </div>
-            <div class="col-sm-6 col-xl-3">
+            <div class="col-md-4">
                 <label asp-for="AcademicYear" class="form-label"></label>
-                <input asp-for="AcademicYear" class="form-control" type="number" min="2000" max="2100" />
-                <span asp-validation-for="AcademicYear" class="text-danger small"></span>
+                <input asp-for="AcademicYear" class="form-control" readonly />
+            </div>
+            <div class="col-12">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3" readonly></textarea>
+                <div class="form-text">Only an administrator can change these catalog details.</div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="card-ui mb-3">
+<section class="card-ui">
     <div class="card-head">
         <div>
-            <h2>Goal and progress</h2>
-            <p>Set the outcome you want and track current completion</p>
+            <h2>Your goal and progress</h2>
+            <p>These are your personal settings and remain editable.</p>
         </div>
     </div>
     <div class="card-body-ui">
@@ -125,23 +155,6 @@
                 </div>
                 <span asp-validation-for="ProgressPercentage" class="text-danger small"></span>
             </div>
-        </div>
-    </div>
-</section>
-
-<section class="card-ui">
-    <div class="card-head">
-        <div>
-            <h2>Course description</h2>
-            <p>Optional notes about topics, outcomes or expectations</p>
-        </div>
-    </div>
-    <div class="card-body-ui">
-        <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control" rows="5" maxlength="1000" placeholder="What will you learn in this course?"></textarea>
-        <div class="d-flex justify-content-between mt-1">
-            <span asp-validation-for="Description" class="text-danger small"></span>
-            <small class="text-muted"><span id="courseDescriptionCount">0</span>/1000</small>
         </div>
     </div>
 </section>

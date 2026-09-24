@@ -77,6 +77,27 @@ public sealed class EventDetailsViewModel : StudentShellViewModel
     public EventCardViewModel Event { get; set; } = new();
 }
 
+public sealed class FacultyEventIndexViewModel : FacultyShellViewModel
+{
+    public IReadOnlyList<EventCardViewModel> Events { get; set; } = [];
+    public string? Search { get; set; }
+    public CampusEventType? Type { get; set; }
+    public EventLocationType? LocationType { get; set; }
+    public string Scope { get; set; } = "upcoming";
+    public string Sort { get; set; } = "soonest";
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 9;
+    public int TotalEvents { get; set; }
+    public int RegisteredCount { get; set; }
+    public int SavedCount { get; set; }
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling(TotalEvents / (double)PageSize));
+}
+
+public sealed class FacultyEventDetailsViewModel : FacultyShellViewModel
+{
+    public EventCardViewModel Event { get; set; } = new();
+}
+
 public sealed class DashboardEventViewModel
 {
     public int Id { get; set; }

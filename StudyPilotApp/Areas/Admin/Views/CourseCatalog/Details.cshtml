@@ -6,3 +6,25 @@
     <aside class="admin-panel admin-record-meta"><h2>Record information</h2><dl><div><dt>Catalog ID</dt><dd>#@Model.Id</dd></div><div><dt>Prerequisites</dt><dd>@(Model.Prerequisites ?? "None specified")</dd></div><div><dt>Created</dt><dd>@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</dd></div><div><dt>Last updated</dt><dd>@(Model.UpdatedAt?.ToLocalTime().ToString("dd MMM yyyy, h:mm tt") ?? "Not updated yet")</dd></div></dl></aside>
 </div>
 <div class="admin-info-callout"><i class="bi bi-stars"></i><div><strong>Smart planning metadata</strong><p>Difficulty and career relevance provide the canonical information needed for AI-assisted workload and career-priority recommendations.</p></div></div>
+<section class="admin-panel admin-faculty-assignments">
+    <header><div><h2><i class="bi bi-person-workspace"></i> Faculty assignments</h2><p>Select any registered Faculty account. The same course can be assigned to multiple Faculty members, terms, or sections.</p></div></header>
+    <form asp-action="AssignFaculty" asp-route-id="@Model.Id" method="post" class="admin-faculty-assignment-form">
+        <label><span>Faculty</span><select name="facultyProfileId" asp-items="Model.FacultyOptions" required><option value="">Select faculty</option></select></label>
+        <label><span>Academic term</span><select name="academicPeriodId" asp-items="Model.AcademicPeriodOptions" required><option value="">Select term</option></select></label>
+        <label><span>Section</span><input name="section" value="A" maxlength="30" required /></label>
+        <button class="admin-primary-button" type="submit"><i class="bi bi-person-plus"></i>Assign</button>
+    </form>
+    @if (Model.FacultyAssignments.Count == 0)
+    {
+        <div class="admin-empty"><i class="bi bi-person-workspace"></i><p>No faculty has been assigned to this course.</p></div>
+    }
+    else
+    {
+        <div class="admin-table-wrap"><table class="admin-data-table"><thead><tr><th>Faculty</th><th>Department</th><th>Term</th><th>Section</th><th></th></tr></thead><tbody>
+        @foreach (var assignment in Model.FacultyAssignments)
+        {
+            <tr><td data-label="Faculty"><strong>@assignment.FacultyName</strong><small class="d-block text-muted">@assignment.FacultyId</small></td><td data-label="Department">@assignment.Department</td><td data-label="Term">@assignment.Period</td><td data-label="Section"><span class="admin-status-pill @(assignment.IsActive ? "active" : "inactive")"><i></i>@assignment.Section · @(assignment.IsActive ? "Active" : "Inactive")</span></td><td class="admin-table-actions"><form asp-action="SetFacultyAssignmentStatus" asp-route-id="@Model.Id" method="post"><input type="hidden" name="assignmentId" value="@assignment.Id" /><input type="hidden" name="isActive" value="@(!assignment.IsActive)" /><button class="@(assignment.IsActive ? "admin-icon-danger" : "admin-primary-button")" type="submit" title="@(assignment.IsActive ? "Deactivate" : "Activate") assignment"><i class="bi @(assignment.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i></button></form></td></tr>
+        }
+        </tbody></table></div>
+    }
+</section>

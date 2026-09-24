@@ -1,0 +1,128 @@
+@model StudyPilotApp.ViewModels.FacultyAIIndexViewModel
+@using StudyPilotApp.Models
+@{
+    ViewData["Title"] = "Faculty AI";
+    Layout = "/Views/Shared/_FacultyLayout.cshtml";
+    var submitted = ViewData["FacultyAIInput"] as StudyPilotApp.ViewModels.FacultyAIAskViewModel;
+    var selectedMode = submitted?.Mode ?? Model.ActiveMode;
+    var campusOffset = TimeSpan.FromHours(6);
+}
+
+@section Styles { <link rel="stylesheet" href="~/css/faculty-ai.css" asp-append-version="true" /> }
+
+<div class="faculty-heading faculty-ai-heading">
+    <div><span>TEACHING INTELLIGENCE</span><h1>Faculty AI</h1><p>Create faculty-reviewed teaching drafts using your authorized StudyPilot course context.</p></div>
+    <span class="faculty-ai-status @(Model.IsProviderConfigured ? "online" : "fallback")">
+        <i class="bi @(Model.IsProviderConfigured ? "bi-stars" : "bi-shield-check")"></i>
+        @(Model.IsProviderConfigured ? "Gemini configured" : "Safe fallback active")
+    </span>
+</div>
+
+@if (TempData["FacultyAIInfo"] is string info)
+{
+    <div class="faculty-ai-alert"><i class="bi bi-info-circle-fill"></i>@info</div>
+}
+
+<section class="faculty-ai-safety">
+    <i class="bi bi-shield-lock"></i>
+    <div><strong>Faculty AI drafts; you remain the academic decision-maker.</strong><span>It receives assigned-course data and aggregate activity counts only. It cannot publish, grade, message students, or change StudyPilot records.</span></div>
+</section>
+
+<div class="faculty-ai-workspace">
+    <aside class="faculty-ai-history">
+        <a asp-action="Index" class="faculty-primary faculty-ai-new"><i class="bi bi-plus-lg"></i>New conversation</a>
+        <div class="faculty-ai-history-label">Recent conversations</div>
+        <div class="faculty-ai-history-list">
+            @if (Model.Conversations.Count == 0)
+            {
+                <div class="faculty-ai-history-empty"><i class="bi bi-chat-square-text"></i><span>Your Faculty AI conversations will appear here.</span></div>
+            }
+            else
+            {
+                @foreach (var conversation in Model.Conversations)
+                {
+                    <div class="faculty-ai-history-item @(conversation.IsActive ? "active" : null)">
+                        <a asp-action="Index" asp-route-conversationId="@conversation.Id">
+                            <i class="bi bi-chat-left-text"></i>
+                            <span><strong>@conversation.Title</strong><small>@conversation.UpdatedAt.ToOffset(campusOffset).ToString("dd MMM · hh:mm tt")</small></span>
+                        </a>
+                        <form asp-action="DeleteConversation" asp-route-id="@conversation.Id" method="post" onsubmit="return confirm('Delete this Faculty AI conversation?');">
+                            <button type="submit" aria-label="Delete conversation" title="Delete"><i class="bi bi-trash3"></i></button>
+                        </form>
+                    </div>
+                }
+            }
+        </div>
+    </aside>
+
+    <section class="faculty-ai-chat">
+        <header class="faculty-ai-chat-header">
+            <div class="faculty-ai-orb"><i class="bi bi-stars"></i></div>
+            <div><h2>@Model.ActiveConversationTitle</h2><p>Grounded in your assigned StudyPilot courses</p></div>
+        </header>
+
+        <div class="faculty-ai-actions" aria-label="Faculty AI quick actions">
+            <button type="button" data-faculty-ai-mode="1" data-faculty-ai-prompt="Create a 60-minute lesson plan for the selected course with measurable objectives, timing, an active-learning task, and an exit check."><i class="bi bi-easel2"></i><span>Lesson plan</span></button>
+            <button type="button" data-faculty-ai-mode="2" data-faculty-ai-prompt="Draft an assessment for the selected course with balanced question difficulty, marks allocation, a concise rubric, and integrity checks."><i class="bi bi-clipboard2-check"></i><span>Assessment draft</span></button>
+            <button type="button" data-faculty-ai-mode="3" data-faculty-ai-prompt="Suggest inclusive actions to support students using only aggregate course context. Identify what additional non-sensitive evidence I should review."><i class="bi bi-people"></i><span>Student support</span></button>
+            <button type="button" data-faculty-ai-mode="4" data-faculty-ai-prompt="Review my teaching portfolio for assessment timing, resource coverage, and communication gaps. Give prioritized next actions."><i class="bi bi-graph-up-arrow"></i><span>Course review</span></button>
+        </div>
+
+        <div class="faculty-ai-messages" id="facultyAiMessages" aria-live="polite">
+            @if (Model.Messages.Count == 0)
+            {
+                <div class="faculty-ai-welcome">
+                    <div class="faculty-ai-welcome-icon"><i class="bi bi-mortarboard"></i></div>
+                    <h2>What would you like to prepare?</h2>
+                    <p>Select an assigned course and ask for a lesson outline, assessment draft, teaching review, rubric, activity, or student-support strategy.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var message in Model.Messages)
+                {
+                    <article class="faculty-ai-message @(message.Role == AcademicAIMessageRole.User ? "user" : "assistant")">
+                        <div class="faculty-ai-avatar"><i class="bi @(message.Role == AcademicAIMessageRole.User ? "bi-person" : "bi-stars")"></i></div>
+                        <div class="faculty-ai-bubble">
+                            <div class="faculty-ai-meta">
+                                <strong>@(message.Role == AcademicAIMessageRole.User ? "You" : "Faculty AI")</strong>
+                                <time>@message.CreatedAt.ToOffset(campusOffset).ToString("hh:mm tt")</time>
+                                @if (message.IsFallback) { <span>Fallback</span> }
+                            </div>
+                            <div class="faculty-ai-text">@message.Content</div>
+                            @if (message.Role == AcademicAIMessageRole.Assistant && !string.IsNullOrWhiteSpace(message.Provider))
+                            { <small class="faculty-ai-provider">@message.Provider</small> }
+                        </div>
+                    </article>
+                }
+            }
+        </div>
+
+        <form asp-action="Ask" method="post" class="faculty-ai-composer" id="facultyAiComposer">
+            <input type="hidden" name="ConversationId" value="@Model.ConversationId" />
+            <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+            <div class="faculty-ai-controls">
+                <select name="Mode" id="facultyAiMode" aria-label="Faculty AI mode">
+                    @foreach (var modeItem in Html.GetEnumSelectList<FacultyAIMode>())
+                    {
+                        <option value="@modeItem.Value" selected="@(((int)selectedMode).ToString() == modeItem.Value ? "selected" : null)">@modeItem.Text</option>
+                    }
+                </select>
+                <select name="AssignmentId" id="facultyAiCourse" aria-label="Course context">
+                    <option value="">All assigned courses</option>
+                    @foreach (var course in Model.Courses)
+                    {
+                        <option value="@course.Id" selected="@(submitted?.AssignmentId == course.Id ? "selected" : null)">@course.Label</option>
+                    }
+                </select>
+            </div>
+            <div class="faculty-ai-prompt-row">
+                <textarea name="Prompt" id="facultyAiPrompt" rows="3" maxlength="6000" required placeholder="Ask Faculty AI to prepare an editable teaching draft…">@submitted?.Prompt</textarea>
+                <button class="faculty-ai-send" type="submit" aria-label="Send request"><i class="bi bi-arrow-up"></i></button>
+            </div>
+            <div class="faculty-ai-note"><i class="bi bi-info-circle"></i>Review AI output for correctness, fairness, accessibility, and university policy before using it.</div>
+        </form>
+    </section>
+</div>
+
+@section Scripts { <script src="~/js/faculty-ai.js" asp-append-version="true"></script> }

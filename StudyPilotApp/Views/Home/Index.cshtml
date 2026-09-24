@@ -1,8 +1,198 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Your Academic Command Center";
+    Layout = "/Views/Shared/_LandingLayout.cshtml";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var dashboardController = User.IsInRole("Admin")
+        ? "Admin"
+        : User.IsInRole("Faculty")
+            ? "Faculty"
+            : "Student";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="hero">
+    <div class="container">
+        <div class="hero-content text-center" data-reveal>
+            <span class="eyebrow"><i class="bi bi-stars"></i> One platform. Every academic step.</span>
+            <h1 class="hero-title">Navigate university life with <span class="gradient-text">clarity and confidence.</span></h1>
+            <p class="hero-copy">
+                StudyPilot connects courses, assessments, progress, intelligent planning and campus collaboration in one secure workspace built around your role.
+            </p>
+            <div class="hero-actions">
+                @if (isAuthenticated)
+                {
+                    <a class="btn btn-primary btn-lg" asp-controller="@dashboardController" asp-action="Index">
+                        Go to your dashboard <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                }
+                else
+                {
+                    <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Register">
+                        Create your account <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                    <a class="btn btn-ghost btn-lg" asp-controller="Account" asp-action="Login">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign in
+                    </a>
+                }
+            </div>
+            <div class="trust-row" aria-label="Platform benefits">
+                <span><i class="bi bi-check-circle-fill"></i> Verified university access</span>
+                <span><i class="bi bi-check-circle-fill"></i> Role-specific workspaces</span>
+                <span><i class="bi bi-check-circle-fill"></i> Academic data stays protected</span>
+            </div>
+        </div>
+
+        <div class="hero-preview" data-reveal data-reveal-delay="1" aria-label="StudyPilot dashboard preview">
+            <div class="preview-toolbar" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="preview-shell">
+                <aside class="preview-side" aria-hidden="true">
+                    <div class="preview-side-logo"></div>
+                    <div class="preview-side-line active"></div>
+                    <div class="preview-side-line"></div>
+                    <div class="preview-side-line"></div>
+                    <div class="preview-side-line"></div>
+                    <div class="preview-side-line"></div>
+                </aside>
+                <div class="preview-main">
+                    <div class="landing-preview-header">
+                        <div><small>STUDENT WORKSPACE</small><strong>Good morning, Scholar</strong></div>
+                        <span><i class="bi bi-bell"></i></span>
+                    </div>
+                    <div class="preview-stats">
+                        <article class="preview-stat-card blue"><i class="bi bi-journal-bookmark"></i><div><small>Active courses</small><strong>6</strong></div></article>
+                        <article class="preview-stat-card violet"><i class="bi bi-clipboard-check"></i><div><small>Assessments</small><strong>4</strong></div></article>
+                        <article class="preview-stat-card teal"><i class="bi bi-graph-up-arrow"></i><div><small>Study progress</small><strong>78%</strong></div></article>
+                        <article class="preview-stat-card amber"><i class="bi bi-lightning-charge"></i><div><small>Priority tasks</small><strong>3</strong></div></article>
+                    </div>
+                    <div class="preview-grid">
+                        <div class="landing-preview-plan">
+                            <header><div><small>SMART STUDY PLAN</small><strong>Your focused week</strong></div><span>AI assisted</span></header>
+                            <div class="landing-plan-row"><time>09:00</time><i class="blue"></i><div><strong>Data Structures</strong><small>Revision · 60 minutes</small></div></div>
+                            <div class="landing-plan-row"><time>13:30</time><i class="teal"></i><div><strong>Computer Networks</strong><small>Lab preparation · 45 minutes</small></div></div>
+                            <div class="landing-plan-row"><time>19:00</time><i class="violet"></i><div><strong>Software Engineering</strong><small>Project milestone · 90 minutes</small></div></div>
+                        </div>
+                        <div class="landing-preview-focus">
+                            <header><small>NEXT DEADLINE</small><span>Tomorrow</span></header>
+                            <i class="bi bi-file-earmark-text"></i>
+                            <strong>Network Security Report</strong>
+                            <p>Keep the highest-impact task visible and turn it into a clear next action.</p>
+                            <div><span style="width: 72%"></span></div>
+                            <small>72% prepared</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="landing-capability-strip" aria-label="StudyPilot capabilities">
+    <div class="container">
+        <div><i class="bi bi-journal-check"></i><span><strong>Course planning</strong><small>Goals, progress and instructors</small></span></div>
+        <div><i class="bi bi-calendar2-week"></i><span><strong>Smart routines</strong><small>Focused semester schedules</small></span></div>
+        <div><i class="bi bi-people"></i><span><strong>Campus community</strong><small>Students and faculty connected</small></span></div>
+        <div><i class="bi bi-bar-chart-line"></i><span><strong>Progress insights</strong><small>GPA and performance visibility</small></span></div>
+    </div>
+</section>
+
+<section id="features" class="landing-section">
+    <div class="container">
+        <div class="text-center landing-section-heading" data-reveal>
+            <span class="section-kicker">Everything in one place</span>
+            <h2 class="section-title">Less academic chaos. More meaningful progress.</h2>
+            <p class="section-copy">Every tool works together, so students can act on reliable course information while faculty and administrators keep the platform organized.</p>
+        </div>
+        <div class="row g-4 mt-4">
+            <div class="col-md-6 col-xl-4" data-reveal><article class="feature-card"><span class="feature-icon"><i class="bi bi-journals"></i></span><h3>Courses and instructors</h3><p>Select approved courses, connect with assigned instructors, set personal goals and track progress throughout the semester.</p><span class="feature-link">Structured enrollment <i class="bi bi-arrow-right"></i></span></article></div>
+            <div class="col-md-6 col-xl-4" data-reveal data-reveal-delay="1"><article class="feature-card"><span class="feature-icon violet"><i class="bi bi-clipboard2-check"></i></span><h3>Assessments and priorities</h3><p>See faculty-published work beside personal assessments, deadlines, priorities and completion status.</p><span class="feature-link">Stay ahead <i class="bi bi-arrow-right"></i></span></article></div>
+            <div class="col-md-6 col-xl-4" data-reveal data-reveal-delay="2"><article class="feature-card"><span class="feature-icon teal"><i class="bi bi-stars"></i></span><h3>AI academic assistance</h3><p>Turn authorized academic context into practical study guidance while deterministic fallbacks keep core planning available.</p><span class="feature-link">Guidance with guardrails <i class="bi bi-arrow-right"></i></span></article></div>
+            <div class="col-md-6 col-xl-4" data-reveal><article class="feature-card"><span class="feature-icon amber"><i class="bi bi-calendar2-check"></i></span><h3>Smart study plans</h3><p>Build weekly routines around course difficulty, career relevance, available study time and important deadlines.</p><span class="feature-link">Plan focused weeks <i class="bi bi-arrow-right"></i></span></article></div>
+            <div class="col-md-6 col-xl-4" data-reveal data-reveal-delay="1"><article class="feature-card"><span class="feature-icon rose"><i class="bi bi-chat-heart"></i></span><h3>Community and resources</h3><p>Share discussions, comments and useful learning resources within an ownership-protected campus community.</p><span class="feature-link">Learn together <i class="bi bi-arrow-right"></i></span></article></div>
+            <div class="col-md-6 col-xl-4" data-reveal data-reveal-delay="2"><article class="feature-card"><span class="feature-icon sky"><i class="bi bi-graph-up"></i></span><h3>GPA and progress insights</h3><p>Calculate semester results, review CGPA projections and understand where consistent effort can make the biggest difference.</p><span class="feature-link">Make progress visible <i class="bi bi-arrow-right"></i></span></article></div>
+        </div>
+    </div>
+</section>
+
+<section id="roles" class="landing-section soft">
+    <div class="container">
+        <div class="row align-items-end g-4 mb-5">
+            <div class="col-lg-7" data-reveal><span class="section-kicker">Designed around responsibility</span><h2 class="section-title text-start mx-0 mb-0">The right workspace for every university role.</h2></div>
+            <div class="col-lg-5" data-reveal><p class="section-copy mx-0">Role-based authorization keeps tools relevant and sensitive actions in the hands of the people responsible for them.</p></div>
+        </div>
+        <div class="landing-role-grid">
+            <article class="landing-role-card student" data-reveal>
+                <header><span><i class="bi bi-mortarboard"></i></span><small>STUDENT</small></header>
+                <h3>Own your academic journey.</h3>
+                <p>Organize courses, deadlines, study routines, GPA, resources, events and discussions from one personal command center.</p>
+                <ul><li><i class="bi bi-check2"></i> Personal progress and goal tracking</li><li><i class="bi bi-check2"></i> Smart planning and AI assistance</li><li><i class="bi bi-check2"></i> Notifications and campus activity</li></ul>
+            </article>
+            <article class="landing-role-card faculty" data-reveal data-reveal-delay="1">
+                <header><span><i class="bi bi-person-workspace"></i></span><small>FACULTY</small></header>
+                <h3>Guide students with clarity.</h3>
+                <p>Manage assigned courses and publish assessments, announcements and resources students can immediately act on.</p>
+                <ul><li><i class="bi bi-check2"></i> Assigned course workspace</li><li><i class="bi bi-check2"></i> Assessment publishing</li><li><i class="bi bi-check2"></i> Faculty events and community</li></ul>
+            </article>
+            <article class="landing-role-card admin" data-reveal data-reveal-delay="2">
+                <header><span><i class="bi bi-shield-lock"></i></span><small>ADMIN</small></header>
+                <h3>Operate the platform confidently.</h3>
+                <p>Control institutional data, registrations, course assignments, events, reports, settings and audit visibility.</p>
+                <ul><li><i class="bi bi-check2"></i> Faculty-course assignment</li><li><i class="bi bi-check2"></i> Department and program control</li><li><i class="bi bi-check2"></i> Reports, settings and audit logs</li></ul>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section id="how-it-works" class="landing-section">
+    <div class="container">
+        <div class="text-center landing-section-heading" data-reveal>
+            <span class="section-kicker">Simple by design</span>
+            <h2 class="section-title">From verified account to focused action.</h2>
+        </div>
+        <div class="landing-steps">
+            <article data-reveal><span>01</span><i class="bi bi-person-check"></i><h3>Verify your identity</h3><p>Register with a university ID and account type that match the approved institutional registry.</p></article>
+            <article data-reveal data-reveal-delay="1"><span>02</span><i class="bi bi-grid-1x2"></i><h3>Open your workspace</h3><p>StudyPilot directs students, faculty and administrators to the tools authorized for their role.</p></article>
+            <article data-reveal data-reveal-delay="2"><span>03</span><i class="bi bi-compass"></i><h3>Act on what matters</h3><p>Use connected courses, deadlines, insights and communication to make the next decision clear.</p></article>
+        </div>
+    </div>
+</section>
+
+<section id="security" class="landing-section soft">
+    <div class="container">
+        <div class="landing-security" data-reveal>
+            <div class="landing-security-copy">
+                <span class="section-kicker light">Security at the foundation</span>
+                <h2>Your academic workspace deserves more than a password.</h2>
+                <p>StudyPilot combines ASP.NET Core Identity, role authorization and server-controlled data access to protect platform actions.</p>
+                <div class="landing-security-list">
+                    <span><i class="bi bi-shield-check"></i><b>Role authorization</b><small>Student, Faculty and Admin boundaries</small></span>
+                    <span><i class="bi bi-fingerprint"></i><b>Verified registration</b><small>University identity matching</small></span>
+                    <span><i class="bi bi-database-check"></i><b>Protected records</b><small>PostgreSQL with EF Core ownership rules</small></span>
+                    <span><i class="bi bi-lock"></i><b>Safe form handling</b><small>Validation and anti-forgery protection</small></span>
+                </div>
+            </div>
+            <div class="landing-security-visual" aria-hidden="true">
+                <span class="security-orbit one"><i class="bi bi-person"></i></span>
+                <span class="security-orbit two"><i class="bi bi-journal-text"></i></span>
+                <span class="security-orbit three"><i class="bi bi-database"></i></span>
+                <div><i class="bi bi-shield-lock-fill"></i><strong>Protected by design</strong><small>Identity · Roles · Ownership</small></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="landing-section landing-final-cta">
+    <div class="container">
+        <div class="cta-panel" data-reveal>
+            <span class="eyebrow dark"><i class="bi bi-rocket-takeoff"></i> Start with clarity</span>
+            <h2>Ready to take control of your semester?</h2>
+            <p>Bring your academic work into one focused, secure and connected StudyPilot workspace.</p>
+            @if (isAuthenticated)
+            {
+                <a class="btn landing-light-button btn-lg" asp-controller="@dashboardController" asp-action="Index">Open your dashboard <i class="bi bi-arrow-right"></i></a>
+            }
+            else
+            {
+                <div><a class="btn landing-light-button btn-lg" asp-controller="Account" asp-action="Register">Create an account <i class="bi bi-arrow-right"></i></a><a class="landing-cta-link" asp-controller="Account" asp-action="Login">Already registered? Sign in</a></div>
+            }
+        </div>
+    </div>
+</section>
